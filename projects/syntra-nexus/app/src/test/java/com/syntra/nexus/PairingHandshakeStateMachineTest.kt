@@ -1,0 +1,106 @@
+package com.syntra.nexus
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class PairingHandshakeStateMachineTest {
+    @Test
+    fun reachesPairedOnlyAfterPeerProofAndBothApprovals() {
+        val created = session()
+        val waiting = created.invitationSent(NOW + 1)
+        val verifying = waiting.peerConnected(NOW + 2)
+        val localReview = verifying.peerProofVerified(NOW + 3)
+        val peerReview = localReview.approveLocally(NOW + 4)
+        val paired = peerReview.peerApprovalVerified(NOW + 5)
+
+        assertEquals(PairingHandshakeState.PAIRED, paired.state)
+        assertEquals(PairingHandshakeDecision.BOTH_APPROVED, paired.decision)
+        assertTrue(paired.isTerminal)
+        assertEquals(PairingHandshakeState.CREATED, created.state)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun cannotApproveBeforePeerProof() {
+        session().invitationSent(NOW + 1).approveLocally(NOW + 2)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun cannotSkipPeerVerification() {
+        session().invitationSent(NOW + 1).peerProofVerified(NOW + 2)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun cannotMarkPairedBeforeLocalApproval() {
+        session().invitationSent(NOW + 1)
+            .peerConnected(NOW + 2)
+            .peerProofVerified(NOW + 3)
+            .peerApprovalVerified(NOW + 4)
+    }
+
+    @Test
+    fun expiresAtExactDeadlineAndCannotBeApproved() {
+        val expired = session().invitationSent(NOW + 1).refresh(EXPIRY)
+        assertEquals(PairingHandshakeState.EXPIRED, expired.state)
+        assertTrue(expired.isTerminal)
+    }
+
+    @Test
+    fun localRejectionIsTerminal() {
+        val rejected = session().invitationSent(NOW + 1).rejectLocally(NOW + 2)
+        assertEquals(PairingHandshakeState.REJECTED, rejected.state)
+        assertEquals(PairingHandshakeState.REJECTED, rejected.refresh(NOW + 3).state)
+    }
+
+    @Test
+    fun rejectionAfterExpiryReturnsExpired() {
+        val expired = session().invitationSent(NOW + 1).rejectLocally(EXPIRY)
+        assertEquals(PairingHandshakeState.EXPIRED, expired.state)
+    }
+
+    @Test
+    fun failureCannotBeChangedByRefresh() {
+        val failed = session().invitationSent(NOW + 1).fail(NOW + 2)
+        assertSame(failed, failed.refresh(NOW + 3))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun cannotTransitionFromTerminalState() {
+        session().invitationSent(NOW + 1)
+            .rejectLocally(NOW + 2)
+            .peerConnected(NOW + 3)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsInvalidRequestId() {
+        PairingHandshakeSession.create("bad", EXPIRY, NOW)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsLifetimeOverTwoMinutes() {
+        PairingHandshakeSession.create(
+            REQUEST_ID, NOW + PairingRequest.DEFAULT_TTL_MILLIS + 1, NOW
+        )
+    }
+
+    @Test
+    fun intermediateStateIsNotTrusted() {
+        val awaitingPeerApproval = session().invitationSent(NOW + 1)
+            .peerConnected(NOW + 2)
+            .peerProofVerified(NOW + 3)
+            .approveLocally(NOW + 4)
+
+        assertNotEquals(PairingHandshakeState.PAIRED, awaitingPeerApproval.state)
+        assertNotEquals(PairingHandshakeDecision.BOTH_APPROVED, awaitingPeerApproval.decision)
+    }
+
+    private fun session() = PairingHandshakeSession.create(REQUEST_ID, EXPIRY, NOW)
+
+    private companion object {
+        const val REQUEST_ID = "AAAAAAAAAAAAAAAAAAAAAA"
+        const val NOW = 10_000L
+        const val EXPIRY = 130_000L
+    }
+}

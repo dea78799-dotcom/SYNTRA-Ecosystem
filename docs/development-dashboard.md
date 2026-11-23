@@ -29,6 +29,10 @@
 - **Next tracking items:** record app version/revision, tested file types and actions, device/environment, known issues, and test evidence.
 - **Status evidence:** link to a relevant issue, pull request, build, or test report when available.
 
+## Task tracking
+
+- [Task Registry](task-registry.md) lists prioritized tasks, statuses, acceptance criteria, and linked GitHub issues. The initial tasks are open until evidence confirms completion.
+
 ## Version tracking
 
 - [Version Tracker](version-tracker.md) records approved product versions, release channels, revisions, QA evidence, and publication history. No software releases are recorded yet.

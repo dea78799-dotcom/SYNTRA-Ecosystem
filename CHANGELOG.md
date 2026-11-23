@@ -7,6 +7,13 @@ This project follows a simple Keep a Changelog-style structure. Versions are ass
 ## [Unreleased]
 
 ### Added
+- SYNTRA NEXUS 0.5.0-dev: canonical, versioned mutual-pairing transcript with fixed field ordering, explicit length prefixes, both peer public keys, invitation request ID/expiry, and independent 32-byte nonces.
+- NEXUS ECDSA signatures bind the transcript hash to the initiator or responder role; tests cover role-reflection rejection and canonical transcript validation.
+
+### Security
+- The transcript is a protocol foundation only; nonce exchange, token redemption, mutual peer verification, user approval, trusted-device storage, and LAN transport remain unimplemented.
+
+### Added
 - SYNTRA NEXUS 0.4.0-dev: Android Keystore-backed EC P-256 device identity and public-key fingerprint display.
 - NEXUS ECDSA/SHA-256 transcript-signing and verification helpers with domain separation, plus JVM tests for valid signatures and tampering.
 - SYNTRA NEXUS 0.3.0-dev: local QR invitation generation, Google Play services QR scanning, and strict scanned-payload validation.

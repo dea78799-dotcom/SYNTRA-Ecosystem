@@ -15,10 +15,13 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Generate a new invitation instead of reusing an expired one.
 - Unit tests for token format, randomness, and expiration.
 - QR generation happens locally on the Android device.
+- Strict invitation parser validates scheme, host, version, required fields, duplicate fields, token format, payload size, and expiry window.
+- Unit tests cover valid parsing and malformed, expired, duplicated, unexpected, and overlong invitation data.
 
 ## Not implemented yet
 
-- QR scanning / receiving-side flow.
+- Camera-based QR scanning UI and receiving-side flow.
+- One-time token redemption and replay prevention across devices.
 - One-time token redemption and replay prevention across devices.
 - Mutual device approval.
 - Android Keystore-backed device identity.

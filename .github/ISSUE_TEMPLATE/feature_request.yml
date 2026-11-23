@@ -1,0 +1,61 @@
+name: Feature request
+description: Propose an improvement or new capability for SYNTRA.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the user problem first. A proposed implementation is optional.
+        Do not include private user information, credentials, or confidential material.
+  - type: dropdown
+    id: product
+    attributes:
+      label: Product
+      options:
+        - SYNTRA Ecosystem / Website
+        - SYNTRA OS
+        - Syntra Files
+        - Shared ecosystem feature
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or need
+      description: What is difficult or missing today?
+      placeholder: Describe the problem this would solve.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Explain the behavior or capability you would like to see.
+      placeholder: Describe your idea.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Mention any workaround or alternative approach.
+    validations:
+      required: false
+  - type: textarea
+    id: impact
+    attributes:
+      label: Expected user impact
+      description: Who benefits, and how?
+      placeholder: Explain the expected benefit.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched for an existing request.
+          required: true
+        - label: This proposal does not disclose private or sensitive information.
+          required: true

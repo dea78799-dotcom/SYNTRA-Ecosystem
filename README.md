@@ -61,6 +61,7 @@ Files and folders will be added as their contents are ready; this outline does n
 - [Product directory](docs/products.md)
 - [Development roadmap](docs/roadmap.md)
 - [Development standards](docs/development-standards.md)
+- [Quality assurance standard](docs/quality-assurance.md)
 - [Changelog](CHANGELOG.md)
 - [Repository rights notice](LICENSE)
 

@@ -66,6 +66,10 @@ class PairingHandshakeSession private constructor(
         nowMillis: Long
     ): PairingHandshakeVerification {
         requireState(PairingHandshakeState.VERIFYING_PEER)
+        if (signerRole != PairingSignerRole.RESPONDER) {
+            val failed = fail(nowMillis)
+            return PairingHandshakeVerification(failed, PairingProofResult.IDENTITY_MISMATCH)
+        }
         val expectedHash = expectedTranscriptHashHex
         if (transcript.requestId != requestId ||
             transcript.expiresAtMillis != expiresAtMillis ||
@@ -124,6 +128,10 @@ class PairingHandshakeSession private constructor(
         nowMillis: Long
     ): PairingHandshakeVerification {
         requireState(PairingHandshakeState.WAITING_FOR_PEER_APPROVAL)
+        if (signerRole != PairingSignerRole.RESPONDER) {
+            val failed = fail(nowMillis)
+            return PairingHandshakeVerification(failed, PairingProofResult.IDENTITY_MISMATCH)
+        }
         val expectedHash = expectedTranscriptHashHex
         if (transcript.requestId != requestId ||
             transcript.expiresAtMillis != expiresAtMillis ||
@@ -249,9 +257,14 @@ class PairingHandshakeSession private constructor(
          */
         fun createForTranscript(
             transcript: PairingTranscript,
+            localInitiatorPublicKeyEncoded: ByteArray,
             nowMillis: Long
         ): PairingHandshakeSession {
             require(nowMillis >= 0L) { "Current timestamp cannot be negative." }
+            require(transcript.publicKeyFor(PairingSignerRole.INITIATOR)
+                .contentEquals(localInitiatorPublicKeyEncoded)) {
+                "Local device key does not match the initiator identity in the transcript."
+            }
             require(transcript.expiresAtMillis > nowMillis) {
                 "Pairing invitation has expired."
             }

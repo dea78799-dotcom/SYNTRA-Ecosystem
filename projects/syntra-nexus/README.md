@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.7.0-dev  
-**Status:** Local cryptographic peer-proof verification integrated with handshake state machine; no network pairing yet  
+**Version:** 0.8.0-dev  
+**Status:** Local one-time invitation-token registry prototype; no network pairing yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -22,21 +22,27 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Pin each handshake session to the SHA-256 hash of its exact canonical transcript and verify that the local controller key is the transcript's initiator identity; an unbound or substituted transcript is rejected.
 - The controller accepts only the responder role as the remote peer, preventing the local initiator identity from being reflected as the peer.
 - Integrate peer-proof verification into the handshake state machine. The transition into local approval is private and can only be reached through the verifier.
-- Require a separate role-bound signature over an explicit APPROVE decision from the peer after local approval; the Android Keystore identity store can produce an approval signature only when its public key matches the signer's transcript role. A plain network message cannot move the session to PAIRED.
+- Require a separate role-bound signature over an explicit APPROVE decision from the peer after local approval; the Android Keystore identity store can produce an approval signature only when its public key matches the signer's transcript role.
 - The state machine requires local approval and cryptographically verified peer approval before entering PAIRED.
-- Terminal rejection, expiry, and failure states cannot be advanced to paired.
-- JVM unit tests cover cryptographic proof verification, transcript pinning, signed approval, and handshake integration.
+- Add a synchronized one-time token registry with explicit ACTIVE, REDEEMED, and REVOKED states.
+- Compute and retain only a SHA-256 fingerprint of each 256-bit invitation token; the raw token is not stored by the registry.
+- Enforce atomic redemption so concurrent calls against one registered token can produce only one REDEEMED result.
+- Reject malformed and unknown tokens, expired invitations, previously redeemed tokens, revoked tokens, duplicate registrations, and attempts to extend an already registered token's expiry.
+- Bound registry memory use and retain token fingerprints as process-local tombstones until the registry is discarded.
+- JVM unit tests cover cryptographic proof verification, transcript pinning, signed approval, token expiry, duplicate registration, revocation, malformed/unknown tokens, token re-registration, and concurrent redemption.
 
 ## Not implemented yet
 
+- Connecting the QR invitation issuer's registry to a second device; the current registry is a local code primitive and is not wired into the QR screen or scanner flow.
+- Persistent token tombstones across app restarts.
+- Distributed one-time redemption or replay prevention across multiple devices.
 - Live exchange of fresh nonces and signatures between two devices.
-- One-time token redemption and replay prevention across devices.
 - Exchange and transport of the signed peer-approval message over a live authenticated connection.
 - TLS handshake, LAN transport, or NSD/mDNS discovery.
 - Persistent trusted-device registry or remote revocation.
 - Remote actions, TV client, or cloud sync.
 
-**Important:** This version verifies signatures over a locally constructed transcript and verifies a separately signed approval decision in local unit-test flows. It does not yet exchange transcript data or approval messages with another device, prove freshness across a distributed session, redeem a one-time invitation, or create a trusted-device record. The QR scanner is still a local prototype feature. Do not use this build as a remote controller.
+**Important:** The 0.8.0-dev token registry is an in-memory component for JVM-level logic and tests. It protects against duplicate redemption only inside the same live registry instance. It does not survive process death, coordinate with another device, or establish a trusted connection. The QR scanner remains a local prototype feature. Do not use this build as a remote controller.
 
 ## Build and test
 
@@ -52,7 +58,7 @@ The GitHub Actions workflow is configured to run unit tests and a debug build. A
 ## Security baseline
 
 - Both devices must explicitly approve pairing before trust is established.
-- QR invitations are short-lived and must be single-use when redemption is implemented.
+- QR invitations are short-lived and must be single-use when redemption is connected to the real pairing flow.
 - Long-lived private keys must be generated and protected with Android Keystore.
 - LAN peers must be authenticated; IP address or mDNS discovery alone is never proof of identity.
 - Every future capability must be scoped, visible, and revocable.

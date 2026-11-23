@@ -29,6 +29,10 @@
 - **Next tracking items:** record app version/revision, tested file types and actions, device/environment, known issues, and test evidence.
 - **Status evidence:** link to a relevant issue, pull request, build, or test report when available.
 
+## Version tracking
+
+- [Version Tracker](version-tracker.md) records approved product versions, release channels, revisions, QA evidence, and publication history. No software releases are recorded yet.
+
 ## Repository quality
 
 The repository check workflow verifies a small set of structural/documentation expectations. It is not a substitute for product compilation, device testing, security review, or release QA.

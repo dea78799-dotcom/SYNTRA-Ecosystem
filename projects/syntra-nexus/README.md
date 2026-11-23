@@ -19,6 +19,8 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Unit tests cover valid parsing and malformed, expired, duplicated, unexpected, and overlong invitation data.
 - Scan QR codes using Google Play services Code Scanner; the app does not request direct camera permission.
 - Valid scanned invitations are shown in a review dialog without establishing trust or a network connection.
+- A local-only review state machine tracks pending, locally accepted, locally rejected, and expired invitations.
+- Expiry arithmetic is guarded against timestamp overflow, with boundary-condition unit tests.
 
 ## Not implemented yet
 

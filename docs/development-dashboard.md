@@ -55,6 +55,11 @@ The repository check workflow verifies a small set of structural/documentation e
 4. Never mark a check green just because a file exists; report the workflow result separately.
 5. Review this page whenever a major milestone or release changes.
 
+## Build and QA evidence
+
+- [Product Build and QA Evidence Template](product-evidence-template.md) is the standard record for build identity, test environment, QA gates, defects, and release decisions.
+- Product build and QA status remains unverified until maintainers attach completed records with source revisions and test evidence. The repository CI result does not establish product runtime quality.
+
 ## Current limitations
 
 This is a manually maintained dashboard. It does not currently fetch live issue counts, release tags, test results, or project-board data. GitHub Actions will begin running the repository check when the workflow is triggered by a push, pull request, or manual dispatch.

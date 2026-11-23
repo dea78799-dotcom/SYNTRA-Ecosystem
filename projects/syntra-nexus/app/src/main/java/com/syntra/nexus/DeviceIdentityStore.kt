@@ -38,6 +38,20 @@ class DeviceIdentityStore {
         return PairingIdentityCrypto.signTranscriptHash(keyPair.private, transcriptHash, role)
     }
 
+    fun signPairingApproval(
+        transcript: PairingTranscript,
+        role: PairingSignerRole
+    ): ByteArray {
+        val keyPair = loadExistingKeyPair()
+            ?: throw IllegalStateException("Device identity has not been created.")
+        require(keyPair.public.encoded.contentEquals(transcript.publicKeyFor(role))) {
+            "Local device identity does not match the transcript signer role."
+        }
+        return PairingApprovalVerifier.createApprovalSignature(
+            keyPair.private, transcript, role
+        )
+    }
+
     /**
      * Deletes the local identity key. Existing peers will no longer be able
      * to authenticate this installation under its previous identity.

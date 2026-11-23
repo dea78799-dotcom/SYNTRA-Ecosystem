@@ -1,4 +1,4 @@
-# SYNTRA NEXUS — Architecture 0.3
+# SYNTRA NEXUS — Architecture 0.4
 
 ## Product boundary
 
@@ -32,9 +32,9 @@ The Android application is the first controller. A TV client is deferred until t
 
 ## Current implementation boundary
 
-MVP 0.3-dev generates QR invitations and scans QR codes through Google Play services Code Scanner. Scanned payloads are validated locally for scheme, host, version, required and duplicate fields, token format, payload length and expiry. A valid scan is shown for review. A local-only state machine can record pending review, accepted on this device, rejected on this device, or expired. A local acceptance is not peer approval and does not establish trust. No token is redeemed and no trust relationship is created. There is still no LAN receiver, mutual authentication, TLS session, trusted-device record or replay database.
+MVP 0.4-dev generates QR invitations, scans QR codes through Google Play services Code Scanner, and creates a local EC P-256 device signing key in Android Keystore. Scanned payloads are validated locally for scheme, host, version, required and duplicate fields, token format, payload length and expiry. A valid scan is shown for review. A local-only state machine can record pending review, accepted on this device, rejected on this device, or expired. A local acceptance is not peer approval and does not establish trust. The private key is non-exportable; only the public key and SHA-256 fingerprint are exposed. ECDSA/SHA-256 transcript-signing helpers include a NEXUS-specific domain separator. The app does not yet build a canonical peer transcript or verify a remote peer. No token is redeemed and no trust relationship is created. There is still no LAN receiver, mutual authentication, TLS session, trusted-device record or replay database.
 
-## Pairing protocol direction
+## Device identity implementation\n\n- Generate an EC key pair on curve `secp256r1` (NIST P-256) under a stable per-installation Android Keystore alias.\n- Restrict the key to signing and verification with SHA-256.\n- Keep the private key inside Android Keystore; never serialize or transmit it.\n- Identify the public key using a SHA-256 fingerprint. Users must compare fingerprints over a trusted channel before relying on a peer identity.\n- Sign only a 32-byte SHA-256 digest of a canonical, versioned pairing transcript. The signature input is domain-separated for NEXUS.\n- Key deletion is a local action and does not automatically revoke records on other devices.\n\nThis is identity-key plumbing, not a complete authentication protocol. It must be combined with fresh nonces, transcript binding, one-time token redemption, mutual verification and explicit approval before trust is granted.\n\n## Pairing protocol direction
 
 1. Initiator creates a random request ID and a cryptographically random one-time token.
 2. The invitation is encoded as a QR payload and expires after two minutes.

@@ -40,17 +40,26 @@ The repository will grow in stages. The intended structure is:
 
 ```text
 SYNTRA-Ecosystem/
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.yml
+│   │   ├── feature_request.yml
+│   │   └── config.yml
+│   └── pull_request_template.md
 ├── README.md
 ├── CHANGELOG.md
 ├── LICENSE
-├── docs/
-│   ├── architecture.md
-│   ├── products.md
-│   ├── roadmap.md
-│   └── development-standards.md
-├── assets/
-│   └── brand/
-└── website/
+└── docs/
+    ├── architecture.md
+    ├── products.md
+    ├── roadmap.md
+    ├── development-standards.md
+    ├── quality-assurance.md
+    ├── release-management.md
+    ├── security-policy.md
+    ├── contribution-guide.md
+    ├── branding-guidelines.md
+    └── project-governance.md
 ```
 
 Files and folders will be added as their contents are ready; this outline does not mean every component has been implemented.

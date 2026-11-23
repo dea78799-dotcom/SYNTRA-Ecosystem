@@ -136,6 +136,27 @@ class PairingHandshakeProofIntegrationTest {
         assertEquals(PairingHandshakeState.FAILED, result.session.state)
     }
 
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsTranscriptBoundToDifferentLocalInitiatorKey() {
+        PairingHandshakeSession.createForTranscript(
+            transcript, responder.public.encoded, NOW
+        )
+    }
+
+    @Test
+    fun initiatorCannotMasqueradeAsRemoteResponder() {
+        val signature = PairingIdentityCrypto.signTranscriptHash(
+            initiator.private, transcript.sha256, PairingSignerRole.INITIATOR
+        )
+        val result = verifyingSession().verifyPeerProofAndAdvance(
+            transcript, initiator.public.encoded, signature,
+            PairingSignerRole.INITIATOR, NOW + 3
+        )
+
+        assertEquals(PairingProofResult.IDENTITY_MISMATCH, result.proofResult)
+        assertEquals(PairingHandshakeState.FAILED, result.session.state)
+    }
+
     @Test
     fun sessionWithoutTranscriptBindingCannotAcceptPeerProof() {
         val unbound = PairingHandshakeSession.create(REQUEST_ID, EXPIRY, NOW)

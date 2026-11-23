@@ -34,7 +34,18 @@ The Android application is the first controller. A TV client is deferred until t
 
 MVP 0.4-dev generates QR invitations, scans QR codes through Google Play services Code Scanner, and creates a local EC P-256 device signing key in Android Keystore. Scanned payloads are validated locally for scheme, host, version, required and duplicate fields, token format, payload length and expiry. A valid scan is shown for review. A local-only state machine can record pending review, accepted on this device, rejected on this device, or expired. A local acceptance is not peer approval and does not establish trust. The private key is non-exportable; only the public key and SHA-256 fingerprint are exposed. ECDSA/SHA-256 transcript-signing helpers include a NEXUS-specific domain separator. The app does not yet build a canonical peer transcript or verify a remote peer. No token is redeemed and no trust relationship is created. There is still no LAN receiver, mutual authentication, TLS session, trusted-device record or replay database.
 
-## Device identity implementation\n\n- Generate an EC key pair on curve `secp256r1` (NIST P-256) under a stable per-installation Android Keystore alias.\n- Restrict the key to signing and verification with SHA-256.\n- Keep the private key inside Android Keystore; never serialize or transmit it.\n- Identify the public key using a SHA-256 fingerprint. Users must compare fingerprints over a trusted channel before relying on a peer identity.\n- Sign only a 32-byte SHA-256 digest of a canonical, versioned pairing transcript. The signature input is domain-separated for NEXUS.\n- Key deletion is a local action and does not automatically revoke records on other devices.\n\nThis is identity-key plumbing, not a complete authentication protocol. It must be combined with fresh nonces, transcript binding, one-time token redemption, mutual verification and explicit approval before trust is granted.\n\n## Pairing protocol direction
+## Device identity implementation
+
+- Generate an EC key pair on curve `secp256r1` (NIST P-256) under a stable per-installation Android Keystore alias.
+- Restrict the key to signing and verification with SHA-256.
+- Keep the private key inside Android Keystore; never serialize or transmit it.
+- Identify the public key using a SHA-256 fingerprint. Users must compare fingerprints over a trusted channel before relying on a peer identity.
+- Sign only a 32-byte SHA-256 digest of a canonical, versioned pairing transcript. The signature input is domain-separated for NEXUS.
+- Key deletion is a local action and does not automatically revoke records on other devices.
+
+This is identity-key plumbing, not a complete authentication protocol. It must be combined with fresh nonces, transcript binding, one-time token redemption, mutual verification and explicit approval before trust is granted.
+
+## Pairing protocol direction
 
 1. Initiator creates a random request ID and a cryptographically random one-time token.
 2. The invitation is encoded as a QR payload and expires after two minutes.
@@ -73,7 +84,8 @@ Keep the protocol and capability model platform-neutral. Implement a TV client o
 - **0.2a Invitation:** local QR generation, short-lived random token and unit tests — complete.
 - **0.2b Scanner:** QR scanning and local payload validation — prototype implemented.
 - **0.2c Review state:** local invitation review state machine and expiry boundary checks — implemented; still no peer handshake.
-- **0.3 Pairing protocol:** one-time token redemption, mutual approval and local trust registry.
-- **0.4 LAN Link:** authenticated discovery and TLS connection status.
-- **0.5 Capabilities:** small, safe allow-list of device actions.
-- **0.6 TV Client:** platform-specific client after target selection.
+- **0.3 Identity foundation:** local Android Keystore key pair, public fingerprint and transcript-signature primitives — implemented; peer authentication is not complete.
+- **0.4 Mutual pairing:** canonical transcript, fresh nonces, one-time token redemption, mutual verification, approval and local trust registry.
+- **0.5 LAN Link:** authenticated discovery and TLS connection status.
+- **0.6 Capabilities:** small, safe allow-list of device actions.
+- **0.7 TV Client:** platform-specific client after target selection.

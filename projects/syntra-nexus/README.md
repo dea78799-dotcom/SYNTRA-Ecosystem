@@ -19,9 +19,10 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Sign and verify transcript hashes with ECDSA/SHA-256, a NEXUS-specific domain separator, and explicit initiator/responder role binding.
 - Verify that a peer's supplied public key exactly matches the identity assigned to that role in the transcript.
 - Reject invalid signatures, wrong-role signatures, identity mismatches, tampered transcripts, and proofs presented after expiry.
-- Pin each handshake session to the SHA-256 hash of its exact canonical transcript; an unbound or substituted transcript is rejected.
+- Pin each handshake session to the SHA-256 hash of its exact canonical transcript and verify that the local controller key is the transcript's initiator identity; an unbound or substituted transcript is rejected.
+- The controller accepts only the responder role as the remote peer, preventing the local initiator identity from being reflected as the peer.
 - Integrate peer-proof verification into the handshake state machine. The transition into local approval is private and can only be reached through the verifier.
-- Require a separate role-bound signature over an explicit APPROVE decision from the peer after local approval; a plain network message cannot move the session to PAIRED.
+- Require a separate role-bound signature over an explicit APPROVE decision from the peer after local approval; the Android Keystore identity store can produce an approval signature only when its public key matches the signer's transcript role. A plain network message cannot move the session to PAIRED.
 - The state machine requires local approval and cryptographically verified peer approval before entering PAIRED.
 - Terminal rejection, expiry, and failure states cannot be advanced to paired.
 - JVM unit tests cover cryptographic proof verification, transcript pinning, signed approval, and handshake integration.

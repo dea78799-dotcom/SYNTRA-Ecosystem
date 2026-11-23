@@ -22,7 +22,7 @@ object PairingIdentityCrypto {
     fun fingerprint(publicKeyEncoded: ByteArray): String {
         require(publicKeyEncoded.isNotEmpty()) { "Public key is empty." }
         val digest = MessageDigest.getInstance("SHA-256").digest(publicKeyEncoded)
-        return digest.joinToString("") { byte -> "%02x".format(byte) }
+        return digest.joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
     }
 
     fun signTranscriptHash(privateKey: PrivateKey, transcriptHash: ByteArray): ByteArray {

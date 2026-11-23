@@ -52,14 +52,14 @@ class PairingHandshakeProofIntegrationTest {
     }
 
     @Test
-    fun mismatchedTranscriptRequestFailsSession() {
+    fun changedTranscriptWithSameRequestAndExpiryFailsSession() {
         val otherTranscript = PairingTranscript.create(
-            requestId = "BBBBBBBBBBBBBBBBBBBBBB",
+            requestId = REQUEST_ID,
             expiresAtMillis = EXPIRY,
             initiatorPublicKeyEncoded = initiator.public.encoded,
             responderPublicKeyEncoded = responder.public.encoded,
             initiatorNonce = ByteArray(32) { (it + 1).toByte() },
-            responderNonce = ByteArray(32) { (it + 65).toByte() },
+            responderNonce = ByteArray(32) { (it + 66).toByte() },
             nowMillis = NOW
         )
         val signature = PairingIdentityCrypto.signTranscriptHash(
@@ -67,6 +67,23 @@ class PairingHandshakeProofIntegrationTest {
         )
         val result = verifyingSession().verifyPeerProofAndAdvance(
             otherTranscript, responder.public.encoded, signature,
+            PairingSignerRole.RESPONDER, NOW + 3
+        )
+
+        assertEquals(PairingProofResult.IDENTITY_MISMATCH, result.proofResult)
+        assertEquals(PairingHandshakeState.FAILED, result.session.state)
+    }
+
+    @Test
+    fun sessionWithoutTranscriptBindingCannotAcceptPeerProof() {
+        val unbound = PairingHandshakeSession.create(REQUEST_ID, EXPIRY, NOW)
+            .invitationSent(NOW + 1)
+            .peerConnected(NOW + 2)
+        val signature = PairingIdentityCrypto.signTranscriptHash(
+            responder.private, transcript.sha256, PairingSignerRole.RESPONDER
+        )
+        val result = unbound.verifyPeerProofAndAdvance(
+            transcript, responder.public.encoded, signature,
             PairingSignerRole.RESPONDER, NOW + 3
         )
 

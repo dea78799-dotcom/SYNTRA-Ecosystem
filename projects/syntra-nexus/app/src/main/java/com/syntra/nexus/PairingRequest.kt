@@ -34,6 +34,9 @@ data class PairingRequest(
             require(ttlMillis in 1..DEFAULT_TTL_MILLIS) {
                 "Pairing invitation lifetime must be between 1 ms and 2 minutes."
             }
+            require(nowMillis <= Long.MAX_VALUE - ttlMillis) {
+                "Pairing invitation expiry exceeds the supported timestamp range."
+            }
             val requestIdBytes = ByteArray(REQUEST_ID_BYTES).also(secureRandom::nextBytes)
             val tokenBytes = ByteArray(TOKEN_BYTES).also(secureRandom::nextBytes)
             return PairingRequest(

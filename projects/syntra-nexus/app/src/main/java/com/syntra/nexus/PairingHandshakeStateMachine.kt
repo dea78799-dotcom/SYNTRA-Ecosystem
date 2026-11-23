@@ -41,12 +41,12 @@ data class PairingHandshakeSession private constructor(
 
     fun invitationSent(nowMillis: Long): PairingHandshakeSession {
         requireState(PairingHandshakeState.CREATED)
-        return withExpiry(nowMillis).copy(state = PairingHandshakeState.WAITING_FOR_PEER)
+        return transitionTo(PairingHandshakeState.CREATED, PairingHandshakeState.WAITING_FOR_PEER, nowMillis)
     }
 
     fun peerConnected(nowMillis: Long): PairingHandshakeSession {
         requireState(PairingHandshakeState.WAITING_FOR_PEER)
-        return withExpiry(nowMillis).copy(state = PairingHandshakeState.VERIFYING_PEER)
+        return transitionTo(PairingHandshakeState.WAITING_FOR_PEER, PairingHandshakeState.VERIFYING_PEER, nowMillis)
     }
 
     /**
@@ -55,17 +55,22 @@ data class PairingHandshakeSession private constructor(
      */
     fun peerProofVerified(nowMillis: Long): PairingHandshakeSession {
         requireState(PairingHandshakeState.VERIFYING_PEER)
-        return withExpiry(nowMillis).copy(
-            state = PairingHandshakeState.WAITING_FOR_LOCAL_APPROVAL
+        return transitionTo(
+            PairingHandshakeState.VERIFYING_PEER,
+            PairingHandshakeState.WAITING_FOR_LOCAL_APPROVAL,
+            nowMillis
         )
     }
 
     fun approveLocally(nowMillis: Long): PairingHandshakeSession {
         requireState(PairingHandshakeState.WAITING_FOR_LOCAL_APPROVAL)
-        return withExpiry(nowMillis).copy(
-            state = PairingHandshakeState.WAITING_FOR_PEER_APPROVAL,
-            decision = PairingHandshakeDecision.LOCAL_APPROVED
+        val current = transitionTo(
+            PairingHandshakeState.WAITING_FOR_LOCAL_APPROVAL,
+            PairingHandshakeState.WAITING_FOR_PEER_APPROVAL,
+            nowMillis
         )
+        return if (current.state == PairingHandshakeState.EXPIRED) current
+        else current.copy(decision = PairingHandshakeDecision.LOCAL_APPROVED)
     }
 
     /**
@@ -74,10 +79,13 @@ data class PairingHandshakeSession private constructor(
      */
     fun peerApprovalVerified(nowMillis: Long): PairingHandshakeSession {
         requireState(PairingHandshakeState.WAITING_FOR_PEER_APPROVAL)
-        return withExpiry(nowMillis).copy(
-            state = PairingHandshakeState.PAIRED,
-            decision = PairingHandshakeDecision.BOTH_APPROVED
+        val current = transitionTo(
+            PairingHandshakeState.WAITING_FOR_PEER_APPROVAL,
+            PairingHandshakeState.PAIRED,
+            nowMillis
         )
+        return if (current.state == PairingHandshakeState.EXPIRED) current
+        else current.copy(decision = PairingHandshakeDecision.BOTH_APPROVED)
     }
 
     fun rejectLocally(nowMillis: Long): PairingHandshakeSession {
@@ -97,6 +105,17 @@ data class PairingHandshakeSession private constructor(
     fun refresh(nowMillis: Long): PairingHandshakeSession {
         if (isTerminal) return this
         return withExpiry(nowMillis)
+    }
+
+    private fun transitionTo(
+        expected: PairingHandshakeState,
+        next: PairingHandshakeState,
+        nowMillis: Long
+    ): PairingHandshakeSession {
+        requireState(expected)
+        val current = withExpiry(nowMillis)
+        return if (current.state == PairingHandshakeState.EXPIRED) current
+        else current.copy(state = next)
     }
 
     private fun withExpiry(nowMillis: Long): PairingHandshakeSession {

@@ -31,7 +31,7 @@ data class PairingHandshakeVerification(
     val proofResult: PairingProofResult
 )
 
-data class PairingHandshakeSession private constructor(
+class PairingHandshakeSession private constructor(
     val requestId: String,
     val expiresAtMillis: Long,
     val state: PairingHandshakeState,
@@ -201,6 +201,21 @@ data class PairingHandshakeSession private constructor(
             this
         }
     }
+
+    /**
+     * Controlled internal state copy. The public API exposes no copy method,
+     * preventing callers from manufacturing a PAIRED session.
+     */
+    private fun copy(
+        state: PairingHandshakeState = this.state,
+        decision: PairingHandshakeDecision = this.decision
+    ): PairingHandshakeSession = PairingHandshakeSession(
+        requestId = requestId,
+        expiresAtMillis = expiresAtMillis,
+        state = state,
+        decision = decision,
+        expectedTranscriptHashHex = expectedTranscriptHashHex
+    )
 
     private fun requireState(expected: PairingHandshakeState) {
         require(!isTerminal) { "Pairing session is already terminal." }

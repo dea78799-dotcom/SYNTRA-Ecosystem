@@ -11,7 +11,7 @@
 | Ecosystem documentation | 🟢 Baseline established | Core documentation is present; continue review as projects evolve. |
 | GitHub issue templates | 🟢 Added | Bug report and feature request forms are in the repository. |
 | Pull request template | 🟢 Added | Includes scope, testing, risk, and security prompts. |
-| Repository checks | 🟡 Workflow added | The ecosystem repository check remains tracked separately from product CI. |
+| Repository checks | 🟢 Passed | [GitHub Actions run #45154179133](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/actions/runs/45154179133) passed on 2026-11-23; required files and local Markdown links passed. |
 | Issue labels | 🟡 Planned | Label taxonomy is documented; labels themselves have not been created. |
 | GitHub Projects board | 🟡 Planned | Board structure is documented; no board has been created. |
 | SYNTRA OS | 🟡 CI passed; hardware QA pending | Host Debug/Release tests and ARM64/QEMU checks passed on the recorded main revision; no physical-device validation is recorded. |

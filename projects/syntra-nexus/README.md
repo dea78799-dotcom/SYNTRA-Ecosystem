@@ -1,13 +1,13 @@
 # SYNTRA NEXUS
 
-**Version:** 0.3.0-dev  
-**Status:** QR scanning and invitation validation prototype  
+**Version:** 0.4.0-dev  
+**Status:** QR invitation prototype with local Android Keystore identity  
 **Platform:** Android-first  
 **Network model:** Local-first
 
 SYNTRA NEXUS is an opt-in device-management concept for devices that the owner or an authorized user has agreed to pair. The Android application is the first controller. TV support remains deferred until the target platform is selected.
 
-## Current 0.3-dev scope
+## Current 0.4-dev scope
 
 - Android dashboard with an explicit prototype status.
 - Generate a QR invitation containing a cryptographically random, short-lived request ID and token.
@@ -20,19 +20,19 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Scan QR codes using Google Play services Code Scanner; the app does not request direct camera permission.
 - Valid scanned invitations are shown in a review dialog without establishing trust or a network connection.
 - A local-only review state machine tracks pending, locally accepted, locally rejected, and expired invitations.
-- Expiry arithmetic is guarded against timestamp overflow, with boundary-condition unit tests.
+- Expiry arithmetic is guarded against timestamp overflow, with boundary-condition unit tests.\n- Create a per-installation EC P-256 signing identity in Android Keystore.\n- Private key material is non-exportable; the app displays only the public-key SHA-256 fingerprint.\n- Pairing transcript signatures use ECDSA with SHA-256 and a NEXUS-specific domain separator.\n- JVM unit tests cover fingerprint stability, signature verification, wrong-key rejection and transcript tampering.
 
 ## Not implemented yet
 
 - One-time token redemption and replay prevention across devices.
 - Mutual device approval.
-- Android Keystore-backed device identity.
+- Mutual peer authentication and verification of a remote device identity.\n- A canonical pairing transcript builder with fresh nonces from both peers.\n- One-time token redemption and replay prevention across devices.
 - TLS handshake or LAN transport.
 - NSD/mDNS discovery.
 - Persistent trusted-device registry or revocation.
 - Remote actions, TV client, cloud sync.
 
-**Important:** Creating or scanning a QR only validates a temporary invitation. It does not mean another device has connected or become trusted. Do not use this build as a remote controller.
+**Important:** The local Android Keystore identity is not a paired device. Creating or scanning a QR still does not authenticate another device, redeem an invitation, or create a trusted-device record. Do not use this build as a remote controller.
 
 ## Build and test
 

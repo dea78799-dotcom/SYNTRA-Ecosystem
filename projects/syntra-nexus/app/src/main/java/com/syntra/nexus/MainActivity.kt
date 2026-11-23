@@ -42,9 +42,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -79,6 +83,8 @@ private fun NexusDashboard() {
     var pairingRequest by remember { mutableStateOf<PairingRequest?>(null) }
     var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var pairingError by remember { mutableStateOf<String?>(null) }
+    var scannedInvitation by remember { mutableStateOf<ParsedPairingInvitation?>(null) }
+    val context = LocalContext.current
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -159,6 +165,40 @@ private fun NexusDashboard() {
             }
 
             item {
+                Button(
+                    onClick = {
+                        val options = GmsBarcodeScannerOptions.Builder()
+                            .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+                            .build()
+                        GmsBarcodeScanning.getClient(context, options)
+                            .startScan()
+                            .addOnSuccessListener { barcode ->
+                                val rawValue = barcode.rawValue
+                                if (rawValue.isNullOrBlank()) {
+                                    pairingError = "Mã QR không chứa dữ liệu."
+                                } else {
+                                    try {
+                                        scannedInvitation = PairingPayloadParser.parse(rawValue)
+                                        pairingError = null
+                                    } catch (_: IllegalArgumentException) {
+                                        pairingError = "Mã QR không hợp lệ hoặc đã hết hạn. Hãy yêu cầu tạo mã mới."
+                                    }
+                                }
+                            }
+                            .addOnFailureListener {
+                                pairingError = "Không thể mở trình quét QR. Hãy kiểm tra Google Play services và thử lại."
+                            }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Icon(Icons.Rounded.QrCodeScanner, contentDescription = null)
+                    Spacer(Modifier.size(8.dp))
+                    Text("Quét mã QR")
+                }
+            }
+
+            item {
                 Text(
                     text = "Thiết bị của tôi",
                     fontSize = 18.sp,
@@ -202,6 +242,28 @@ private fun NexusDashboard() {
             text = { Text(message) },
             confirmButton = {
                 TextButton(onClick = { pairingError = null }) { Text("Đóng") }
+            }
+        )
+    }
+
+    scannedInvitation?.let { invitation ->
+        AlertDialog(
+            onDismissRequest = { scannedInvitation = null },
+            title = { Text("Mã mời hợp lệ") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Đã đọc được mã mời SYNTRA NEXUS.")
+                    Text("Mã yêu cầu: ${invitation.requestId.take(8)}…", color = NexusMuted, fontSize = 12.sp)
+                    Text("Mã còn hiệu lực và đúng định dạng.", color = NexusGold, fontSize = 13.sp)
+                    Text(
+                        "Chưa có kết nối hoặc ghép đôi nào được tạo. Bước xác nhận từ cả hai thiết bị sẽ được triển khai tiếp theo.",
+                        color = NexusMuted,
+                        fontSize = 12.sp
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { scannedInvitation = null }) { Text("Đóng") }
             }
         )
     }

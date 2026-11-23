@@ -1,8 +1,10 @@
 package com.syntra.nexus
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.Tv
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,14 +31,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private val NexusBackground = Color(0xFF101114)
 private val NexusSurface = Color(0xFF1B1D22)
@@ -64,6 +76,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun NexusDashboard() {
+    var pairingRequest by remember { mutableStateOf<PairingRequest?>(null) }
+    var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var pairingError by remember { mutableStateOf<String?>(null) }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = NexusBackground
@@ -123,13 +139,22 @@ private fun NexusDashboard() {
 
             item {
                 Button(
-                    onClick = { /* Pairing flow will be implemented in the next milestone. */ },
+                    onClick = {
+                        try {
+                            val request = PairingRequest.create()
+                            pairingRequest = request
+                            qrBitmap = QrCodeRenderer.render(request.payload)
+                            pairingError = null
+                        } catch (_: Exception) {
+                            pairingError = "Không thể tạo mã ghép đôi. Hãy thử lại."
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp)
                 ) {
                     Icon(Icons.Rounded.Add, contentDescription = null)
                     Spacer(Modifier.size(8.dp))
-                    Text("Thêm thiết bị")
+                    Text("Tạo mã ghép đôi")
                 }
             }
 
@@ -161,13 +186,81 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Bản prototype 0.1.0 · Chưa có kết nối thiết bị thực",
+                    text = "Prototype 0.2-dev · QR tạm thời, chưa có kết nối LAN",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
                 )
             }
         }
+    }
+
+    pairingError?.let { message ->
+        AlertDialog(
+            onDismissRequest = { pairingError = null },
+            title = { Text("Có lỗi") },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { pairingError = null }) { Text("Đóng") }
+            }
+        )
+    }
+
+    val request = pairingRequest
+    val bitmap = qrBitmap
+    if (request != null && bitmap != null) {
+        val expiry = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+            .format(Date(request.expiresAtMillis))
+        AlertDialog(
+            onDismissRequest = {
+                pairingRequest = null
+                qrBitmap = null
+            },
+            title = { Text("Mã mời ghép đôi") },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "Mã QR ghép đôi tạm thời",
+                        modifier = Modifier.size(220.dp)
+                    )
+                    Text("Mã có hiệu lực trong 2 phút.", fontWeight = FontWeight.SemiBold)
+                    Text("Hết hạn lúc $expiry", color = NexusMuted, fontSize = 12.sp)
+                    Text(
+                        "Đây mới là mã mời thử nghiệm. Thiết bị khác chưa thể quét và kết nối trong bản này.",
+                        color = NexusMuted,
+                        fontSize = 12.sp
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    try {
+                        val next = PairingRequest.create()
+                        pairingRequest = next
+                        qrBitmap = QrCodeRenderer.render(next.payload)
+                    } catch (_: Exception) {
+                        pairingRequest = null
+                        qrBitmap = null
+                        pairingError = "Không thể tạo mã mới. Hãy thử lại."
+                    }
+                }) {
+                    Text("Tạo mã mới")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    pairingRequest = null
+                    qrBitmap = null
+                }) {
+                    Text("Đóng")
+                }
+            }
+        )
     }
 }
 

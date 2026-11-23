@@ -22,14 +22,15 @@ Priority:
 
 | ID | Priority | Status | Task | Tracking issue |
 |---|---|---|---|---|
-| SYN-001 | P1 | OPEN | Verify Repository Checks workflow on GitHub Actions | [#1](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/issues/1) |
+| SYN-001 | P1 | DONE | Verify Repository Checks workflow on GitHub Actions | [#1](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/issues/1) · [Passing run](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/actions/runs/45154179133) |
 | SYN-002 | P1 | OPEN | Create issue labels and development project board | [#2](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/issues/2) |
-| SYN-003 | P1 | OPEN | Record product build and QA evidence | [#3](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/issues/3) |
+| SYN-003 | P1 | IN PROGRESS | Record product build and QA evidence; physical-device QA remains pending | [#3](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/issues/3) |
 
 ## Completed tasks
 
 | ID | Priority | Status | Task | Evidence |
 |---|---|---|---|---|
+| SYN-001 | P1 | DONE | Verify Repository Checks workflow on GitHub Actions | [Passing run #45154179133](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/actions/runs/45154179133) |
 | SYN-004 | P2 | DONE | Add development dashboard | [Dashboard](development-dashboard.md) |
 | SYN-005 | P2 | DONE | Add version tracker | [Version Tracker](version-tracker.md) |
 | SYN-006 | P2 | DONE | Add release notes template | [Template](../.github/release_template.md) |

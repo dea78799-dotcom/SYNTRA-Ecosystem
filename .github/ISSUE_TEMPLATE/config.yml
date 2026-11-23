@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: SYNTRA Security Policy
+    url: https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/blob/main/docs/security-policy.md
+    about: Read the private vulnerability reporting guidance before disclosing security issues.

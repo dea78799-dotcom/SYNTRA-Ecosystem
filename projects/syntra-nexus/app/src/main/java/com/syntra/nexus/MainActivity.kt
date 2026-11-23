@@ -84,6 +84,7 @@ private fun NexusDashboard() {
     var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var pairingError by remember { mutableStateOf<String?>(null) }
     var scannedInvitation by remember { mutableStateOf<ParsedPairingInvitation?>(null) }
+    var deviceIdentity by remember { mutableStateOf<DeviceIdentityStore.DeviceIdentity?>(null) }
     val context = LocalContext.current
 
     Surface(
@@ -199,6 +200,23 @@ private fun NexusDashboard() {
             }
 
             item {
+                Button(
+                    onClick = {
+                        try {
+                            deviceIdentity = DeviceIdentityStore().getOrCreateIdentity()
+                            pairingError = null
+                        } catch (_: Exception) {
+                            pairingError = "Không thể tạo danh tính bảo mật trên thiết bị này."
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Text("Tạo danh tính thiết bị")
+                }
+            }
+
+            item {
                 Text(
                     text = "Thiết bị của tôi",
                     fontSize = 18.sp,
@@ -226,7 +244,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.3-dev · QR scanner, chưa có kết nối LAN",
+                    text = "Prototype 0.4-dev · Android Keystore identity, chưa có ghép đôi LAN",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
@@ -242,6 +260,28 @@ private fun NexusDashboard() {
             text = { Text(message) },
             confirmButton = {
                 TextButton(onClick = { pairingError = null }) { Text("Đóng") }
+            }
+        )
+    }
+
+    deviceIdentity?.let { identity ->
+        AlertDialog(
+            onDismissRequest = { deviceIdentity = null },
+            title = { Text("Danh tính thiết bị") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Khóa riêng đã được tạo trong Android Keystore và không được xuất ra ngoài.")
+                    Text("SHA-256 fingerprint:", color = NexusMuted, fontSize = 12.sp)
+                    Text(identity.fingerprint.chunked(4).joinToString(" "), color = NexusGold, fontSize = 12.sp)
+                    Text(
+                        "Đây chỉ là danh tính cục bộ. Chưa xác thực thiết bị khác, chưa ghép đôi và chưa có kết nối.",
+                        color = NexusMuted,
+                        fontSize = 12.sp
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { deviceIdentity = null }) { Text("Đóng") }
             }
         )
     }

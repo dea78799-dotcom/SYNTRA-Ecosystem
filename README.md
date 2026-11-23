@@ -64,6 +64,11 @@ SYNTRA-Ecosystem/
 
 Files and folders will be added as their contents are ready; this outline does not mean every component has been implemented.
 
+## Development Dashboard
+
+- [SYNTRA Development Dashboard](docs/development-dashboard.md) — progress overview and current tracking limitations.
+- [Repository Checks workflow](.github/workflows/repository-checks.yml) — automated structural and local-link checks.
+
 ## Documentation
 
 - [Ecosystem architecture](docs/architecture.md)

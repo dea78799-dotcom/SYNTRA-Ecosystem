@@ -244,7 +244,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.5-dev · canonical mutual-pairing transcript, chưa có ghép đôi LAN",
+                    text = "Prototype 0.7-dev · xác minh chữ ký hai chiều, chưa có ghép đôi LAN",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

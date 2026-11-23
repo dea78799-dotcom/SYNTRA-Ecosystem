@@ -55,6 +55,15 @@ SYNTRA-Ecosystem/
 
 Files and folders will be added as their contents are ready; this outline does not mean every component has been implemented.
 
+## Documentation
+
+- [Ecosystem architecture](docs/architecture.md)
+- [Product directory](docs/products.md)
+- [Development roadmap](docs/roadmap.md)
+- [Development standards](docs/development-standards.md)
+- [Changelog](CHANGELOG.md)
+- [Repository rights notice](LICENSE)
+
 ## Development workflow
 
 1. Define the scope and acceptance criteria for a change.
@@ -74,10 +83,10 @@ Files and folders will be added as their contents are ready; this outline does n
 
 ## Roadmap
 
-- [ ] Document the overall ecosystem architecture.
-- [ ] Create the official product directory.
-- [ ] Define shared design and development standards.
-- [ ] Establish versioning and changelog practices.
+- [x] Document the overall ecosystem architecture.
+- [x] Create the official product directory.
+- [x] Define shared design and development standards.
+- [x] Establish versioning and changelog practices.
 - [ ] Plan a unified product and download website.
 - [ ] Add quality checks for each product release.
 

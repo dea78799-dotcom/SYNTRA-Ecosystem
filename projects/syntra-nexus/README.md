@@ -1,39 +1,51 @@
 # SYNTRA NEXUS
 
-**Version:** 0.1.0-dev  
-**Status:** Foundation / prototype  
+**Version:** 0.2.0-dev  
+**Status:** Pairing invitation prototype  
 **Platform:** Android-first  
 **Network model:** Local-first
 
-SYNTRA NEXUS is a device-management concept for devices that the user owns or is authorized to manage. The first milestone is an Android application shell with a local dashboard. TV support is intentionally deferred until the target TV platform is known.
+SYNTRA NEXUS is an opt-in device-management concept for devices that the owner or an authorized user has agreed to pair. The Android application is the first controller. TV support remains deferred until the target platform is selected.
 
-## MVP 0.1 scope
+## Current 0.2-dev scope
 
-- Android dashboard shell.
-- Device list and connection-state presentation.
-- Clear pairing entry point (pairing transport is not implemented yet).
-- Local-first architecture; no cloud account or remote-control service.
-- Explicitly label demo devices as sample data.
+- Android dashboard with an explicit prototype status.
+- Generate a QR invitation containing a cryptographically random, short-lived request ID and token.
+- Invitation lifetime is limited to two minutes.
+- Generate a new invitation instead of reusing an expired one.
+- Unit tests for token format, randomness, and expiration.
+- QR generation happens locally on the Android device.
 
 ## Not implemented yet
 
-- QR pairing and mutual approval.
-- Device discovery or LAN transport.
-- Remote actions.
-- TV client.
-- Cloud sync.
-- Access to another person's private files, messages, screen, or app activity.
+- QR scanning / receiving-side flow.
+- One-time token redemption and replay prevention across devices.
+- Mutual device approval.
+- Android Keystore-backed device identity.
+- TLS handshake or LAN transport.
+- NSD/mDNS discovery.
+- Persistent trusted-device registry or revocation.
+- Remote actions, TV client, cloud sync.
 
-## Build
+**Important:** A displayed QR is only a temporary invitation prototype. It does not mean another device has connected or become trusted. Do not use this build as a remote controller.
 
-Open this directory as an Android project in Android Studio, or build it with Gradle 8.9 and JDK 17:
+## Build and test
+
+Use Gradle 8.9 and JDK 17:
 
 ```bash
+gradle :app:testDebugUnitTest
 gradle :app:assembleDebug
 ```
 
-The Android app uses Kotlin and Jetpack Compose. The current dashboard is a UI prototype, not a functioning device controller.
+The GitHub Actions workflow runs the unit tests and debug build. A successful CI build validates compilation and the included unit tests; it does not replace testing on two physical devices.
 
 ## Security baseline
 
-Pairing must require explicit confirmation on both devices. Every future remote action must be permission-scoped, visible to the device owner, and revocable. Never store passwords, pairing secrets, or private keys in source control.
+- Both devices must explicitly approve pairing before trust is established.
+- QR invitations are short-lived and must be single-use when redemption is implemented.
+- Long-lived private keys must be generated and protected with Android Keystore.
+- LAN peers must be authenticated; IP address or mDNS discovery alone is never proof of identity.
+- Every future capability must be scoped, visible, and revocable.
+- Never store passwords, pairing secrets, or private keys in source control.
+- No hidden collection of messages, photos, screens, or private app data.

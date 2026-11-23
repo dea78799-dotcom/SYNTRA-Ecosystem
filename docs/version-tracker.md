@@ -54,6 +54,10 @@ A candidate may advance only when its evidence is recorded:
 7. Release notes and known limitations prepared.
 8. Owner approval documented.
 
+## Product evidence
+
+Use the [Product Build and QA Evidence Template](product-evidence-template.md) to collect build identity, target environment, QA results, known issues, and release decisions. Link the completed record from the relevant product row or release entry only after it contains verifiable evidence.
+
 ## Rules
 
 - Never invent a version, build number, release date, or artifact URL.

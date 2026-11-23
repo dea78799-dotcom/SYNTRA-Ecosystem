@@ -28,11 +28,11 @@ class DeviceIdentityStore {
         )
     }
 
-    fun signPairingTranscriptHash(transcriptHash: ByteArray): ByteArray {
+    fun signPairingTranscriptHash(\n        transcriptHash: ByteArray,\n        role: PairingSignerRole\n    ): ByteArray {
         require(transcriptHash.size == 32) { "Pairing transcript hash must be 32 bytes." }
         val keyPair = loadExistingKeyPair()
             ?: throw IllegalStateException("Device identity has not been created.")
-        return PairingIdentityCrypto.signTranscriptHash(keyPair.private, transcriptHash)
+        return PairingIdentityCrypto.signTranscriptHash(keyPair.private, transcriptHash, role)
     }
 
     /**

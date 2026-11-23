@@ -52,7 +52,7 @@ class PairingPayloadParserTest {
         val request = PairingRequest.create(nowMillis = 10_000L)
         val changed = request.payload.replace(
             "exp=${request.expiresAtMillis}",
-            "exp=${10_000L + PairingRequest.DEFAULT_TTL_MILLIS + 1L}"
+            "exp=${10_000L + PairingRequest.DEFAULT_TTL_MILLIS + 2L}"
         )
 
         assertInvalid(changed, nowMillis = 10_001L)

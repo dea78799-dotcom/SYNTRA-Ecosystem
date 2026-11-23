@@ -1,6 +1,6 @@
 # SYNTRA Development Dashboard
 
-**Dashboard version:** 1.0.0  
+**Dashboard version:** 1.1.0  
 **Last reviewed:** 2026-11-23  
 **Scope:** Repository-level progress tracking. Product runtime status is not automatically measured here.
 
@@ -11,35 +11,41 @@
 | Ecosystem documentation | 🟢 Baseline established | Core documentation is present; continue review as projects evolve. |
 | GitHub issue templates | 🟢 Added | Bug report and feature request forms are in the repository. |
 | Pull request template | 🟢 Added | Includes scope, testing, risk, and security prompts. |
-| Repository checks | 🟡 Workflow added | Runs on GitHub Actions after push; this document does not claim a run has passed. |
+| Repository checks | 🟡 Workflow added | The ecosystem repository check remains tracked separately from product CI. |
 | Issue labels | 🟡 Planned | Label taxonomy is documented; labels themselves have not been created. |
 | GitHub Projects board | 🟡 Planned | Board structure is documented; no board has been created. |
-| SYNTRA OS | 🟡 In development | Product-specific build and test status must be updated by maintainers. |
-| Syntra Files | 🟡 Testing and upgrading | No current test results are represented in this dashboard. |
+| SYNTRA OS | 🟡 CI passed; hardware QA pending | Host Debug/Release tests and ARM64/QEMU checks passed on the recorded main revision; no physical-device validation is recorded. |
+| Syntra Files | 🟡 Debug APK CI passed; device QA pending | v0.69.0 Debug APK compiled and uploaded; physical-device functional tests are not recorded. |
 
 ## Product tracking
 
 ### SYNTRA OS
-- **Status:** In development
-- **Next tracking items:** record current build/revision, supported device/environment, known issues, test evidence, and release target.
-- **Status evidence:** link to a relevant issue, pull request, build, or test report when available.
+
+- **Source version:** 0.1.0
+- **Status:** In development; recorded CI checks passed.
+- **Latest main revision:** [11db170](https://github.com/dea78799-dotcom/SyntraOS/commit/11db17032c7de96a9ad4aed7fc541542d352be60)
+- **CI evidence:** [Successful SyntraOS CI run](https://github.com/dea78799-dotcom/SyntraOS/actions/runs/45151413981) · [Evidence record](evidence/2026-11-23-syntraos-ci.md)
+- **Next tracking items:** validate on supported physical hardware, record device/firmware environment, and continue feature-level and security testing.
 
 ### Syntra Files
-- **Status:** Testing and upgrading
-- **Next tracking items:** record app version/revision, tested file types and actions, device/environment, known issues, and test evidence.
-- **Status evidence:** link to a relevant issue, pull request, build, or test report when available.
+
+- **Source version:** 0.69.0 (Android versionCode 690)
+- **Status:** Testing and upgrading; Debug APK CI passed.
+- **Latest main revision:** [bd4f54f](https://github.com/dea78799-dotcom/Syntra-Files/commit/bd4f54f78edd2f27b9845e19050a4173525d4692)
+- **CI evidence:** [Successful Android CI run](https://github.com/dea78799-dotcom/Syntra-Files/actions/runs/45111079923) · [Evidence record](evidence/2026-11-23-syntra-files-ci.md)
+- **Next tracking items:** install and test on a physical Android device; validate Storage Access Framework permissions, browsing, search, sorting, file operations, large files, and error recovery.
 
 ## Task tracking
 
-- [Task Registry](task-registry.md) lists prioritized tasks, statuses, acceptance criteria, and linked GitHub issues. The initial tasks are open until evidence confirms completion.
+- [Task Registry](task-registry.md) lists prioritized tasks, statuses, acceptance criteria, and linked GitHub issues. The initial tasks remain open until their full acceptance criteria are met.
 
 ## Version tracking
 
-- [Version Tracker](version-tracker.md) records approved product versions, release channels, revisions, QA evidence, and publication history. No software releases are recorded yet.
+- [Version Tracker](version-tracker.md) records source versions, revisions, CI evidence, release channels, and publication history. The current source versions are development versions; no software releases are recorded yet.
 
 ## Repository quality
 
-The repository check workflow verifies a small set of structural/documentation expectations. It is not a substitute for product compilation, device testing, security review, or release QA.
+The ecosystem repository check workflow verifies a small set of structural/documentation expectations. It is not a substitute for product compilation, device testing, security review, or release QA.
 
 - Workflow: [Repository Checks](../.github/workflows/repository-checks.yml)
 - Script: [check_repo.py](../scripts/check_repo.py)
@@ -52,14 +58,15 @@ The repository check workflow verifies a small set of structural/documentation e
 1. Update the product status only when there is evidence.
 2. Link evidence (issue, PR, build, or test report).
 3. Keep “planned”, “in progress”, “testing”, and “released” distinct.
-4. Never mark a check green just because a file exists; report the workflow result separately.
+4. Report CI results separately from device/runtime QA.
 5. Review this page whenever a major milestone or release changes.
 
 ## Build and QA evidence
 
 - [Product Build and QA Evidence Template](product-evidence-template.md) is the standard record for build identity, test environment, QA gates, defects, and release decisions.
-- Product build and QA status remains unverified until maintainers attach completed records with source revisions and test evidence. The repository CI result does not establish product runtime quality.
+- [SYNTRA OS CI evidence](evidence/2026-11-23-syntraos-ci.md) and [Syntra Files CI evidence](evidence/2026-11-23-syntra-files-ci.md) document the current successful CI runs.
+- Product release QA remains YELLOW until device/runtime compatibility, security review, and release-readiness evidence is recorded.
 
 ## Current limitations
 
-This is a manually maintained dashboard. It does not currently fetch live issue counts, release tags, test results, or project-board data. GitHub Actions will begin running the repository check when the workflow is triggered by a push, pull request, or manual dispatch.
+This is a manually maintained dashboard, not a live monitoring service. It does not automatically fetch issue counts, release tags, workflow runs, device test results, or project-board data. Product evidence links reflect the verified snapshot recorded on 2026-11-23 and must be refreshed after later product revisions.

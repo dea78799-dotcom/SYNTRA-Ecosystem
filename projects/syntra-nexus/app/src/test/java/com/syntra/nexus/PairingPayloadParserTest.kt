@@ -59,6 +59,44 @@ class PairingPayloadParserTest {
     }
 
     @Test
+    fun rejectsExpiryThatOverflowsTimestampWindow() {
+        val request = PairingRequest.create(nowMillis = 10_000L)
+        val changed = request.payload.replace(
+            "exp=${request.expiresAtMillis}",
+            "exp=${Long.MAX_VALUE}"
+        )
+
+        assertInvalid(changed, nowMillis = 10_001L)
+    }
+
+    @Test
+    fun acceptsMaximumTimestampWhenWithinSafeWindow() {
+        val request = PairingRequest.create(
+            nowMillis = Long.MAX_VALUE - PairingRequest.DEFAULT_TTL_MILLIS
+        )
+
+        val parsed = PairingPayloadParser.parse(
+            request.payload,
+            nowMillis = request.createdAtMillis
+        )
+
+        assertEquals(request.expiresAtMillis, parsed.expiresAtMillis)
+    }
+
+    @Test
+    fun rejectsRequestCreationWhenExpiryWouldOverflow() {
+        try {
+            PairingRequest.create(
+                nowMillis = Long.MAX_VALUE - 10L,
+                ttlMillis = 20L
+            )
+            fail("Expected overflowing expiry to be rejected.")
+        } catch (_: IllegalArgumentException) {
+            // Expected validation failure.
+        }
+    }
+
+    @Test
     fun rejectsMalformedToken() {
         val request = PairingRequest.create(nowMillis = 10_000L)
         val changed = request.payload.replace("token=${request.token}", "token=bad")

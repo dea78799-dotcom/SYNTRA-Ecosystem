@@ -135,6 +135,10 @@ Release decision:
 Evidence:
 ```
 
+## 10. Product evidence record
+
+Use the [Product Build and QA Evidence Template](product-evidence-template.md) for each build or test session. Attach verifiable build identifiers, source revisions, test environments, results, and safe evidence links. Keep missing information marked as **Not recorded** and keep the overall status YELLOW until required evidence exists.
+
 ## 10. Maintenance
 
 Review this standard when product architecture, supported platforms, data handling, or release processes change. Update this document and record the change in the repository changelog.

@@ -25,6 +25,7 @@ REQUIRED_FILES = [
     "docs/issue-tracking.md",
     "docs/development-dashboard.md",
     "docs/version-tracker.md",
+    "docs/task-registry.md",
     ".github/ISSUE_TEMPLATE/bug_report.yml",
     ".github/ISSUE_TEMPLATE/feature_request.yml",
     ".github/ISSUE_TEMPLATE/config.yml",

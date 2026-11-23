@@ -62,7 +62,7 @@ class PairingProofVerifierTest {
         assertEquals(
             PairingProofResult.INVALID_SIGNATURE,
             PairingProofVerifier.verifyPeerProof(
-                transcript, responder.public.encoded, signature,
+                transcript, initiator.public.encoded, signature,
                 PairingSignerRole.INITIATOR, NOW + 1
             )
         )

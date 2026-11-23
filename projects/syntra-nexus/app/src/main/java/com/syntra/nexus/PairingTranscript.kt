@@ -22,13 +22,24 @@ enum class PairingSignerRole(val wireValue: Int) {
  */
 class PairingTranscript private constructor(
     private val encoded: ByteArray,
-    private val digest: ByteArray
+    private val digest: ByteArray,
+    val requestId: String,
+    val expiresAtMillis: Long,
+    private val initiatorKey: ByteArray,
+    private val responderKey: ByteArray
 ) {
     val encodedBytes: ByteArray
         get() = encoded.copyOf()
 
     val sha256: ByteArray
         get() = digest.copyOf()
+
+    /** Returns a defensive copy of the public identity assigned to a role. */
+    fun publicKeyFor(role: PairingSignerRole): ByteArray =
+        when (role) {
+            PairingSignerRole.INITIATOR -> initiatorKey.copyOf()
+            PairingSignerRole.RESPONDER -> responderKey.copyOf()
+        }
 
     companion object {
         private const val PROTOCOL_VERSION = 1
@@ -92,7 +103,14 @@ class PairingTranscript private constructor(
             val canonicalBytes = output.toByteArray()
             require(canonicalBytes.size <= 2_048) { "Pairing transcript is too large." }
             val hash = MessageDigest.getInstance("SHA-256").digest(canonicalBytes)
-            return PairingTranscript(canonicalBytes, hash)
+            return PairingTranscript(
+                encoded = canonicalBytes,
+                digest = hash,
+                requestId = requestId,
+                expiresAtMillis = expiresAtMillis,
+                initiatorKey = initiatorPublicKeyEncoded.copyOf(),
+                responderKey = responderPublicKeyEncoded.copyOf()
+            )
         }
 
         private fun requirePublicKey(encoded: ByteArray, peer: String) {

@@ -20,13 +20,18 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Scan QR codes using Google Play services Code Scanner; the app does not request direct camera permission.
 - Valid scanned invitations are shown in a review dialog without establishing trust or a network connection.
 - A local-only review state machine tracks pending, locally accepted, locally rejected, and expired invitations.
-- Expiry arithmetic is guarded against timestamp overflow, with boundary-condition unit tests.\n- Create a per-installation EC P-256 signing identity in Android Keystore.\n- Private key material is non-exportable; the app displays only the public-key SHA-256 fingerprint.\n- Pairing transcript signatures use ECDSA with SHA-256 and a NEXUS-specific domain separator.\n- JVM unit tests cover fingerprint stability, signature verification, wrong-key rejection and transcript tampering.
+- Expiry arithmetic is guarded against timestamp overflow, with boundary-condition unit tests.
+- Create a per-installation EC P-256 signing identity in Android Keystore.
+- Private key material is non-exportable; the app displays only the public-key SHA-256 fingerprint.
+- Pairing transcript signatures use ECDSA with SHA-256 and a NEXUS-specific domain separator.
+- JVM unit tests cover fingerprint stability, signature verification, wrong-key rejection and transcript tampering.
 
 ## Not implemented yet
 
+- Mutual peer authentication and verification of a remote device identity.
+- A canonical pairing transcript builder with fresh nonces from both peers.
 - One-time token redemption and replay prevention across devices.
 - Mutual device approval.
-- Mutual peer authentication and verification of a remote device identity.\n- A canonical pairing transcript builder with fresh nonces from both peers.\n- One-time token redemption and replay prevention across devices.
 - TLS handshake or LAN transport.
 - NSD/mDNS discovery.
 - Persistent trusted-device registry or revocation.

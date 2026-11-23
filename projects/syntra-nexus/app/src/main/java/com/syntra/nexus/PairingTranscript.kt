@@ -65,6 +65,7 @@ class PairingTranscript private constructor(
             require(requestId.matches(Regex("^[A-Za-z0-9_-]{22}$"))) {
                 "Pairing request ID has an invalid format."
             }
+            require(nowMillis >= 0L) { "Current timestamp cannot be negative." }
             require(nowMillis <= Long.MAX_VALUE - MAX_FUTURE_LIFETIME_MILLIS) {
                 "Current timestamp is outside the supported range."
             }

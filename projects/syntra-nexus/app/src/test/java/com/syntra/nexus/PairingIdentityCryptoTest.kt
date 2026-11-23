@@ -22,7 +22,6 @@ class PairingIdentityCryptoTest {
     fun fingerprintChangesForDifferentKeys() {
         val first = createKeyPair()
         val second = createKeyPair()
-
         assertNotEquals(
             PairingIdentityCrypto.fingerprint(first.public.encoded),
             PairingIdentityCrypto.fingerprint(second.public.encoded)
@@ -30,16 +29,29 @@ class PairingIdentityCryptoTest {
     }
 
     @Test
-    fun signsAndVerifiesTranscriptHash() {
+    fun signsAndVerifiesInitiatorTranscriptHash() {
         val pair = createKeyPair()
-        val transcriptHash = ByteArray(32) { it.toByte() }
-        val signature = PairingIdentityCrypto.signTranscriptHash(pair.private, transcriptHash)
-
+        val hash = ByteArray(32) { it.toByte() }
+        val signature = PairingIdentityCrypto.signTranscriptHash(
+            pair.private, hash, PairingSignerRole.INITIATOR
+        )
         assertTrue(
             PairingIdentityCrypto.verifyTranscriptHash(
-                pair.public.encoded,
-                transcriptHash,
-                signature
+                pair.public.encoded, hash, signature, PairingSignerRole.INITIATOR
+            )
+        )
+    }
+
+    @Test
+    fun signaturesAreBoundToSignerRole() {
+        val pair = createKeyPair()
+        val hash = ByteArray(32) { it.toByte() }
+        val signature = PairingIdentityCrypto.signTranscriptHash(
+            pair.private, hash, PairingSignerRole.INITIATOR
+        )
+        assertFalse(
+            PairingIdentityCrypto.verifyTranscriptHash(
+                pair.public.encoded, hash, signature, PairingSignerRole.RESPONDER
             )
         )
     }
@@ -49,13 +61,12 @@ class PairingIdentityCryptoTest {
         val pair = createKeyPair()
         val original = ByteArray(32) { it.toByte() }
         val changed = ByteArray(32) { (it + 1).toByte() }
-        val signature = PairingIdentityCrypto.signTranscriptHash(pair.private, original)
-
+        val signature = PairingIdentityCrypto.signTranscriptHash(
+            pair.private, original, PairingSignerRole.INITIATOR
+        )
         assertFalse(
             PairingIdentityCrypto.verifyTranscriptHash(
-                pair.public.encoded,
-                changed,
-                signature
+                pair.public.encoded, changed, signature, PairingSignerRole.INITIATOR
             )
         )
     }
@@ -64,28 +75,27 @@ class PairingIdentityCryptoTest {
     fun rejectsWrongKeyAndMalformedSignature() {
         val signer = createKeyPair()
         val other = createKeyPair()
-        val transcriptHash = ByteArray(32) { 7 }
-        val signature = PairingIdentityCrypto.signTranscriptHash(signer.private, transcriptHash)
-
+        val hash = ByteArray(32) { 7 }
+        val signature = PairingIdentityCrypto.signTranscriptHash(
+            signer.private, hash, PairingSignerRole.RESPONDER
+        )
         assertFalse(
             PairingIdentityCrypto.verifyTranscriptHash(
-                other.public.encoded,
-                transcriptHash,
-                signature
+                other.public.encoded, hash, signature, PairingSignerRole.RESPONDER
             )
         )
         assertFalse(
             PairingIdentityCrypto.verifyTranscriptHash(
-                signer.public.encoded,
-                transcriptHash,
-                byteArrayOf(1, 2, 3)
+                signer.public.encoded, hash, byteArrayOf(1, 2, 3), PairingSignerRole.RESPONDER
             )
         )
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun rejectsWrongTranscriptHashLength() {
-        PairingIdentityCrypto.signTranscriptHash(createKeyPair().private, ByteArray(31))
+        PairingIdentityCrypto.signTranscriptHash(
+            createKeyPair().private, ByteArray(31), PairingSignerRole.INITIATOR
+        )
     }
 
     private fun createKeyPair() = KeyPairGenerator.getInstance("EC").apply {

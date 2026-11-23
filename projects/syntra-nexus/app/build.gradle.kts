@@ -12,8 +12,8 @@ android {
         applicationId = "com.syntra.nexus"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0-dev"
+        versionCode = 3
+        versionName = "0.3.0-dev"
     }
 
     buildFeatures {
@@ -42,6 +42,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("com.google.zxing:core:3.5.3")
+    implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
 
     testImplementation("junit:junit:4.13.2")
 

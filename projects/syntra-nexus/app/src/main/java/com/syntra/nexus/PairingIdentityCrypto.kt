@@ -9,8 +9,7 @@ import java.security.spec.X509EncodedKeySpec
 /**
  * Cryptographic helpers for NEXUS device identity.
  *
- * The transcript hash must be a SHA-256 digest of a canonical, versioned
- * pairing transcript containing both device identities and fresh nonces.
+ * Signatures bind the canonical transcript hash to the signer's protocol role.
  * This helper alone does not establish trust or validate user consent.
  */
 object PairingIdentityCrypto {
@@ -25,11 +24,16 @@ object PairingIdentityCrypto {
         return digest.joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
     }
 
-    fun signTranscriptHash(privateKey: PrivateKey, transcriptHash: ByteArray): ByteArray {
+    fun signTranscriptHash(
+        privateKey: PrivateKey,
+        transcriptHash: ByteArray,
+        role: PairingSignerRole
+    ): ByteArray {
         require(transcriptHash.size == 32) { "Pairing transcript hash must be 32 bytes." }
         val signer = Signature.getInstance(SIGNATURE_ALGORITHM)
         signer.initSign(privateKey)
         signer.update(DOMAIN_SEPARATOR)
+        signer.update(role.wireValue.toByte())
         signer.update(transcriptHash)
         return signer.sign()
     }
@@ -37,7 +41,8 @@ object PairingIdentityCrypto {
     fun verifyTranscriptHash(
         publicKeyEncoded: ByteArray,
         transcriptHash: ByteArray,
-        signatureBytes: ByteArray
+        signatureBytes: ByteArray,
+        role: PairingSignerRole
     ): Boolean {
         if (transcriptHash.size != 32 || signatureBytes.isEmpty()) return false
         return try {
@@ -46,6 +51,7 @@ object PairingIdentityCrypto {
             val verifier = Signature.getInstance(SIGNATURE_ALGORITHM)
             verifier.initVerify(publicKey)
             verifier.update(DOMAIN_SEPARATOR)
+            verifier.update(role.wireValue.toByte())
             verifier.update(transcriptHash)
             verifier.verify(signatureBytes)
         } catch (_: Exception) {

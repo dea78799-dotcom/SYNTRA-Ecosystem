@@ -116,3 +116,28 @@ Closing an issue is not proof that an entire product or release is stable.
 ## 9. Configuration status
 
 This document defines the intended labels and board workflow only. A maintainer must create the labels and GitHub Projects board in repository or organization settings, then verify the actual configuration. Do not describe these labels or board as active before that verification.
+
+
+## 10. Maintainer setup checklist
+
+The repository integration used for this project can manage issues and apply existing labels, but it does not currently expose actions to create repository labels or GitHub Projects boards. Complete these steps in the GitHub web interface:
+
+### Create repository labels
+
+1. Open the repository and select **Issues**.
+2. Open **Labels** and choose **New label**.
+3. Create the labels listed in sections 1–4. Keep spelling and punctuation exact so issue templates and automation can reuse them consistently.
+4. Re-open the Labels page and verify the full set exists before changing the dashboard status.
+
+### Create the development board
+
+1. Open the repository **Projects** tab, or create a project from the organization profile if repository Projects are unavailable.
+2. Create a board named **SYNTRA Development**.
+3. Add the workflow statuses from section 5: Backlog, Ready, In progress, Review, Testing, Done, Blocked.
+4. Add the project fields from section 6 where supported.
+5. Add issues #1, #2, and #3 to the board and assign their current workflow status accurately.
+6. Copy the board URL into the Development Dashboard and verify that the board is accessible to the maintainers.
+
+### Activation evidence
+
+Do not mark labels or the board as active based only on this checklist. Record the verification date and link to the Labels page and board in the Development Dashboard after both are created and checked.

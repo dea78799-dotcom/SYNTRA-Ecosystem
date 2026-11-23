@@ -6,6 +6,15 @@ This project follows a simple Keep a Changelog-style structure. Versions are ass
 
 ## [Unreleased]
 
+### Added
+- SYNTRA NEXUS 0.2.0-dev: local QR invitation prototype with a two-minute lifetime.
+- NEXUS pairing invitation unit tests for token format, randomness, and expiry.
+- NEXUS GitHub Actions now runs unit tests before assembling the debug APK.
+
+### Security
+- QR invitations are documented as temporary and not yet a complete pairing or authentication flow.
+- NEXUS documentation records mutual approval, one-time redemption, Keystore identity, and LAN authentication as release requirements.
+
 ### Planned
 - Continue refining the ecosystem architecture and product documentation.
 - Define measurable completion criteria for each roadmap phase.

@@ -7,8 +7,9 @@ import java.util.Base64
  * Process-local, synchronized single-use invitation registry.
  *
  * Only a SHA-256 fingerprint of each high-entropy token is retained.
- * This registry is intentionally in-memory: it does not provide persistence
- * across process death or replay protection across multiple devices.
+ * Entries remain as tombstones until this registry is discarded so an expired
+ * token cannot be re-registered with a substituted expiry. This is in-memory
+ * only and does not protect against replay after process death or on another device.
  */
 class OneTimePairingTokenRegistry(
     private val maxEntries: Int = DEFAULT_MAX_ENTRIES
@@ -43,7 +44,7 @@ class OneTimePairingTokenRegistry(
 
     /**
      * Registers an invitation before it is shown or distributed.
-     * Returns false if the same token fingerprint is already registered.
+     * Returns false if this token fingerprint has ever been registered here.
      */
     @Synchronized
     fun register(
@@ -66,10 +67,9 @@ class OneTimePairingTokenRegistry(
         val fingerprint = tokenFingerprint(invitation.token)
             ?: throw IllegalArgumentException("Invitation token is malformed.")
 
-        pruneExpired(nowMillis)
         if (entries.containsKey(fingerprint)) return false
         check(entries.size < maxEntries) {
-            "Pairing token registry is full; wait for invitations to expire."
+            "Pairing token registry is full; create a new registry in a new app session."
         }
 
         entries[fingerprint] = Entry(invitation.expiresAtMillis)
@@ -116,15 +116,6 @@ class OneTimePairingTokenRegistry(
     @Synchronized
     fun registeredCount(): Int = entries.size
 
-    private fun pruneExpired(nowMillis: Long) {
-        val iterator = entries.entries.iterator()
-        while (iterator.hasNext()) {
-            if (nowMillis >= iterator.next().value.expiresAtMillis) {
-                iterator.remove()
-            }
-        }
-    }
-
     private fun tokenFingerprint(token: String): String? {
         if (!TOKEN_PATTERN.matches(token)) return null
         val decoded = try {
@@ -137,11 +128,11 @@ class OneTimePairingTokenRegistry(
         if (canonical != token) return null
 
         val digest = MessageDigest.getInstance("SHA-256").digest(decoded)
-        return digest.joinToString("") { byte -> "%02x".format(byte) }
+        return digest.joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
     }
 
     companion object {
-        const val DEFAULT_MAX_ENTRIES = 256
+        const val DEFAULT_MAX_ENTRIES = 1024
         private const val HARD_MAX_ENTRIES = 4096
         private const val TOKEN_BYTES = 32
         private val TOKEN_PATTERN = Regex("^[A-Za-z0-9_-]{43}$")

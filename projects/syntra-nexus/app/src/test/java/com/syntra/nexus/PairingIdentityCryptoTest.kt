@@ -12,10 +12,10 @@ class PairingIdentityCryptoTest {
     @Test
     fun fingerprintIsStableForSamePublicKey() {
         val pair = createKeyPair()
-        assertEquals(
-            PairingIdentityCrypto.fingerprint(pair.public.encoded),
-            PairingIdentityCrypto.fingerprint(pair.public.encoded)
-        )
+        val fingerprint = PairingIdentityCrypto.fingerprint(pair.public.encoded)
+        assertEquals(64, fingerprint.length)
+        assertTrue(fingerprint.matches(Regex("^[0-9a-f]{64}$")))
+        assertEquals(fingerprint, PairingIdentityCrypto.fingerprint(pair.public.encoded))
     }
 
     @Test

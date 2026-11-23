@@ -229,6 +229,7 @@ private fun NexusDashboard() {
                         modifier = Modifier.size(220.dp)
                     )
                     Text("Mã có hiệu lực trong 2 phút.", fontWeight = FontWeight.SemiBold)
+                    Text("Chỉ hiển thị mã cho thiết bị bạn muốn ghép đôi. Không đăng ảnh QR công khai.", color = NexusMuted, fontSize = 12.sp)
                     Text("Hết hạn lúc $expiry", color = NexusMuted, fontSize = 12.sp)
                     Text(
                         "Đây mới là mã mời thử nghiệm. Thiết bị khác chưa thể quét và kết nối trong bản này.",

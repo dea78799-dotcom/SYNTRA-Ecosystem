@@ -23,7 +23,6 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 ## Not implemented yet
 
 - One-time token redemption and replay prevention across devices.
-- One-time token redemption and replay prevention across devices.
 - Mutual device approval.
 - Android Keystore-backed device identity.
 - TLS handshake or LAN transport.

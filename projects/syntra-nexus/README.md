@@ -19,21 +19,23 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Sign and verify transcript hashes with ECDSA/SHA-256, a NEXUS-specific domain separator, and explicit initiator/responder role binding.
 - Verify that a peer's supplied public key exactly matches the identity assigned to that role in the transcript.
 - Reject invalid signatures, wrong-role signatures, identity mismatches, tampered transcripts, and proofs presented after expiry.
+- Pin each handshake session to the SHA-256 hash of its exact canonical transcript; an unbound or substituted transcript is rejected.
 - Integrate peer-proof verification into the handshake state machine. The transition into local approval is private and can only be reached through the verifier.
-- The state machine requires local approval and verified peer approval before entering PAIRED.
+- Require a separate role-bound signature over an explicit APPROVE decision from the peer after local approval; a plain network message cannot move the session to PAIRED.
+- The state machine requires local approval and cryptographically verified peer approval before entering PAIRED.
 - Terminal rejection, expiry, and failure states cannot be advanced to paired.
-- JVM unit tests cover cryptographic proof verification and handshake integration.
+- JVM unit tests cover cryptographic proof verification, transcript pinning, signed approval, and handshake integration.
 
 ## Not implemented yet
 
 - Live exchange of fresh nonces and signatures between two devices.
 - One-time token redemption and replay prevention across devices.
-- Authentication of peer approval over a live connection.
+- Exchange and transport of the signed peer-approval message over a live authenticated connection.
 - TLS handshake, LAN transport, or NSD/mDNS discovery.
 - Persistent trusted-device registry or remote revocation.
 - Remote actions, TV client, or cloud sync.
 
-**Important:** This version verifies signatures over a locally constructed transcript. It does not yet exchange transcript data with another device, prove freshness across a distributed session, redeem a one-time invitation, authenticate a peer approval message, or create a trusted-device record. The QR scanner is still a local prototype feature. Do not use this build as a remote controller.
+**Important:** This version verifies signatures over a locally constructed transcript and verifies a separately signed approval decision in local unit-test flows. It does not yet exchange transcript data or approval messages with another device, prove freshness across a distributed session, redeem a one-time invitation, or create a trusted-device record. The QR scanner is still a local prototype feature. Do not use this build as a remote controller.
 
 ## Build and test
 

@@ -7,12 +7,15 @@ This project follows a simple Keep a Changelog-style structure. Versions are ass
 ## [Unreleased]
 
 ### Added
+- SYNTRA NEXUS 0.4.0-dev: Android Keystore-backed EC P-256 device identity and public-key fingerprint display.
+- NEXUS ECDSA/SHA-256 transcript-signing and verification helpers with domain separation, plus JVM tests for valid signatures and tampering.
 - SYNTRA NEXUS 0.3.0-dev: local QR invitation generation, Google Play services QR scanning, and strict scanned-payload validation.
 - NEXUS unit tests for invitation token format, randomness, expiry, and payload validation.
 - NEXUS GitHub Actions now runs unit tests before assembling the debug APK.
 
 ### Security
 - QR invitations are documented as temporary and not yet a complete pairing or authentication flow.
+- Device identity keys remain non-exportable in Android Keystore; local identity creation does not establish trust or authenticate a peer.
 - NEXUS documentation records mutual approval, one-time redemption, Keystore identity, and LAN authentication as release requirements.
 
 ### Planned

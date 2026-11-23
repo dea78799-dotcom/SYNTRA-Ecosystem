@@ -31,7 +31,10 @@ class PairingHandshakeStateMachineTest {
             PairingSignerRole.RESPONDER, NOW + 3
         ).session
         val peerReview = verified.approveLocally(NOW + 4)
-        val paired = peerReview.peerApprovalVerified(NOW + 5)
+        val paired = peerReview.verifyPeerApprovalAndAdvance(
+            transcript, responder.public.encoded, signApproval(),
+            PairingSignerRole.RESPONDER, NOW + 5
+        ).session
 
         assertEquals(PairingHandshakeState.PAIRED, paired.state)
         assertEquals(PairingHandshakeDecision.BOTH_APPROVED, paired.decision)
@@ -66,7 +69,10 @@ class PairingHandshakeStateMachineTest {
         verifyingSession().verifyPeerProofAndAdvance(
             transcript, responder.public.encoded, signResponder(),
             PairingSignerRole.RESPONDER, NOW + 3
-        ).session.peerApprovalVerified(NOW + 4)
+        ).session.verifyPeerApprovalAndAdvance(
+            transcript, responder.public.encoded, signApproval(),
+            PairingSignerRole.RESPONDER, NOW + 4
+        )
     }
 
     @Test
@@ -132,6 +138,10 @@ class PairingHandshakeStateMachineTest {
 
     private fun signResponder() = PairingIdentityCrypto.signTranscriptHash(
         responder.private, transcript.sha256, PairingSignerRole.RESPONDER
+    )
+
+    private fun signApproval() = PairingApprovalVerifier.createApprovalSignature(
+        responder.private, transcript, PairingSignerRole.RESPONDER
     )
 
     private fun createKeyPair() = KeyPairGenerator.getInstance("EC").apply {

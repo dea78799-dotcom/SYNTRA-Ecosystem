@@ -7,8 +7,8 @@ This project follows a simple Keep a Changelog-style structure. Versions are ass
 ## [Unreleased]
 
 ### Added
-- SYNTRA NEXUS 0.2.0-dev: local QR invitation prototype with a two-minute lifetime.
-- NEXUS pairing invitation unit tests for token format, randomness, and expiry.
+- SYNTRA NEXUS 0.3.0-dev: local QR invitation generation, Google Play services QR scanning, and strict scanned-payload validation.
+- NEXUS unit tests for invitation token format, randomness, expiry, and payload validation.
 - NEXUS GitHub Actions now runs unit tests before assembling the debug APK.
 
 ### Security

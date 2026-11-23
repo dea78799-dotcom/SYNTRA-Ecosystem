@@ -27,6 +27,11 @@ enum class PairingHandshakeDecision {
     BOTH_APPROVED
 }
 
+data class PairingHandshakeVerification(
+    val session: PairingHandshakeSession,
+    val proofResult: PairingProofResult
+)
+
 data class PairingHandshakeSession private constructor(
     val requestId: String,
     val expiresAtMillis: Long,
@@ -53,6 +58,41 @@ data class PairingHandshakeSession private constructor(
      * This is a trust boundary: invoke only after cryptographic verification
      * of the responder identity and role-bound transcript signature succeeds.
      */
+    /**
+     * Verifies that the proof key is exactly the identity bound to the
+     * signer's role in this session's transcript before advancing state.
+     */
+    fun verifyPeerProofAndAdvance(
+        transcript: PairingTranscript,
+        peerPublicKeyEncoded: ByteArray,
+        signatureBytes: ByteArray,
+        signerRole: PairingSignerRole,
+        nowMillis: Long
+    ): PairingHandshakeVerification {
+        requireState(PairingHandshakeState.VERIFYING_PEER)
+        if (transcript.requestId != requestId ||
+            transcript.expiresAtMillis != expiresAtMillis
+        ) {
+            val failed = fail(nowMillis)
+            return PairingHandshakeVerification(failed, PairingProofResult.IDENTITY_MISMATCH)
+        }
+
+        val proof = PairingProofVerifier.verifyPeerProof(
+            transcript = transcript,
+            peerPublicKeyEncoded = peerPublicKeyEncoded,
+            signatureBytes = signatureBytes,
+            signerRole = signerRole,
+            nowMillis = nowMillis
+        )
+        val next = when (proof) {
+            PairingProofResult.VERIFIED -> peerProofVerified(nowMillis)
+            PairingProofResult.EXPIRED -> refresh(nowMillis)
+            PairingProofResult.IDENTITY_MISMATCH,
+            PairingProofResult.INVALID_SIGNATURE -> fail(nowMillis)
+        }
+        return PairingHandshakeVerification(next, proof)
+    }
+
     fun peerProofVerified(nowMillis: Long): PairingHandshakeSession {
         requireState(PairingHandshakeState.VERIFYING_PEER)
         return transitionTo(

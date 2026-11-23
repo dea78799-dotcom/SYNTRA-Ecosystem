@@ -67,6 +67,7 @@ Files and folders will be added as their contents are ready; this outline does n
 ## Development Dashboard
 
 - [SYNTRA Development Dashboard](docs/development-dashboard.md) — progress overview and current tracking limitations.
+- [SYNTRA Version Tracker](docs/version-tracker.md) — product versions, release channels, revisions, and release records.
 - [Repository Checks workflow](.github/workflows/repository-checks.yml) — automated structural and local-link checks.
 
 ## Documentation

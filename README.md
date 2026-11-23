@@ -64,6 +64,7 @@ Files and folders will be added as their contents are ready; this outline does n
 - [Quality assurance standard](docs/quality-assurance.md)
 - [Release management standard](docs/release-management.md)
 - [Security policy](docs/security-policy.md)
+- [Contribution guide](docs/contribution-guide.md)
 - [Changelog](CHANGELOG.md)
 - [Repository rights notice](LICENSE)
 

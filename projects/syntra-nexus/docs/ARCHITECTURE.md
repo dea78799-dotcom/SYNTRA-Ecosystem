@@ -89,3 +89,12 @@ Keep the protocol and capability model platform-neutral. Implement a TV client o
 - **0.5 LAN Link:** authenticated discovery and TLS connection status.
 - **0.6 Capabilities:** small, safe allow-list of device actions.
 - **0.7 TV Client:** platform-specific client after target selection.
+
+
+## Pairing protocol foundation (0.5-dev)
+
+The current implementation defines a canonical transcript with a fixed field order: protocol marker and version, invitation request ID, expiry, initiator public key, responder public key, initiator nonce, and responder nonce. Integer fields use big-endian encoding; variable-length values are length-prefixed. Both peer nonces must be independently supplied as 32-byte values.
+
+The transcript is SHA-256 hashed. ECDSA signatures cover the hash together with a NEXUS-specific domain separator and the signer's explicit initiator/responder role. Role separation is intended to prevent a signature produced in one protocol role from being reflected as the other role.
+
+This is not yet a complete handshake. Nonce exchange, one-time invitation redemption, peer-side signature verification, mutual approval, trusted-device persistence, and authenticated LAN transport remain unimplemented.

@@ -38,6 +38,68 @@ class PairingHandshakeProofIntegrationTest {
     }
 
     @Test
+    fun signedPeerApprovalCompletesPairingAfterLocalApproval() {
+        val proof = PairingIdentityCrypto.signTranscriptHash(
+            responder.private, transcript.sha256, PairingSignerRole.RESPONDER
+        )
+        val approval = PairingApprovalVerifier.createApprovalSignature(
+            responder.private, transcript, PairingSignerRole.RESPONDER
+        )
+        val session = verifyingSession().verifyPeerProofAndAdvance(
+            transcript, responder.public.encoded, proof,
+            PairingSignerRole.RESPONDER, NOW + 3
+        ).session.approveLocally(NOW + 4)
+        val result = session.verifyPeerApprovalAndAdvance(
+            transcript, responder.public.encoded, approval,
+            PairingSignerRole.RESPONDER, NOW + 5
+        )
+
+        assertEquals(PairingProofResult.VERIFIED, result.proofResult)
+        assertEquals(PairingHandshakeState.PAIRED, result.session.state)
+        assertEquals(PairingHandshakeDecision.BOTH_APPROVED, result.session.decision)
+    }
+
+    @Test
+    fun invalidPeerApprovalFailsSession() {
+        val proof = PairingIdentityCrypto.signTranscriptHash(
+            responder.private, transcript.sha256, PairingSignerRole.RESPONDER
+        )
+        val notAnApproval = proof
+        val session = verifyingSession().verifyPeerProofAndAdvance(
+            transcript, responder.public.encoded, proof,
+            PairingSignerRole.RESPONDER, NOW + 3
+        ).session.approveLocally(NOW + 4)
+        val result = session.verifyPeerApprovalAndAdvance(
+            transcript, responder.public.encoded, notAnApproval,
+            PairingSignerRole.RESPONDER, NOW + 5
+        )
+
+        assertEquals(PairingProofResult.INVALID_SIGNATURE, result.proofResult)
+        assertEquals(PairingHandshakeState.FAILED, result.session.state)
+    }
+
+    @Test
+    fun expiredPeerApprovalExpiresSession() {
+        val proof = PairingIdentityCrypto.signTranscriptHash(
+            responder.private, transcript.sha256, PairingSignerRole.RESPONDER
+        )
+        val approval = PairingApprovalVerifier.createApprovalSignature(
+            responder.private, transcript, PairingSignerRole.RESPONDER
+        )
+        val session = verifyingSession().verifyPeerProofAndAdvance(
+            transcript, responder.public.encoded, proof,
+            PairingSignerRole.RESPONDER, NOW + 3
+        ).session.approveLocally(NOW + 4)
+        val result = session.verifyPeerApprovalAndAdvance(
+            transcript, responder.public.encoded, approval,
+            PairingSignerRole.RESPONDER, EXPIRY
+        )
+
+        assertEquals(PairingProofResult.EXPIRED, result.proofResult)
+        assertEquals(PairingHandshakeState.EXPIRED, result.session.state)
+    }
+
+    @Test
     fun invalidSignatureFailsSession() {
         val signature = PairingIdentityCrypto.signTranscriptHash(
             initiator.private, transcript.sha256, PairingSignerRole.INITIATOR

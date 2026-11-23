@@ -121,7 +121,7 @@ Shared patterns should be documented in the relevant product design system befor
 
 - Replace the official company logo with an unapproved redesign.
 - Publish unverified color values as official brand colors.
-- stretch, skew, distort, or apply unapproved effects to brand artwork.
+- Stretch, skew, distort, or apply unapproved effects to brand artwork.
 - Mix unrelated icon styles in the same interface.
 - use unlicensed fonts, images, or illustrations.
 - imply that a planned feature or product has already shipped.

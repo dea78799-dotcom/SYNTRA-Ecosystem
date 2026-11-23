@@ -21,8 +21,8 @@
 - Generate a unique EC P-256 signing key per installation inside Android Keystore.
 - Keep private key bytes non-exportable; exchange public keys only.
 - Use SHA-256 fingerprints for human comparison, not as a substitute for proof of possession.
-- Bind signatures to a canonical, versioned transcript containing both peer identities, both fresh nonces, the invitation request ID and expiry.
-- Use a NEXUS-specific domain separator and verify signatures against the exact public key being approved.
+- Bind signatures to a canonical, versioned transcript containing both peer identities, both fresh nonces, the invitation request ID and expiry. Encode fields in a fixed order with explicit lengths; bind each signature to the signer's initiator/responder role.
+- Use a NEXUS-specific domain separator and verify signatures against the exact public key being approved. Reject transcript reuse across roles, malformed field lengths, identical peer identities, and identical peer nonces.
 - Never accept a peer solely because it supplied a fingerprint or was discovered on the LAN.
 - Local key deletion must be clearly described as local identity reset; remote peers need a separate revocation/update mechanism.
 

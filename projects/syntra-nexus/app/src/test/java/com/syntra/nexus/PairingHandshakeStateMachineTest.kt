@@ -22,6 +22,16 @@ class PairingHandshakeStateMachineTest {
         assertEquals(PairingHandshakeState.CREATED, created.state)
     }
 
+
+    @Test
+    fun transitionAtExpiryCannotAdvanceToNextState() {
+        val expiredDuringTransition = session().invitationSent(NOW + 1)
+            .peerConnected(EXPIRY)
+
+        assertEquals(PairingHandshakeState.EXPIRED, expiredDuringTransition.state)
+        assertNotEquals(PairingHandshakeState.VERIFYING_PEER, expiredDuringTransition.state)
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun cannotApproveBeforePeerProof() {
         session().invitationSent(NOW + 1).approveLocally(NOW + 2)

@@ -1,20 +1,26 @@
 # SYNTRA Version Tracker
 
-**Tracker version:** 1.0.0  
+**Tracker version:** 1.1.0  
 **Last reviewed:** 2026-11-23
 
-This page tracks versions and release readiness for each product. Version numbers are **not assigned** until the product owner approves a specific release candidate. Empty fields are intentionally left unassigned.
+This page records product source versions, verified revisions, CI evidence, and software release status. A version present in source configuration is recorded as a development version; it is not automatically a published release.
 
 ## Current product records
 
-| Product | Current version | Channel | Status | Latest revision | Release date |
+| Product | Source version | Channel | Current status | Latest main revision | CI evidence |
 |---|---|---|---|---|---|
-| SYNTRA OS | Not assigned | Development | In development | Not recorded | Not released |
-| Syntra Files | Not assigned | Development / testing | Testing and upgrading | Not recorded | Not released |
+| [SYNTRA OS](https://github.com/dea78799-dotcom/SyntraOS) | 0.1.0 | Development | CI passed; physical-device QA pending | [11db170](https://github.com/dea78799-dotcom/SyntraOS/commit/11db17032c7de96a9ad4aed7fc541542d352be60) | [2026-11-23 CI record](evidence/2026-11-23-syntraos-ci.md) |
+| [Syntra Files](https://github.com/dea78799-dotcom/Syntra-Files) | 0.69.0 (versionCode 690) | Development | Debug APK CI passed; device QA pending | [bd4f54f](https://github.com/dea78799-dotcom/Syntra-Files/commit/bd4f54f78edd2f27b9845e19050a4173525d4692) | [2026-11-23 CI record](evidence/2026-11-23-syntra-files-ci.md) |
+
+## Verified CI snapshot
+
+- **SYNTRA OS:** The workflow run on the recorded `main` revision completed successfully. Host Debug and Release builds and CTest passed; the ARM64 kernel cross-build, ELF verification, EL0 check, QEMU boot, and desktop framebuffer verification also passed.
+- **Syntra Files:** The workflow run on the recorded `main` revision completed successfully. The Debug APK build and artifact upload passed.
+- **Important boundary:** These results verify the specific CI jobs only. Physical-device compatibility and complete product QA remain pending. See the two evidence records for scope and limitations.
 
 ## Release history
 
-No SYNTRA OS or Syntra Files software releases are recorded in this repository yet.
+No SYNTRA OS or Syntra Files software releases are recorded in this repository yet. The source versions above are not declarations of a published or stable release.
 
 | Product | Version | Channel | Date | Source revision | Notes |
 |---|---|---|---|---|---|
@@ -56,11 +62,12 @@ A candidate may advance only when its evidence is recorded:
 
 ## Product evidence
 
-Use the [Product Build and QA Evidence Template](product-evidence-template.md) to collect build identity, target environment, QA results, known issues, and release decisions. Link the completed record from the relevant product row or release entry only after it contains verifiable evidence.
+Use the [Product Build and QA Evidence Template](product-evidence-template.md) to collect build identity, target environment, QA results, known issues, and release decisions. Verified CI snapshots are stored in [docs/evidence](evidence/); create a new dated record when a product revision or test environment changes.
 
 ## Rules
 
-- Never invent a version, build number, release date, or artifact URL.
+- Record product versions from the actual source configuration; do not invent them.
+- Never invent a build number, release date, or artifact URL.
 - Documentation changes alone do not create a software release.
 - Alpha/Beta/RC/Stable labels must match test evidence and intended audience.
 - Update this tracker when a candidate is prepared or a release is published.

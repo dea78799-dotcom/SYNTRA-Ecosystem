@@ -168,7 +168,7 @@ class PairingHandshakeProofIntegrationTest {
     }
 
     private fun verifyingSession() = PairingHandshakeSession.createForTranscript(
-        transcript, NOW
+        transcript, initiator.public.encoded, NOW
     ).invitationSent(NOW + 1)
         .peerConnected(NOW + 2)
 

@@ -131,7 +131,9 @@ class PairingHandshakeStateMachineTest {
         assertNotEquals(PairingHandshakeDecision.BOTH_APPROVED, awaitingPeerApproval.decision)
     }
 
-    private fun session() = PairingHandshakeSession.createForTranscript(transcript, NOW)
+    private fun session() = PairingHandshakeSession.createForTranscript(
+        transcript, initiator.public.encoded, NOW
+    )
 
     private fun verifyingSession() = session().invitationSent(NOW + 1)
         .peerConnected(NOW + 2)

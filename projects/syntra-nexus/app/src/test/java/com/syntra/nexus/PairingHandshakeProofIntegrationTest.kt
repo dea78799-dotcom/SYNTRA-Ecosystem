@@ -88,8 +88,8 @@ class PairingHandshakeProofIntegrationTest {
         assertEquals(PairingHandshakeState.EXPIRED, result.session.state)
     }
 
-    private fun verifyingSession() = PairingHandshakeSession.create(
-        REQUEST_ID, EXPIRY, NOW
+    private fun verifyingSession() = PairingHandshakeSession.createForTranscript(
+        transcript, NOW
     ).invitationSent(NOW + 1)
         .peerConnected(NOW + 2)
 

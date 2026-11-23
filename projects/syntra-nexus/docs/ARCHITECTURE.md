@@ -1,4 +1,4 @@
-# SYNTRA NEXUS — Architecture 0.2
+# SYNTRA NEXUS — Architecture 0.3
 
 ## Product boundary
 
@@ -18,7 +18,7 @@ Android Controller
  Approved NEXUS Agent (future)
 ```
 
-The Android application is the first controller. A TV client is deferred until the target TV platform is selected. The MVP does not depend on cloud services.
+The Android application is the first controller. A TV client is deferred until the target TV platform is selected. The MVP does not depend on cloud services. Google Play services Code Scanner is used only to present the QR scanning interface; scanning does not create a network connection.
 
 ## Components
 
@@ -32,13 +32,13 @@ The Android application is the first controller. A TV client is deferred until t
 
 ## Current implementation boundary
 
-MVP 0.2-dev generates a QR invitation locally. The payload includes a version, random request ID, random token and expiry timestamp. The invitation expires after two minutes. This is not yet a complete pairing protocol: there is no receiver, redemption endpoint, mutual authentication, TLS session, trusted-device record or replay database.
+MVP 0.3-dev generates QR invitations and scans QR codes through Google Play services Code Scanner. Scanned payloads are validated locally for scheme, host, version, required and duplicate fields, token format, payload length and expiry. A valid scan is shown for review, but no token is redeemed and no trust relationship is created. There is still no LAN receiver, mutual authentication, TLS session, trusted-device record or replay database.
 
 ## Pairing protocol direction
 
 1. Initiator creates a random request ID and a cryptographically random one-time token.
 2. The invitation is encoded as a QR payload and expires after two minutes.
-3. Receiver scans the QR and validates version, format and expiry.
+3. Receiver scans the QR with the Google code scanner and validates version, format, token structure and expiry locally.
 4. Receiver contacts the initiator over the local network; the token is redeemed once and then invalidated.
 5. Both devices exchange public identity information and establish an authenticated TLS session.
 6. Both sides display the peer identity and requested capabilities; each side must explicitly approve.
@@ -70,8 +70,9 @@ Keep the protocol and capability model platform-neutral. Implement a TV client o
 ## Milestones
 
 - **0.1 Foundation:** Compose dashboard and truthful prototype states — complete.
-- **0.2a Invitation:** local QR generation, short-lived random token and unit tests — in progress.
-- **0.2b Pairing:** QR scanning, token redemption, mutual approval and local trust registry.
+- **0.2a Invitation:** local QR generation, short-lived random token and unit tests — complete.
+- **0.2b Scanner:** QR scanning and local payload validation — prototype implemented.
+- **0.2c Pairing:** one-time token redemption, mutual approval and local trust registry.
 - **0.3 LAN Link:** authenticated discovery and TLS connection status.
 - **0.4 Capabilities:** small, safe allow-list of device actions.
 - **0.5 TV Client:** platform-specific client after target selection.

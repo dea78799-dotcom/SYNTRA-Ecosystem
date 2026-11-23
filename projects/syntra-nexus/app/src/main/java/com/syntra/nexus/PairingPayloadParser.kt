@@ -55,7 +55,13 @@ object PairingPayloadParser {
         val expiresAt = parameters.getValue("exp").toLongOrNull()
             ?: throw IllegalArgumentException("Invitation expiry is invalid.")
         require(expiresAt > nowMillis) { "Invitation has expired." }
-        require(expiresAt - nowMillis <= MAX_FUTURE_LIFETIME_MILLIS) {
+        val latestAllowedExpiry =
+            if (nowMillis > Long.MAX_VALUE - MAX_FUTURE_LIFETIME_MILLIS) {
+                Long.MAX_VALUE
+            } else {
+                nowMillis + MAX_FUTURE_LIFETIME_MILLIS
+            }
+        require(expiresAt <= latestAllowedExpiry) {
             "Invitation expiry exceeds the allowed lifetime."
         }
 

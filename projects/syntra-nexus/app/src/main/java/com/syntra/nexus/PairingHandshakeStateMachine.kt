@@ -3,10 +3,9 @@ package com.syntra.nexus
 /**
  * Pure local state machine for one pairing attempt.
  *
- * Call peerProofVerified() only after the caller has verified the peer's
- * role-bound signature against the exact canonical transcript and checked
- * that the invitation has not been redeemed. This class does not perform
- * cryptography, networking, persistence, or remote token redemption.
+ * Cryptographic proof and approval checks are delegated to dedicated
+ * verifiers. This class does not perform networking, persistence, one-time
+ * token redemption, or distributed replay prevention.
  */
 enum class PairingHandshakeState {
     CREATED,
@@ -114,10 +113,46 @@ data class PairingHandshakeSession private constructor(
     }
 
     /**
-     * Call only after the authenticated peer has explicitly approved this
-     * exact request. A transport message alone is not sufficient evidence.
+     * Verifies a separately signed APPROVE decision for this exact transcript.
+     * A plain transport message can never advance the session to PAIRED.
      */
-    fun peerApprovalVerified(nowMillis: Long): PairingHandshakeSession {
+    fun verifyPeerApprovalAndAdvance(
+        transcript: PairingTranscript,
+        peerPublicKeyEncoded: ByteArray,
+        signatureBytes: ByteArray,
+        signerRole: PairingSignerRole,
+        nowMillis: Long
+    ): PairingHandshakeVerification {
+        requireState(PairingHandshakeState.WAITING_FOR_PEER_APPROVAL)
+        val expectedHash = expectedTranscriptHashHex
+        if (transcript.requestId != requestId ||
+            transcript.expiresAtMillis != expiresAtMillis ||
+            expectedHash == null ||
+            expectedHash != transcript.sha256.toHexString()
+        ) {
+            val failed = fail(nowMillis)
+            return PairingHandshakeVerification(failed, PairingProofResult.IDENTITY_MISMATCH)
+        }
+
+        val proof = PairingApprovalVerifier.verifyPeerApproval(
+            transcript = transcript,
+            peerPublicKeyEncoded = peerPublicKeyEncoded,
+            signatureBytes = signatureBytes,
+            signerRole = signerRole,
+            nowMillis = nowMillis
+        )
+        val next = when (proof) {
+            PairingProofResult.VERIFIED -> advanceAfterVerifiedPeerApproval(nowMillis)
+            PairingProofResult.EXPIRED -> refresh(nowMillis)
+            PairingProofResult.IDENTITY_MISMATCH,
+            PairingProofResult.INVALID_SIGNATURE -> fail(nowMillis)
+        }
+        return PairingHandshakeVerification(next, proof)
+    }
+
+    private fun advanceAfterVerifiedPeerApproval(
+        nowMillis: Long
+    ): PairingHandshakeSession {
         requireState(PairingHandshakeState.WAITING_FOR_PEER_APPROVAL)
         val current = transitionTo(
             PairingHandshakeState.WAITING_FOR_PEER_APPROVAL,

@@ -67,6 +67,18 @@ class OneTimePairingTokenRegistryTest {
     }
 
     @Test
+    fun expiredTokenFingerprintCannotBeReRegisteredWithNewExpiry() {
+        val request = PairingRequest.create(nowMillis = 5_000L, ttlMillis = 1_000L)
+        val registry = OneTimePairingTokenRegistry()
+        assertTrue(registry.register(request.toInvitation(), nowMillis = 5_001L))
+
+        val alteredInvitation = request.toInvitation().copy(
+            expiresAtMillis = 10_000L
+        )
+        assertFalse(registry.register(alteredInvitation, nowMillis = 6_001L))
+    }
+
+    @Test
     fun revokedTokenCannotBeRedeemed() {
         val request = PairingRequest.create(nowMillis = 5_000L)
         val registry = OneTimePairingTokenRegistry()

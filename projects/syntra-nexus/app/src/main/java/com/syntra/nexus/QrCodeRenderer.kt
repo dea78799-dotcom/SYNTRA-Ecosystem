@@ -18,7 +18,7 @@ internal object QrCodeRenderer {
             size,
             mapOf(
                 EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.M,
-                EncodeHintType.MARGIN to 2
+                EncodeHintType.MARGIN to 4
             )
         )
         val pixels = IntArray(size * size) { index ->

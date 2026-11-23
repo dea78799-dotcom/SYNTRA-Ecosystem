@@ -16,7 +16,7 @@
 - Logs must not contain tokens, private keys, message content, or sensitive personal data.
 - Sample devices and simulated states must be clearly labeled as demo data.
 
-## Threats to address before LAN pairing ships
+## Device identity requirements\n\n- Generate a unique EC P-256 signing key per installation inside Android Keystore.\n- Keep private key bytes non-exportable; exchange public keys only.\n- Use SHA-256 fingerprints for human comparison, not as a substitute for proof of possession.\n- Bind signatures to a canonical, versioned transcript containing both peer identities, both fresh nonces, the invitation request ID and expiry.\n- Use a NEXUS-specific domain separator and verify signatures against the exact public key being approved.\n- Never accept a peer solely because it supplied a fingerprint or was discovered on the LAN.\n- Local key deletion must be clearly described as local identity reset; remote peers need a separate revocation/update mechanism.\n\n## Threats to address before LAN pairing ships
 
 - QR code photographed or presented to an unintended party.
 - Replay of an expired or already redeemed invitation.

@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.6.0-dev  
-**Status:** Local pairing protocol foundations and handshake state machine; no network pairing yet  
+**Version:** 0.7.0-dev  
+**Status:** Local cryptographic peer-proof verification integrated with handshake state machine; no network pairing yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -14,25 +14,26 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Strict invitation parser validates scheme, host, version, required fields, duplicate fields, token format, payload size, and expiry window.
 - Scan QR codes using Google Play services Code Scanner; the app does not request direct camera permission.
 - Valid scanned invitations are shown in a local review dialog; scanning does not establish trust or a network connection.
-- Local-only invitation review state tracks pending, locally accepted, locally rejected, and expired invitations.
 - Create a per-installation EC P-256 signing identity in Android Keystore. Private key material is non-exportable; the app displays only the public-key SHA-256 fingerprint.
-- Pairing transcript signatures use ECDSA with SHA-256, a NEXUS-specific domain separator, and explicit initiator/responder role binding.
 - Build a canonical, versioned transcript with fixed field ordering, length-prefixed values, both public identities, invitation request ID, expiry, and independent 32-byte peer nonces.
-- A pure pairing handshake state machine enforces the sequence: invitation sent, peer connected, peer proof verified, local approval, peer approval, then paired.
+- Sign and verify transcript hashes with ECDSA/SHA-256, a NEXUS-specific domain separator, and explicit initiator/responder role binding.
+- Verify that a peer's supplied public key exactly matches the identity assigned to that role in the transcript.
+- Reject invalid signatures, wrong-role signatures, identity mismatches, tampered transcripts, and proofs presented after expiry.
+- Integrate peer-proof verification into the handshake state machine. The transition into local approval is private and can only be reached through the verifier.
+- The state machine requires local approval and verified peer approval before entering PAIRED.
 - Terminal rejection, expiry, and failure states cannot be advanced to paired.
-- JVM unit tests cover transcript determinism, field binding, input validation, defensive copies, role-bound signatures, and handshake transition rules.
+- JVM unit tests cover cryptographic proof verification and handshake integration.
 
 ## Not implemented yet
 
 - Live exchange of fresh nonces and signatures between two devices.
-- Actual cryptographic peer-proof verification wired into the state machine.
 - One-time token redemption and replay prevention across devices.
-- A remote peer's explicit approval message authenticated over a live connection.
+- Authentication of peer approval over a live connection.
 - TLS handshake, LAN transport, or NSD/mDNS discovery.
 - Persistent trusted-device registry or remote revocation.
 - Remote actions, TV client, or cloud sync.
 
-**Important:** The transcript, Android Keystore identity, and state machine are protocol foundations, not a paired device. The state machine assumes its caller has already verified peer signatures and authenticated peer approval; it does not perform those operations itself. Creating or scanning a QR still does not authenticate another device, redeem an invitation, or create a trusted-device record. Do not use this prototype as a remote controller.
+**Important:** This version verifies signatures over a locally constructed transcript. It does not yet exchange transcript data with another device, prove freshness across a distributed session, redeem a one-time invitation, authenticate a peer approval message, or create a trusted-device record. The QR scanner is still a local prototype feature. Do not use this build as a remote controller.
 
 ## Build and test
 

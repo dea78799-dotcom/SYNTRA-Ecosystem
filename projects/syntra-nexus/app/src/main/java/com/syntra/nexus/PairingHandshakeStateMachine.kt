@@ -55,10 +55,6 @@ data class PairingHandshakeSession private constructor(
     }
 
     /**
-     * This is a trust boundary: invoke only after cryptographic verification
-     * of the responder identity and role-bound transcript signature succeeds.
-     */
-    /**
      * Verifies that the proof key is exactly the identity bound to the
      * signer's role in this session's transcript before advancing state.
      */
@@ -85,7 +81,7 @@ data class PairingHandshakeSession private constructor(
             nowMillis = nowMillis
         )
         val next = when (proof) {
-            PairingProofResult.VERIFIED -> peerProofVerified(nowMillis)
+            PairingProofResult.VERIFIED -> advanceAfterVerifiedPeerProof(nowMillis)
             PairingProofResult.EXPIRED -> refresh(nowMillis)
             PairingProofResult.IDENTITY_MISMATCH,
             PairingProofResult.INVALID_SIGNATURE -> fail(nowMillis)
@@ -93,7 +89,7 @@ data class PairingHandshakeSession private constructor(
         return PairingHandshakeVerification(next, proof)
     }
 
-    fun peerProofVerified(nowMillis: Long): PairingHandshakeSession {
+    private fun advanceAfterVerifiedPeerProof(nowMillis: Long): PairingHandshakeSession {
         requireState(PairingHandshakeState.VERIFYING_PEER)
         return transitionTo(
             PairingHandshakeState.VERIFYING_PEER,

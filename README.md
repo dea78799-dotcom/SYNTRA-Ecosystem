@@ -76,6 +76,7 @@ Files and folders will be added as their contents are ready; this outline does n
 - [Contribution guide](docs/contribution-guide.md)
 - [Branding guidelines](docs/branding-guidelines.md)
 - [Project governance](docs/project-governance.md)
+- [Issue tracking standard](docs/issue-tracking.md)
 - [Changelog](CHANGELOG.md)
 - [Repository rights notice](LICENSE)
 

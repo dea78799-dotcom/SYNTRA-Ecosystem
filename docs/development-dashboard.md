@@ -15,7 +15,7 @@
 | Issue labels | 🟡 Planned | Label taxonomy is documented; labels themselves have not been created. |
 | GitHub Projects board | 🟡 Planned | Board structure is documented; no board has been created. |
 | SYNTRA OS | 🟡 CI passed; hardware QA pending | Host Debug/Release tests and ARM64/QEMU checks passed on the recorded main revision; no physical-device validation is recorded. |
-| Syntra Files | 🟡 Debug APK CI passed; device QA pending | v0.69.0 Debug APK compiled and uploaded; physical-device functional tests are not recorded. |
+| Syntra Files | 🟡 Debug APK CI passed; device QA pending | v0.69.0 Debug APK CI passed historically. Source is now v0.71.0 (versionCode 701); newer CI runs were pending when last checked. Manual device QA is not recorded. |
 
 ## Product tracking
 
@@ -29,11 +29,12 @@
 
 ### Syntra Files
 
-- **Source version:** 0.69.0 (Android versionCode 690)
-- **Status:** Testing and upgrading; Debug APK CI passed.
-- **Latest main revision:** [bd4f54f](https://github.com/dea78799-dotcom/Syntra-Files/commit/bd4f54f78edd2f27b9845e19050a4173525d4692)
-- **CI evidence:** [Successful Android CI run](https://github.com/dea78799-dotcom/Syntra-Files/actions/runs/45111079923) · [Evidence record](evidence/2026-11-23-syntra-files-ci.md)
-- **Next tracking items:** install and test on a physical Android device; validate Storage Access Framework permissions, browsing, search, sorting, file operations, large files, and error recovery.
+- **Source version:** 0.71.0 (Android versionCode 701)
+- **Status:** Testing and upgrading; CI runs for newer commits were in progress at last check. The successful v0.69.0 build is historical, not evidence for v0.71.0.
+- **Latest main revision checked:** [82461ec](https://github.com/dea78799-dotcom/Syntra-Files/commit/82461ec4ee015f4fc9b54c29308a37590edcc78e)
+- **Latest CI status:** [Android Actions](https://github.com/dea78799-dotcom/Syntra-Files/actions) — verify the current result before downloading an artifact.
+- **Manual QA:** [Checklist](https://github.com/dea78799-dotcom/Syntra-Files/blob/main/docs/physical-device-qa-checklist.md) · [Issue #1](https://github.com/dea78799-dotcom/Syntra-Files/issues/1)
+- **Next tracking items:** install the latest successful APK on a physical Android device; validate SAF permission persistence, browsing, search, sorting, file operations, large files, and error recovery.
 
 ## Task tracking
 

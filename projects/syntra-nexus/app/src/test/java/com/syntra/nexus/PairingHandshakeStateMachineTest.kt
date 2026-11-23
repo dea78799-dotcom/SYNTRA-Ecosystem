@@ -1,5 +1,7 @@
 package com.syntra.nexus
 
+import java.security.KeyPairGenerator
+import java.security.spec.ECGenParameterSpec
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertSame
@@ -7,13 +9,28 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PairingHandshakeStateMachineTest {
+    private val initiator = createKeyPair()
+    private val responder = createKeyPair()
+    private val transcript = PairingTranscript.create(
+        requestId = REQUEST_ID,
+        expiresAtMillis = EXPIRY,
+        initiatorPublicKeyEncoded = initiator.public.encoded,
+        responderPublicKeyEncoded = responder.public.encoded,
+        initiatorNonce = ByteArray(32) { (it + 1).toByte() },
+        responderNonce = ByteArray(32) { (it + 65).toByte() },
+        nowMillis = NOW
+    )
+
     @Test
-    fun reachesPairedOnlyAfterPeerProofAndBothApprovals() {
+    fun reachesPairedOnlyAfterVerifiedPeerProofAndBothApprovals() {
         val created = session()
         val waiting = created.invitationSent(NOW + 1)
         val verifying = waiting.peerConnected(NOW + 2)
-        val localReview = verifying.peerProofVerified(NOW + 3)
-        val peerReview = localReview.approveLocally(NOW + 4)
+        val verified = verifying.verifyPeerProofAndAdvance(
+            transcript, responder.public.encoded, signResponder(),
+            PairingSignerRole.RESPONDER, NOW + 3
+        ).session
+        val peerReview = verified.approveLocally(NOW + 4)
         val paired = peerReview.peerApprovalVerified(NOW + 5)
 
         assertEquals(PairingHandshakeState.PAIRED, paired.state)
@@ -21,7 +38,6 @@ class PairingHandshakeStateMachineTest {
         assertTrue(paired.isTerminal)
         assertEquals(PairingHandshakeState.CREATED, created.state)
     }
-
 
     @Test
     fun transitionAtExpiryCannotAdvanceToNextState() {
@@ -38,16 +54,19 @@ class PairingHandshakeStateMachineTest {
     }
 
     @Test(expected = IllegalArgumentException::class)
-    fun cannotSkipPeerVerification() {
-        session().invitationSent(NOW + 1).peerProofVerified(NOW + 2)
+    fun cannotVerifyPeerBeforePeerConnection() {
+        session().verifyPeerProofAndAdvance(
+            transcript, responder.public.encoded, signResponder(),
+            PairingSignerRole.RESPONDER, NOW + 1
+        )
     }
 
     @Test(expected = IllegalArgumentException::class)
     fun cannotMarkPairedBeforeLocalApproval() {
-        session().invitationSent(NOW + 1)
-            .peerConnected(NOW + 2)
-            .peerProofVerified(NOW + 3)
-            .peerApprovalVerified(NOW + 4)
+        verifyingSession().verifyPeerProofAndAdvance(
+            transcript, responder.public.encoded, signResponder(),
+            PairingSignerRole.RESPONDER, NOW + 3
+        ).session.peerApprovalVerified(NOW + 4)
     }
 
     @Test
@@ -97,16 +116,27 @@ class PairingHandshakeStateMachineTest {
 
     @Test
     fun intermediateStateIsNotTrusted() {
-        val awaitingPeerApproval = session().invitationSent(NOW + 1)
-            .peerConnected(NOW + 2)
-            .peerProofVerified(NOW + 3)
-            .approveLocally(NOW + 4)
+        val awaitingPeerApproval = verifyingSession().verifyPeerProofAndAdvance(
+            transcript, responder.public.encoded, signResponder(),
+            PairingSignerRole.RESPONDER, NOW + 3
+        ).session.approveLocally(NOW + 4)
 
         assertNotEquals(PairingHandshakeState.PAIRED, awaitingPeerApproval.state)
         assertNotEquals(PairingHandshakeDecision.BOTH_APPROVED, awaitingPeerApproval.decision)
     }
 
     private fun session() = PairingHandshakeSession.create(REQUEST_ID, EXPIRY, NOW)
+
+    private fun verifyingSession() = session().invitationSent(NOW + 1)
+        .peerConnected(NOW + 2)
+
+    private fun signResponder() = PairingIdentityCrypto.signTranscriptHash(
+        responder.private, transcript.sha256, PairingSignerRole.RESPONDER
+    )
+
+    private fun createKeyPair() = KeyPairGenerator.getInstance("EC").apply {
+        initialize(ECGenParameterSpec("secp256r1"))
+    }.generateKeyPair()
 
     private companion object {
         const val REQUEST_ID = "AAAAAAAAAAAAAAAAAAAAAA"

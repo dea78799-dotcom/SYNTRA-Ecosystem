@@ -23,7 +23,7 @@ This repository is the central starting point for the SYNTRA Ecosystem: its arch
 |---|---|---|
 | **SYNTRA OS** | Operating-system project and primary development focus | In development |
 | **Syntra Files** | File-management application | Testing and upgrading |
-| **SYNTRA NEXUS** | Local-first Android device-management prototype | Foundation 0.1.0-dev |
+| **SYNTRA NEXUS** | Local-first Android device-management prototype | Pairing invitation prototype 0.2.0-dev |
 
 Other products may be introduced when the current products are sufficiently stable. Planned ideas are not considered released products.
 

@@ -1,43 +1,38 @@
 # SYNTRA NEXUS
 
-**Version:** 0.5.0-dev  
-**Status:** Canonical mutual-pairing transcript foundation; no network pairing yet  
+**Version:** 0.6.0-dev  
+**Status:** Local pairing protocol foundations and handshake state machine; no network pairing yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
 SYNTRA NEXUS is an opt-in device-management concept for devices that the owner or an authorized user has agreed to pair. The Android application is the first controller. TV support remains deferred until the target platform is selected.
 
-## Current 0.4-dev scope
+## Current prototype scope
 
 - Android dashboard with an explicit prototype status.
-- Generate a QR invitation containing a cryptographically random, short-lived request ID and token.
-- Invitation lifetime is limited to two minutes.
-- Generate a new invitation instead of reusing an expired one.
-- Unit tests for token format, randomness, and expiration.
-- QR generation happens locally on the Android device.
+- Generate a QR invitation containing a cryptographically random, short-lived request ID and token; invitation lifetime is limited to two minutes.
 - Strict invitation parser validates scheme, host, version, required fields, duplicate fields, token format, payload size, and expiry window.
-- Unit tests cover valid parsing and malformed, expired, duplicated, unexpected, and overlong invitation data.
 - Scan QR codes using Google Play services Code Scanner; the app does not request direct camera permission.
-- Valid scanned invitations are shown in a review dialog without establishing trust or a network connection.
-- A local-only review state machine tracks pending, locally accepted, locally rejected, and expired invitations.
-- Expiry arithmetic is guarded against timestamp overflow, with boundary-condition unit tests.
-- Create a per-installation EC P-256 signing identity in Android Keystore.
-- Private key material is non-exportable; the app displays only the public-key SHA-256 fingerprint.
-- Pairing transcript signatures use ECDSA with SHA-256 and a NEXUS-specific domain separator.
-- Build a canonical, versioned transcript with fixed field ordering, length-prefixed values, both public identities, the invitation request ID, expiry, and independent 32-byte peer nonces.\n- Bind ECDSA/SHA-256 signatures to the initiator or responder role to prevent signature reflection between protocol roles.\n- JVM unit tests cover transcript determinism, field binding, input validation, defensive copies, role-bound signatures, wrong-key rejection and transcript tampering.
+- Valid scanned invitations are shown in a local review dialog; scanning does not establish trust or a network connection.
+- Local-only invitation review state tracks pending, locally accepted, locally rejected, and expired invitations.
+- Create a per-installation EC P-256 signing identity in Android Keystore. Private key material is non-exportable; the app displays only the public-key SHA-256 fingerprint.
+- Pairing transcript signatures use ECDSA with SHA-256, a NEXUS-specific domain separator, and explicit initiator/responder role binding.
+- Build a canonical, versioned transcript with fixed field ordering, length-prefixed values, both public identities, invitation request ID, expiry, and independent 32-byte peer nonces.
+- A pure pairing handshake state machine enforces the sequence: invitation sent, peer connected, peer proof verified, local approval, peer approval, then paired.
+- Terminal rejection, expiry, and failure states cannot be advanced to paired.
+- JVM unit tests cover transcript determinism, field binding, input validation, defensive copies, role-bound signatures, and handshake transition rules.
 
 ## Not implemented yet
 
-- Exchange fresh nonces with a remote peer and verify both role-bound signatures over the same transcript.\n- Mutual peer authentication and verification of a remote device identity.
-- A canonical pairing transcript builder with fresh nonces from both peers.
+- Live exchange of fresh nonces and signatures between two devices.
+- Actual cryptographic peer-proof verification wired into the state machine.
 - One-time token redemption and replay prevention across devices.
-- Mutual device approval.
-- TLS handshake or LAN transport.
-- NSD/mDNS discovery.
-- Persistent trusted-device registry or revocation.
-- Remote actions, TV client, cloud sync.
+- A remote peer's explicit approval message authenticated over a live connection.
+- TLS handshake, LAN transport, or NSD/mDNS discovery.
+- Persistent trusted-device registry or remote revocation.
+- Remote actions, TV client, or cloud sync.
 
-**Important:** The canonical transcript and local Android Keystore identity are protocol foundations, not a paired device. Creating or scanning a QR still does not authenticate another device, redeem an invitation, or create a trusted-device record. Do not use this build as a remote controller.
+**Important:** The transcript, Android Keystore identity, and state machine are protocol foundations, not a paired device. The state machine assumes its caller has already verified peer signatures and authenticated peer approval; it does not perform those operations itself. Creating or scanning a QR still does not authenticate another device, redeem an invitation, or create a trusted-device record. Do not use this prototype as a remote controller.
 
 ## Build and test
 
@@ -48,7 +43,7 @@ gradle :app:testDebugUnitTest
 gradle :app:assembleDebug
 ```
 
-The GitHub Actions workflow runs the unit tests and debug build. The scanner uses Google Play services; its scanner module may need to be available or downloaded before first use. A successful CI build validates compilation and the included unit tests; it does not replace testing on two physical devices.
+The GitHub Actions workflow is configured to run unit tests and a debug build. A successful CI build validates compilation and the included unit tests; it does not replace testing on two physical devices. No successful build or test result is claimed until a workflow reports it.
 
 ## Security baseline
 

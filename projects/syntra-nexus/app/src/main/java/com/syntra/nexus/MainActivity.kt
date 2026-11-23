@@ -226,7 +226,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.2-dev · QR tạm thời, chưa có kết nối LAN",
+                    text = "Prototype 0.3-dev · QR scanner, chưa có kết nối LAN",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

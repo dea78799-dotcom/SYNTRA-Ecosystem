@@ -1,6 +1,6 @@
 # SYNTRA Task Registry
 
-**Registry version:** 1.0.0  
+**Registry version:** 1.1.0  
 **Last updated:** 2026-11-23  
 **Scope:** Shared ecosystem-level task tracking. Product-specific work should be tracked in its own repository when one exists.
 
@@ -22,7 +22,6 @@ Priority:
 
 | ID | Priority | Status | Task | Tracking issue |
 |---|---|---|---|---|
-| SYN-001 | P1 | DONE | Verify Repository Checks workflow on GitHub Actions | [#1](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/issues/1) · [Passing run](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/actions/runs/45154179133) |
 | SYN-002 | P1 | OPEN | Create issue labels and development project board | [#2](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/issues/2) |
 | SYN-003 | P1 | IN PROGRESS | Record product build and QA evidence; physical-device QA remains pending | [#3](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/issues/3) |
 

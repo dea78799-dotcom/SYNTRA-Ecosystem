@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.4.0-dev  
-**Status:** QR invitation prototype with local Android Keystore identity  
+**Version:** 0.5.0-dev  
+**Status:** Canonical mutual-pairing transcript foundation; no network pairing yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -24,11 +24,11 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Create a per-installation EC P-256 signing identity in Android Keystore.
 - Private key material is non-exportable; the app displays only the public-key SHA-256 fingerprint.
 - Pairing transcript signatures use ECDSA with SHA-256 and a NEXUS-specific domain separator.
-- JVM unit tests cover fingerprint stability, signature verification, wrong-key rejection and transcript tampering.
+- Build a canonical, versioned transcript with fixed field ordering, length-prefixed values, both public identities, the invitation request ID, expiry, and independent 32-byte peer nonces.\n- Bind ECDSA/SHA-256 signatures to the initiator or responder role to prevent signature reflection between protocol roles.\n- JVM unit tests cover transcript determinism, field binding, input validation, defensive copies, role-bound signatures, wrong-key rejection and transcript tampering.
 
 ## Not implemented yet
 
-- Mutual peer authentication and verification of a remote device identity.
+- Exchange fresh nonces with a remote peer and verify both role-bound signatures over the same transcript.\n- Mutual peer authentication and verification of a remote device identity.
 - A canonical pairing transcript builder with fresh nonces from both peers.
 - One-time token redemption and replay prevention across devices.
 - Mutual device approval.
@@ -37,7 +37,7 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Persistent trusted-device registry or revocation.
 - Remote actions, TV client, cloud sync.
 
-**Important:** The local Android Keystore identity is not a paired device. Creating or scanning a QR still does not authenticate another device, redeem an invitation, or create a trusted-device record. Do not use this build as a remote controller.
+**Important:** The canonical transcript and local Android Keystore identity are protocol foundations, not a paired device. Creating or scanning a QR still does not authenticate another device, redeem an invitation, or create a trusted-device record. Do not use this build as a remote controller.
 
 ## Build and test
 

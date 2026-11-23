@@ -36,7 +36,8 @@ data class PairingHandshakeSession private constructor(
     val requestId: String,
     val expiresAtMillis: Long,
     val state: PairingHandshakeState,
-    val decision: PairingHandshakeDecision
+    val decision: PairingHandshakeDecision,
+    private val expectedTranscriptHashHex: String?
 ) {
     val isTerminal: Boolean
         get() = state == PairingHandshakeState.PAIRED ||
@@ -66,8 +67,11 @@ data class PairingHandshakeSession private constructor(
         nowMillis: Long
     ): PairingHandshakeVerification {
         requireState(PairingHandshakeState.VERIFYING_PEER)
+        val expectedHash = expectedTranscriptHashHex
         if (transcript.requestId != requestId ||
-            transcript.expiresAtMillis != expiresAtMillis
+            transcript.expiresAtMillis != expiresAtMillis ||
+            expectedHash == null ||
+            expectedHash != transcript.sha256.toHexString()
         ) {
             val failed = fail(nowMillis)
             return PairingHandshakeVerification(failed, PairingProofResult.IDENTITY_MISMATCH)
@@ -184,8 +188,36 @@ data class PairingHandshakeSession private constructor(
                 requestId = requestId,
                 expiresAtMillis = expiresAtMillis,
                 state = PairingHandshakeState.CREATED,
-                decision = PairingHandshakeDecision.NONE
+                decision = PairingHandshakeDecision.NONE,
+                expectedTranscriptHashHex = null
+            )
+        }
+
+        /**
+         * Creates a handshake session pinned to the exact canonical transcript.
+         * A session without this binding cannot accept peer proof.
+         */
+        fun createForTranscript(
+            transcript: PairingTranscript,
+            nowMillis: Long
+        ): PairingHandshakeSession {
+            require(nowMillis >= 0L) { "Current timestamp cannot be negative." }
+            require(transcript.expiresAtMillis > nowMillis) {
+                "Pairing invitation has expired."
+            }
+            require(transcript.expiresAtMillis - nowMillis <= PairingRequest.DEFAULT_TTL_MILLIS) {
+                "Pairing invitation lifetime exceeds two minutes."
+            }
+            return PairingHandshakeSession(
+                requestId = transcript.requestId,
+                expiresAtMillis = transcript.expiresAtMillis,
+                state = PairingHandshakeState.CREATED,
+                decision = PairingHandshakeDecision.NONE,
+                expectedTranscriptHashHex = transcript.sha256.toHexString()
             )
         }
     }
 }
+
+private fun ByteArray.toHexString(): String =
+    joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }

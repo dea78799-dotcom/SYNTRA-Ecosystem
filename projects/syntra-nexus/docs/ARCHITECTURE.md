@@ -32,7 +32,7 @@ The Android application is the first controller. A TV client is deferred until t
 
 ## Current implementation boundary
 
-MVP 0.3-dev generates QR invitations and scans QR codes through Google Play services Code Scanner. Scanned payloads are validated locally for scheme, host, version, required and duplicate fields, token format, payload length and expiry. A valid scan is shown for review, but no token is redeemed and no trust relationship is created. There is still no LAN receiver, mutual authentication, TLS session, trusted-device record or replay database.
+MVP 0.3-dev generates QR invitations and scans QR codes through Google Play services Code Scanner. Scanned payloads are validated locally for scheme, host, version, required and duplicate fields, token format, payload length and expiry. A valid scan is shown for review. A local-only state machine can record pending review, accepted on this device, rejected on this device, or expired. A local acceptance is not peer approval and does not establish trust. No token is redeemed and no trust relationship is created. There is still no LAN receiver, mutual authentication, TLS session, trusted-device record or replay database.
 
 ## Pairing protocol direction
 
@@ -72,7 +72,8 @@ Keep the protocol and capability model platform-neutral. Implement a TV client o
 - **0.1 Foundation:** Compose dashboard and truthful prototype states — complete.
 - **0.2a Invitation:** local QR generation, short-lived random token and unit tests — complete.
 - **0.2b Scanner:** QR scanning and local payload validation — prototype implemented.
-- **0.2c Pairing:** one-time token redemption, mutual approval and local trust registry.
-- **0.3 LAN Link:** authenticated discovery and TLS connection status.
-- **0.4 Capabilities:** small, safe allow-list of device actions.
-- **0.5 TV Client:** platform-specific client after target selection.
+- **0.2c Review state:** local invitation review state machine and expiry boundary checks — implemented; still no peer handshake.
+- **0.3 Pairing protocol:** one-time token redemption, mutual approval and local trust registry.
+- **0.4 LAN Link:** authenticated discovery and TLS connection status.
+- **0.5 Capabilities:** small, safe allow-list of device actions.
+- **0.6 TV Client:** platform-specific client after target selection.

@@ -76,6 +76,10 @@ Do not publish if any required item is incomplete. Record justified N/A items wi
 
 ## 6. Release notes
 
+Use the repository template at [`.github/release_template.md`](../.github/release_template.md) when preparing a GitHub release. Complete every applicable section and remove unused placeholders before publishing.
+
+
+
 Every published release should state:
 
 - Product name and version.

@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_FILES = [
     "README.md",
+    ".github/release_template.md",
     "CHANGELOG.md",
     "LICENSE",
     "docs/architecture.md",

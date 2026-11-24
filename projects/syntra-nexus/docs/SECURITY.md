@@ -39,3 +39,12 @@
 ## Release gate
 
 Do not label a build as a functional remote controller until QR scanning, one-time redemption, mutual authentication, explicit approval on both devices, capability enforcement, revocation, and failure cases have been tested on real devices.
+
+
+## Additional monitoring and filtering safeguards
+
+- Usage summaries use Android's explicit Usage Access grant and show data freshness; revoked access must stop reporting.
+- Screen-sharing sessions use MediaProjection user consent, a foreground notification, an in-app indicator and stop controls. Do not silently start, capture input, or record by default.
+- Website filtering is transparent, user-configured and locally processed. A VPN/DNS filter cannot inspect encrypted page content and must not claim perfect blocking.
+- Do not collect or upload browsing history, message contents, keystrokes, screen recordings or app-private data.
+- Capability permissions are separate, revocable and least-privilege. Pairing does not automatically enable monitoring or filtering.

@@ -139,6 +139,15 @@ class TrustedDeviceRegistryTest {
     }
 
 
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsTrustedDeviceRegistrationAfterTranscriptExpiry() {
+        TrustedDeviceRegistry().registerAfterVerifiedPairing(
+            pairedSession(), transcript, local.public.encoded, peer.public.encoded,
+            PairingSignerRole.RESPONDER, "Expired peer", EXPIRY
+        )
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun rejectsRevocationTimestampBeforeTrustTimestamp() {
         val registry = TrustedDeviceRegistry()

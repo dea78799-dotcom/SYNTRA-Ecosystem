@@ -7,13 +7,10 @@ import org.junit.Test
 class CapabilityRequestTlsIngressTest {
     @Test
     fun onlyTls12AndTls13AreAccepted() {
-        assertTrue(isSupported("TLSv1.2"))
-        assertTrue(isSupported("TLSv1.3"))
-        assertFalse(isSupported("TLSv1.1"))
-        assertFalse(isSupported("SSL"))
-        assertFalse(isSupported(""))
+        assertTrue(CapabilityRequestTlsIngress.isSupportedTlsProtocol("TLSv1.2"))
+        assertTrue(CapabilityRequestTlsIngress.isSupportedTlsProtocol("TLSv1.3"))
+        assertFalse(CapabilityRequestTlsIngress.isSupportedTlsProtocol("TLSv1.1"))
+        assertFalse(CapabilityRequestTlsIngress.isSupportedTlsProtocol("SSL"))
+        assertFalse(CapabilityRequestTlsIngress.isSupportedTlsProtocol(""))
     }
-
-    private fun isSupported(protocol: String?): Boolean =
-        protocol == "TLSv1.2" || protocol == "TLSv1.3"
 }

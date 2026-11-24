@@ -66,11 +66,15 @@ class AndroidKeystoreMutualTlsLoopbackAndroidTest {
         val serverContext = NexusTlsContextFactory.create(
             registryFor(serverTrustKey),
             PairingIdentityCrypto.fingerprint(serverTrustKey),
+            TEST_PAIRING_REQUEST_ID,
+            TEST_TRANSCRIPT_HASH,
             TEST_SERVER_IDENTITY_ALIAS
         )
         val clientContext = NexusTlsContextFactory.create(
             registryFor(serverCertificate.publicKey.encoded),
             PairingIdentityCrypto.fingerprint(serverCertificate.publicKey.encoded),
+            TEST_PAIRING_REQUEST_ID,
+            TEST_TRANSCRIPT_HASH,
             TEST_CLIENT_IDENTITY_ALIAS
         )
 
@@ -150,7 +154,9 @@ class AndroidKeystoreMutualTlsLoopbackAndroidTest {
             fingerprint = PairingIdentityCrypto.fingerprint(publicKeyEncoded),
             publicKeyEncoded = publicKeyEncoded.copyOf(),
             displayName = "Android loopback TLS test peer",
-            trustedAtMillis = 1L
+            trustedAtMillis = 1L,
+            pairingRequestId = TEST_PAIRING_REQUEST_ID,
+            transcriptHashHex = TEST_TRANSCRIPT_HASH
         )
         return TrustedDeviceRegistry(object : TrustedDevicePersistence {
             override fun load(): List<TrustedDeviceRecord> = listOf(record)
@@ -172,6 +178,8 @@ class AndroidKeystoreMutualTlsLoopbackAndroidTest {
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
         const val TEST_SERVER_IDENTITY_ALIAS = "syntra.nexus.instrumentation.server.v1"
         const val TEST_CLIENT_IDENTITY_ALIAS = "syntra.nexus.instrumentation.client.v1"
+        const val TEST_PAIRING_REQUEST_ID = "EEEEEEEEEEEEEEEEEEEEEE"
+        const val TEST_TRANSCRIPT_HASH = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         const val TEST_BYTE = 0x5A
         const val SOCKET_TIMEOUT_MILLIS = 8_000
     }

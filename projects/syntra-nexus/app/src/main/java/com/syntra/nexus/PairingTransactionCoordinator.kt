@@ -56,8 +56,7 @@ class PairingTransactionCoordinator(
         val restored = persistence?.load()
         if (restored != null) {
             validate(restored)
-            current = if (restored.state == PairingTransactionState.PAIRED ||
-                restored.state == PairingTransactionState.ABORTED ||
+            current = if (restored.state == PairingTransactionState.ABORTED ||
                 restored.state == PairingTransactionState.EXPIRED) restored
             else restored.copy(state = PairingTransactionState.RECOVERY_REQUIRED)
         }

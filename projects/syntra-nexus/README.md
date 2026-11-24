@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.12-dev  
-**Status:** Local trusted-device profile management, bounded LAN packet codec, pinned peer-key trust policy, TLS mutual-authentication foundation, local activity summary, opt-in LAN discovery and durable local handshake replay ledger; no live TLS transport or screen streaming yet  
+**Version:** 0.11.13-dev  
+**Status:** Local trusted-device profile management, bounded LAN packet codec, pinned peer-key trust policy, TLS mutual-authentication foundation, local activity summary, opt-in LAN discovery and durable local handshake replay ledger and bounded QR-token redemption protocol; no live TLS transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -43,9 +43,28 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Keep discovery separate from trust: the app does not connect to discovered addresses, redeem QR tokens, exchange identities or send app data.
 - Clarify the screen-share UI state: it reports that a service-start request was sent, not that the MediaProjection service has confirmed an active session.
 
-## Durable replay ledger (0.11.12-dev)\n\n- Persist inbound handshake replay counters and SHA-256 nonce hashes using AES-256-GCM, Android Keystore and AtomicFile.\n- Commit replay state before accepting a frame; a write failure returns PERSISTENCE_FAILURE without advancing in-memory state.\n- Restore and validate the exact sequence/transcript history after process recreation; reject malformed or unauthenticated storage instead of silently resetting it.\n- Bound storage to 1,024 sessions by default, 4,096 maximum, 256 frames per session and a 20 MiB encrypted file.\n\n**Current limitation:** This ledger is a local persistence component only. No socket flow or app UI currently creates and uses it; it does not coordinate replay state between devices or redeem QR invitation tokens. Tests are authored but not yet executed.\n\n## Not implemented yet
+## Durable replay ledger (0.11.12-dev)
 
-- Redeeming invitations over a real peer-to-peer connection; QR registration is local to the issuer and is not exchanged with the scanner.
+- Persist inbound handshake replay counters and SHA-256 nonce hashes using AES-256-GCM, Android Keystore and AtomicFile.
+- Commit replay state before accepting a frame; a write failure returns PERSISTENCE_FAILURE without advancing in-memory state.
+- Restore and validate the exact sequence/transcript history after process recreation; reject malformed or unauthenticated storage instead of silently resetting it.
+- Bound storage to 1,024 sessions by default, 4,096 maximum, 256 frames per session and a 20 MiB encrypted file.
+
+**Current limitation:** This ledger is a local persistence component only. No socket flow or app UI currently creates and uses it; it does not coordinate replay state between devices or redeem QR invitation tokens. Tests are authored but not yet executed.
+
+## QR token redemption protocol (0.11.13-dev)
+
+- Define a bounded `SNR1` redemption request containing the exact request ID, invitation expiry, one-time bearer token and receiver EC P-256 public key.
+- Reject malformed token encodings, non-canonical or non-P-256 public keys, unknown protocol versions, invalid lengths, truncated packets and trailing bytes.
+- The issuer verifier compares the request against the exact invitation it created before invoking the existing synchronized one-time token registry.
+- Successful redemption consumes the token exactly once. If pairing is interrupted after redemption, the invitation remains consumed and a new QR invitation is required.
+- Add tests for codec round trips, malformed packets, invitation mismatch, token mismatch, expiry, one-time redemption and public-key validation.
+
+**Critical limitation:** The request contains the raw QR bearer token. It must only be sent inside a mutually authenticated TLS session after the remote certificate is pinned to the expected peer. The codec and verifier are not connected to a socket, TLS session, UI or trusted-device registration. Tests are authored but not executed.
+
+## Not implemented yet
+
+- Sending the 0.11.13 redemption request over a real peer-to-peer connection; QR registration remains local to the issuer and is not exchanged with the scanner.
 - Distributed one-time redemption or replay prevention across devices.
 - Live exchange of fresh nonces and signatures between two devices.
 - Live TLS handshake and authenticated LAN transport; the pinned trust manager is not wired to a socket or key manager yet.
@@ -109,7 +128,13 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 
 The dashboard can display and copy the SHA-256 fingerprint of the installation's Android Keystore public key. The private key remains non-exportable. A fingerprint is useful for out-of-band comparison but is not, by itself, proof that a remote device is trusted. No LAN handshake or remote identity exchange is enabled by this UI change.
 
-## LAN discovery boundary (0.11.2-dev)\n\nLAN discovery uses Android NSD and is started only after the user taps Scan LAN. The UI displays matching service metadata as untrusted. Service discovery can be spoofed by another device on the same network; the name, IP address and port are not proof of identity. This milestone does not open a TCP socket, connect to a discovered peer, transmit QR tokens, or establish TLS. The current app does not yet advertise its own NEXUS service, so a second device will not appear unless it runs a compatible advertiser.\n\nThe current target SDK is 35. Android documentation says apps targeting SDK 36 or lower retain local-network access implicitly through INTERNET; do not add ACCESS_LOCAL_NETWORK until the app targets SDK 37 or higher and implements its runtime permission flow.\n\n## Build and test
+## LAN discovery boundary (0.11.2-dev)
+
+LAN discovery uses Android NSD and is started only after the user taps Scan LAN. The UI displays matching service metadata as untrusted. Service discovery can be spoofed by another device on the same network; the name, IP address and port are not proof of identity. This milestone does not open a TCP socket, connect to a discovered peer, transmit QR tokens, or establish TLS. The current app does not yet advertise its own NEXUS service, so a second device will not appear unless it runs a compatible advertiser.
+
+The current target SDK is 35. Android documentation says apps targeting SDK 36 or lower retain local-network access implicitly through INTERNET; do not add ACCESS_LOCAL_NETWORK until the app targets SDK 37 or higher and implements its runtime permission flow.
+
+## Build and test
 
 Use Gradle 8.9 and JDK 17:
 

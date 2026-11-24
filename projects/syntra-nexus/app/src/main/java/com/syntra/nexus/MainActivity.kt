@@ -263,7 +263,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.14-dev · điều phối giao dịch ghép đôi; chưa mở socket",
+                    text = "Prototype 0.11.15-dev · lưu giao dịch mã hóa; chưa mở socket",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

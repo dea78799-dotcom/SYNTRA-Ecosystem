@@ -93,6 +93,12 @@ private fun NexusDashboard() {
     val tokenRegistry = remember(context) {
         OneTimePairingTokenRegistry(persistence = EncryptedPairingTokenPersistence(context))
     }
+    val trustedDeviceRegistry = remember(context) {
+        TrustedDeviceRegistry(EncryptedTrustedDevicePersistence(context))
+    }
+    val trustedDeviceCount = remember(trustedDeviceRegistry) {
+        trustedDeviceRegistry.activeDevices().size
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -138,8 +144,8 @@ private fun NexusDashboard() {
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text("Thiết bị đã kết nối", color = NexusMuted, fontSize = 13.sp)
-                            Text("0 thiết bị", fontSize = 25.sp, fontWeight = FontWeight.Bold)
-                            Text("Chưa có thiết bị nào được ghép nối", color = NexusMuted, fontSize = 12.sp)
+                            Text("$trustedDeviceCount thiết bị", fontSize = 25.sp, fontWeight = FontWeight.Bold)
+                            Text(if (trustedDeviceCount == 0) "Chưa có thiết bị nào được xác minh" else "Thiết bị đã được xác minh trên máy này", color = NexusMuted, fontSize = 12.sp)
                         }
                         Icon(
                             imageVector = Icons.Rounded.Devices,
@@ -267,7 +273,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.3-dev · danh tính thiết bị; chưa có kết nối xác thực",
+                    text = "Prototype 0.11.5-dev · registry thiết bị mã hóa; chưa có kết nối mạng",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

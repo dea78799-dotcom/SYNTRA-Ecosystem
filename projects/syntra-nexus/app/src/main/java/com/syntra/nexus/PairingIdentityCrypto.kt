@@ -38,8 +38,12 @@ object PairingIdentityCrypto {
         require(publicKeyEncoded.isNotEmpty() && publicKeyEncoded.size <= 512) {
             "Public key has an invalid length."
         }
-        val decoded = KeyFactory.getInstance(KEY_ALGORITHM)
-            .generatePublic(X509EncodedKeySpec(publicKeyEncoded))
+        val decoded = try {
+            KeyFactory.getInstance(KEY_ALGORITHM)
+                .generatePublic(X509EncodedKeySpec(publicKeyEncoded))
+        } catch (error: Exception) {
+            throw IllegalArgumentException("Device identity public key is malformed.", error)
+        }
         require(decoded is ECPublicKey) { "Device identity must be an EC public key." }
         require(decoded.encoded.contentEquals(publicKeyEncoded)) {
             "Public key encoding is not canonical."

@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.16-dev  
-**Status:** Pairing recovery and integrity test coverage, encrypted pairing-transaction persistence and recovery, pairing transaction coordinator, QR-token redemption protocol, durable local handshake replay ledger, trusted-device profile management and TLS identity foundation; no live TLS transport or screen streaming yet  
+**Version:** 0.11.17-dev  
+**Status:** Android Keystore and AtomicFile recovery instrumentation tests, pairing recovery and integrity test coverage, encrypted pairing-transaction persistence and recovery, pairing transaction coordinator, QR-token redemption protocol, durable local handshake replay ledger, trusted-device profile management and TLS identity foundation; no live TLS transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -42,6 +42,18 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Add the INTERNET permission required for LAN discovery on the current target SDK.
 - Keep discovery separate from trust: the app does not connect to discovered addresses, redeem QR tokens, exchange identities or send app data.
 - Clarify the screen-share UI state: it reports that a service-start request was sent, not that the MediaProjection service has confirmed an active session.
+
+
+## Android storage recovery verification (0.11.17-dev)
+
+- Serialize all transaction persistence operations across adapter instances with a shared process lock because Android AtomicFile requires caller-managed synchronization.
+- Add Android instrumentation tests that create and reopen the encrypted store, verify the fixed ciphertext size, and exercise Android Keystore AES-GCM on an emulator/device.
+- Tamper with ciphertext and verify authentication fails without deleting the damaged file.
+- Delete the dedicated Keystore alias while ciphertext remains and verify the adapter fails closed rather than generating a replacement key or erasing data.
+- Simulate an interrupted AtomicFile replacement by preserving the previous committed file as the AtomicFile backup and leaving a partial replacement; verify `openRead()` restores the last committed snapshot.
+- Run the instrumentation suite through an Android API 35 emulator in GitHub Actions.
+
+**Verification boundary:** The instrumentation suite is configured but is not considered passed until a GitHub Actions run reports success. Emulator behavior does not prove every OEM-specific Keystore implementation or hardware-backed key behavior on physical devices. No network pairing, token transmission, screen streaming or remote actions are enabled.
 
 ## Durable replay ledger (0.11.12-dev)
 

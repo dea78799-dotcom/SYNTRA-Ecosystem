@@ -1,6 +1,6 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.2-dev  
+**Version:** 0.11.3-dev  
 **Status:** Local activity summary, explicit MediaProjection consent prototype, fail-closed screen-share authorization foundation, and opt-in LAN service discovery; no authenticated pairing or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
@@ -14,7 +14,8 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Strict invitation parser validates scheme, host, version, required fields, duplicate fields, token format, payload size, and expiry window.
 - Scan QR codes using Google Play services Code Scanner; the app does not request direct camera permission.
 - Valid scanned invitations are shown in a local review dialog; scanning does not establish trust or a network connection.
-- Create a per-installation EC P-256 signing identity in Android Keystore. Private key material is non-exportable; the app displays only the public-key SHA-256 fingerprint.
+- Create a per-installation EC P-256 signing identity in Android Keystore. Private key material is non-exportable; the app displays the public-key SHA-256 fingerprint in grouped form and can copy the raw fingerprint for manual comparison.
+- Validate fingerprint formatting as exactly 64 hexadecimal characters and group it into 16 four-character blocks for visual comparison; unit tests cover valid, short and non-hex inputs.
 - Build a canonical, versioned transcript with fixed field ordering, length-prefixed values, both public identities, invitation request ID, expiry, and independent 32-byte peer nonces.
 - Sign and verify transcript hashes with ECDSA/SHA-256, a NEXUS-specific domain separator, and explicit initiator/responder role binding.
 - Verify that a peer's supplied public key exactly matches the identity assigned to that role in the transcript.
@@ -57,6 +58,10 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Verified Android Keystore persistence and UsageStats behavior on physical devices.
 
 **Important:** Activity Monitor is local to the phone where permission was granted. It does not monitor another device. Screen-state history may be incomplete on some Android versions or after reboot. App usage values are Android-reported foreground totals, not a guarantee of exact screen-on time. NEXUS does not collect messages, keystrokes, notification contents or private app data.
+
+## Device identity display (0.11.3-dev)
+
+The dashboard can display and copy the SHA-256 fingerprint of the installation's Android Keystore public key. The private key remains non-exportable. A fingerprint is useful for out-of-band comparison but is not, by itself, proof that a remote device is trusted. No LAN handshake or remote identity exchange is enabled by this UI change.
 
 ## LAN discovery boundary (0.11.2-dev)\n\nLAN discovery uses Android NSD and is started only after the user taps Scan LAN. The UI displays matching service metadata as untrusted. Service discovery can be spoofed by another device on the same network; the name, IP address and port are not proof of identity. This milestone does not open a TCP socket, connect to a discovered peer, transmit QR tokens, or establish TLS. The current app does not yet advertise its own NEXUS service, so a second device will not appear unless it runs a compatible advertiser.\n\nThe current target SDK is 35. Android documentation says apps targeting SDK 36 or lower retain local-network access implicitly through INTERNET; do not add ACCESS_LOCAL_NETWORK until the app targets SDK 37 or higher and implements its runtime permission flow.\n\n## Build and test
 

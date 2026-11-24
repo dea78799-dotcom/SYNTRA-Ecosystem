@@ -1,5 +1,16 @@
 # SYNTRA NEXUS
 
+## TLS channel binding (0.11.31-dev)
+
+- Bind capability authorization to one exact connected `SSLSocket`, including local/remote endpoints and negotiated JSSE session identity.
+- Recheck socket open/shutdown state, session identity, certificate identities and current peer trust immediately before protected operations.
+- Capability ingress now requires the actual `SSLSocket`; pending consent retains the channel binding and rechecks it on explicit approval.
+- A different socket, changed session, closed socket or revoked peer is rejected.
+- A future transport must own socket lifecycle and serialize close/I/O to avoid concurrent-close races. This helper does not create sockets or perform I/O.
+- No production LAN transport, token exchange, file transfer, screen streaming or remote-control action is enabled. Tests are authored but not yet verified.
+- See [the 0.11.31 security note](docs/TLS-CHANNEL-BINDING-0.11.31.md).
+
+
 ## TLS session authorization (0.11.30-dev)
 
 - Add a short-lived authorization handle for one completed mutual-TLS session.

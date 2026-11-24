@@ -108,6 +108,12 @@ Proposed optional capabilities are documented in `docs/DEVICE-CAPABILITIES.md`:
 
 These capabilities remain unimplemented until the pairing and capability-grant system is real and tested. A pairing alone will not enable monitoring or filtering.
 
+## LAN discovery foundation (0.11.2-dev)
+
+The Android controller includes an opt-in NSD discovery component for the dedicated `_syntranexus._tcp.` DNS-SD service type. The user must start discovery explicitly and can stop it. Matching service records are resolved to a service name, address and port and displayed as unverified metadata. The component does not open sockets, send invitation tokens, authenticate a peer, or establish trust. Discovery records are attacker-controlled network input and must never be treated as identity.
+
+This controller currently searches for NEXUS advertisements but does not publish an advertisement itself. A compatible companion advertiser and a separately designed authenticated pairing/TLS protocol are required before another device can connect. For target SDK 35, INTERNET is declared; ACCESS_LOCAL_NETWORK is not requested because Android's current documented runtime permission enforcement applies to apps targeting SDK 37 or higher.
+
 ## Screen-share authorization foundation (0.11.1-dev)
 
 The app now contains a pure policy gate that returns true only when all of these conditions are present: the peer identity is verified, both devices approved pairing, both devices granted the screen-share capability, the sharer approved the current MediaProjection session, the receiver approved the current viewing session, encrypted transport is established, and a visible foreground notification is active.

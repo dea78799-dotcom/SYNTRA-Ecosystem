@@ -93,8 +93,7 @@ object PairingIdentityCrypto {
     ): Boolean {
         if (transcriptHash.size != 32 || signatureBytes.isEmpty()) return false
         return try {
-            val publicKey = KeyFactory.getInstance(KEY_ALGORITHM)
-                .generatePublic(X509EncodedKeySpec(publicKeyEncoded))
+            val publicKey = requireP256PublicKey(publicKeyEncoded)
             val verifier = Signature.getInstance(SIGNATURE_ALGORITHM)
             verifier.initVerify(publicKey)
             verifier.update(DOMAIN_SEPARATOR)

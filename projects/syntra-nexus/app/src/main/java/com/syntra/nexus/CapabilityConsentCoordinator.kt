@@ -16,7 +16,8 @@ class CapabilityConsentCoordinator(
         val transcript: PairingTranscript,
         val session: PairingHandshakeSession,
         val transaction: PairingTransactionSnapshot,
-        peerApprovalSignature: ByteArray
+        peerApprovalSignature: ByteArray,
+        internal val tlsSessionAuthorization: TlsSessionAuthorization?
     ) {
         private val peerSignature = peerApprovalSignature.copyOf()
         internal fun peerApprovalSignatureCopy(): ByteArray = peerSignature.copyOf()
@@ -29,7 +30,8 @@ class CapabilityConsentCoordinator(
         transaction: PairingTransactionSnapshot?,
         trustedDevices: TrustedDeviceRegistry,
         peerApprovalSignature: ByteArray,
-        nowMillis: Long
+        nowMillis: Long,
+        tlsSessionAuthorization: TlsSessionAuthorization? = null
     ): PendingCapabilityConsent? {
         if (!isValid(
                 request, transcript, session, transaction, trustedDevices,
@@ -39,7 +41,8 @@ class CapabilityConsentCoordinator(
 
         return PendingCapabilityConsent(
             request, transcript, session, requireNotNull(transaction),
-            peerApprovalSignature
+            peerApprovalSignature,
+            tlsSessionAuthorization
         )
     }
 
@@ -55,6 +58,9 @@ class CapabilityConsentCoordinator(
     ): CapabilityGrant? {
         val request = pending.request
         val peerSignature = pending.peerApprovalSignatureCopy()
+        if (pending.tlsSessionAuthorization?.isAuthorized(trustedDevices, nowMillis) == false) {
+            return null
+        }
         if (!isValid(
                 request, pending.transcript, pending.session, pending.transaction,
                 trustedDevices, peerSignature, nowMillis

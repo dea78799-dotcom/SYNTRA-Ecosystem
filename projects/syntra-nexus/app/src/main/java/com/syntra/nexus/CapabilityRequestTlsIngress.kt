@@ -3,7 +3,7 @@ package com.syntra.nexus
 import java.security.cert.Certificate
 import java.security.cert.X509Certificate
 import javax.net.ssl.SSLPeerUnverifiedException
-import javax.net.ssl.SSLSession
+import javax.net.ssl.SSLSocket
 
 /**
  * Admission gate for a capability request received over an already-established
@@ -18,7 +18,7 @@ class CapabilityRequestTlsIngress(
 ) {
     fun prepare(
         envelope: CapabilityRequestEnvelope,
-        tlsSession: SSLSession,
+        tlsSocket: SSLSocket,
         expectedPeerFingerprint: String,
         transcript: PairingTranscript,
         pairingSession: PairingHandshakeSession,
@@ -27,6 +27,7 @@ class CapabilityRequestTlsIngress(
         nowMillis: Long
     ): CapabilityConsentCoordinator.PendingCapabilityConsent? {
         if (!expectedPeerFingerprint.matches(Regex("^[a-f0-9]{64}$"))) return null
+        val tlsSession = tlsSocket.session
         if (!tlsSession.isValid || !isSupportedTlsProtocol(tlsSession.protocol)) return null
 
         val localCertificates = tlsSession.localCertificates ?: return null
@@ -71,6 +72,13 @@ class CapabilityRequestTlsIngress(
             nowMillis = nowMillis
         ) ?: return null
 
+        val channelBinding = TlsSocketChannelBinding.capture(
+            socket = tlsSocket,
+            authorization = sessionAuthorization,
+            trustedDevices = trustedDevices,
+            nowMillis = nowMillis
+        ) ?: return null
+
         return consentCoordinator.prepare(
             request = request,
             transcript = transcript,
@@ -79,7 +87,7 @@ class CapabilityRequestTlsIngress(
             trustedDevices = trustedDevices,
             peerApprovalSignature = envelope.peerApprovalSignatureCopy(),
             nowMillis = nowMillis,
-            tlsSessionAuthorization = sessionAuthorization
+            tlsChannelBinding = channelBinding
         )
     }
 

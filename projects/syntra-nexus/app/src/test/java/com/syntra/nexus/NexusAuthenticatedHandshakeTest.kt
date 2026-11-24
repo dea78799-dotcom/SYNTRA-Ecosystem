@@ -155,6 +155,33 @@ class NexusAuthenticatedHandshakeTest {
     }
 
     @Test
+    fun replayGuardRejectsTranscriptSubstitutionWithinSameInvitation() {
+        val otherTranscript = PairingTranscript.create(
+            requestId = transcript.requestId,
+            expiresAtMillis = transcript.expiresAtMillis,
+            initiatorPublicKeyEncoded = initiator.public.encoded,
+            responderPublicKeyEncoded = responder.public.encoded,
+            initiatorNonce = ByteArray(32) { (it + 11).toByte() },
+            responderNonce = ByteArray(32) { (it + 75).toByte() },
+            nowMillis = NOW
+        )
+        val first = signedFrame(0)
+        val substituted = NexusHandshakeFrame.createSigned(
+            NexusHandshakeKind.IDENTITY_PROOF,
+            otherTranscript,
+            PairingSignerRole.RESPONDER,
+            0,
+            responder.private
+        )
+        val guard = NexusHandshakeReplayGuard()
+        assertEquals(NexusReplayDecision.ACCEPTED, guard.accept(first, NOW + 1))
+        assertEquals(
+            NexusReplayDecision.REPLAYED_OR_OUT_OF_ORDER,
+            guard.accept(substituted, NOW + 2)
+        )
+    }
+
+    @Test
     fun replayGuardRejectsSequenceGapAndExpiredFrame() {
         val guard = NexusHandshakeReplayGuard()
         assertEquals(

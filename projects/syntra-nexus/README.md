@@ -22,8 +22,8 @@
 
 
 
-**Version:** 0.11.21-dev  
-**Status:** Capability authorization foundation: per-capability, dual-signature, session-bound grants; no live transport or remote actions enabled  
+**Version:** 0.11.23-dev  
+**Status:** Explicit consent coordinator and encrypted capability grants; incoming remote request transport is not implemented  
 **Platform:** Android-first  
 **Network model:** Local-first
 

@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.8.0-dev  
-**Status:** Local one-time invitation-token registry prototype; no network pairing yet  
+**Version:** 0.9.0-dev  
+**Status:** Encrypted local invitation-token registry prototype; no network pairing yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -28,13 +28,15 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Compute and retain only a SHA-256 fingerprint of each 256-bit invitation token; the raw token is not stored by the registry.
 - Enforce atomic redemption so concurrent calls against one registered token can produce only one REDEEMED result.
 - Reject malformed and unknown tokens, expired invitations, previously redeemed tokens, revoked tokens, duplicate registrations, and attempts to extend an already registered token's expiry.
-- Bound registry memory use and retain token fingerprints as process-local tombstones until the registry is discarded.
+- Bound registry memory use and retain token fingerprints as tombstones to prevent expiry-extension re-registration.
+- Persist registry records encrypted using AES-256-GCM with an Android Keystore key and atomic file writes; raw tokens are not persisted.
+- The QR issuer registers each generated invitation in its local encrypted registry before displaying the QR.
 - JVM unit tests cover cryptographic proof verification, transcript pinning, signed approval, token expiry, duplicate registration, revocation, malformed/unknown tokens, token re-registration, and concurrent redemption.
 
 ## Not implemented yet
 
-- Connecting the QR invitation issuer's registry to a second device; the current registry is a local code primitive and is not wired into the QR screen or scanner flow.
-- Persistent token tombstones across app restarts.
+- Redeeming invitations over a real peer-to-peer connection; QR registration is local to the issuer and not yet exchanged with the scanner.
+- Verified Android Keystore and encrypted-file persistence behavior on a physical device.
 - Distributed one-time redemption or replay prevention across multiple devices.
 - Live exchange of fresh nonces and signatures between two devices.
 - Exchange and transport of the signed peer-approval message over a live authenticated connection.
@@ -42,7 +44,7 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Persistent trusted-device registry or remote revocation.
 - Remote actions, TV client, or cloud sync.
 
-**Important:** The 0.8.0-dev token registry is an in-memory component for JVM-level logic and tests. It protects against duplicate redemption only inside the same live registry instance. It does not survive process death, coordinate with another device, or establish a trusted connection. The QR scanner remains a local prototype feature. Do not use this build as a remote controller.
+**Important:** The 0.9.0-dev registry persists issuer-side token fingerprints and states locally in an encrypted file. The actual token redemption protocol is not connected to LAN pairing, so this does not provide cross-device replay protection or establish a trusted connection. Screen sharing, usage monitoring, and website filtering are not implemented yet; their privacy/consent boundaries and proposed milestones are documented in `docs/DEVICE-CAPABILITIES.md`.
 
 ## Build and test
 
@@ -54,6 +56,10 @@ gradle :app:assembleDebug
 ```
 
 The GitHub Actions workflow is configured to run unit tests and a debug build. A successful CI build validates compilation and the included unit tests; it does not replace testing on two physical devices. No successful build or test result is claimed until a workflow reports it.
+
+## Planned device capabilities
+
+See [`docs/DEVICE-CAPABILITIES.md`](docs/DEVICE-CAPABILITIES.md) for the proposed opt-in usage summary, live screen-sharing consent flow, and local domain filtering design.
 
 ## Security baseline
 

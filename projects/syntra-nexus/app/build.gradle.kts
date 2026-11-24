@@ -12,8 +12,8 @@ android {
         applicationId = "com.syntra.nexus"
         minSdk = 26
         targetSdk = 35
-        versionCode = 10
-        versionName = "0.10.0-dev"
+        versionCode = 11
+        versionName = "0.11.0-dev"
     }
 
     buildFeatures {
@@ -36,6 +36,7 @@ dependencies {
     androidTestImplementation(composeBom)
 
     implementation("androidx.activity:activity-compose:1.10.0")
+    implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")

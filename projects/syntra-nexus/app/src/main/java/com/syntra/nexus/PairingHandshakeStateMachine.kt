@@ -225,6 +225,11 @@ class PairingHandshakeSession private constructor(
         expectedTranscriptHashHex = expectedTranscriptHashHex
     )
 
+    internal fun isBoundToTranscript(transcript: PairingTranscript): Boolean =
+        requestId == transcript.requestId &&
+            expiresAtMillis == transcript.expiresAtMillis &&
+            expectedTranscriptHashHex == transcript.sha256.toHexString()
+
     private fun requireState(expected: PairingHandshakeState) {
         require(!isTerminal) { "Pairing session is already terminal." }
         require(state == expected) {

@@ -225,6 +225,10 @@ private fun NexusDashboard() {
             }
 
             item {
+                ActivityMonitorCard()
+            }
+
+            item {
                 Text(
                     text = "Thiết bị của tôi",
                     fontSize = 18.sp,

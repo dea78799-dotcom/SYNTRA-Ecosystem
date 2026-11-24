@@ -57,6 +57,9 @@ class TrustedDeviceRegistry(
             "Handshake is not bound to this exact transcript."
         }
         require(nowMillis >= 0L) { "Timestamp cannot be negative." }
+        require(nowMillis < transcript.expiresAtMillis) {
+            "An expired pairing transcript cannot create a trusted-device record."
+        }
         require(displayName.isNotBlank() && displayName.length <= MAX_NAME_LENGTH) {
             "Device name must contain 1 to $MAX_NAME_LENGTH characters."
         }

@@ -12,7 +12,8 @@ import java.util.Base64
  * only and does not protect against replay after process death or on another device.
  */
 class OneTimePairingTokenRegistry(
-    private val maxEntries: Int = DEFAULT_MAX_ENTRIES
+    private val maxEntries: Int = DEFAULT_MAX_ENTRIES,
+    private val persistence: PairingTokenPersistence? = null
 ) {
     private enum class State {
         ACTIVE,
@@ -40,6 +41,16 @@ class OneTimePairingTokenRegistry(
         require(maxEntries in 1..HARD_MAX_ENTRIES) {
             "Registry capacity must be between 1 and $HARD_MAX_ENTRIES."
         }
+        persistence?.load()?.forEach { record ->
+            require(FINGERPRINT_PATTERN.matches(record.fingerprint)) {
+                "Persisted token fingerprint is malformed."
+            }
+            val state = State.valueOf(record.state)
+            require(entries.put(record.fingerprint, Entry(record.expiresAtMillis, state)) == null) {
+                "Persisted registry contains duplicate fingerprints."
+            }
+        }
+        require(entries.size <= maxEntries) { "Persisted registry exceeds configured capacity." }
     }
 
     /**
@@ -72,7 +83,9 @@ class OneTimePairingTokenRegistry(
             "Pairing token registry is full; create a new registry in a new app session."
         }
 
-        entries[fingerprint] = Entry(invitation.expiresAtMillis)
+        val entry = Entry(invitation.expiresAtMillis)
+        persistWith(fingerprint, entry)
+        entries[fingerprint] = entry
         return true
     }
 
@@ -92,6 +105,7 @@ class OneTimePairingTokenRegistry(
 
         return when (entry.state) {
             State.ACTIVE -> {
+                persistWith(fingerprint, entry.copy(state = State.REDEEMED))
                 entry.state = State.REDEEMED
                 RedemptionResult.REDEEMED
             }
@@ -109,12 +123,25 @@ class OneTimePairingTokenRegistry(
         val fingerprint = tokenFingerprint(token) ?: return false
         val entry = entries[fingerprint] ?: return false
         if (nowMillis >= entry.expiresAtMillis || entry.state != State.ACTIVE) return false
+        persistWith(fingerprint, entry.copy(state = State.REVOKED))
         entry.state = State.REVOKED
         return true
     }
 
     @Synchronized
     fun registeredCount(): Int = entries.size
+
+    private fun persistWith(fingerprint: String, replacement: Entry) {
+        val store = persistence ?: return
+        val records = entries.map { (key, value) ->
+            val selected = if (key == fingerprint) replacement else value
+            PairingTokenRecord(key, selected.expiresAtMillis, selected.state.name)
+        }.toMutableList()
+        if (fingerprint !in entries) {
+            records += PairingTokenRecord(fingerprint, replacement.expiresAtMillis, replacement.state.name)
+        }
+        store.save(records)
+    }
 
     private fun tokenFingerprint(token: String): String? {
         if (!TOKEN_PATTERN.matches(token)) return null
@@ -136,5 +163,6 @@ class OneTimePairingTokenRegistry(
         private const val HARD_MAX_ENTRIES = 4096
         private const val TOKEN_BYTES = 32
         private val TOKEN_PATTERN = Regex("^[A-Za-z0-9_-]{43}$")
+        private val FINGERPRINT_PATTERN = Regex("^[a-f0-9]{64}$")
     }
 }

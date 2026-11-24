@@ -34,5 +34,13 @@ jobs:
           gradle-version: "8.9"
       - name: Run unit tests
         run: gradle --no-daemon :app:testDebugUnitTest
+      - name: Run Android storage recovery tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          script: cd projects/syntra-nexus && gradle --no-daemon :app:connectedDebugAndroidTest
       - name: Assemble debug APK
         run: gradle --no-daemon :app:assembleDebug

@@ -1,6 +1,6 @@
 # SYNTRA NEXUS
 
-## Explicit capability consent coordinator (0.11.23-dev)
+## Capability request envelope (0.11.24-dev)\n\n- Add a bounded, versioned SNCQ envelope for a peer-signed capability request. Strictly validate field lengths, UTF-8, capability names, timestamps, signature length, truncation and trailing bytes.\n- Decoding is not authentication: the future caller must verify the peer signature and bind the request to a pinned mutual-TLS peer, exact transcript, session and current trusted-device authorization before consent UI.\n- No listener, socket, remote request flow or remote action is enabled. See [the 0.11.24 audit](docs/CAPABILITY-REQUEST-ENVELOPE-0.11.24.md).\n\n## Explicit capability consent coordinator (0.11.23-dev)
 
 - Validate the exact transcript, peer identity, trusted-device state, expiry and peer approval signature before preparing a consent prompt.
 - Revalidate those conditions when the user approves; expiry or revocation while the prompt is open blocks approval.
@@ -22,8 +22,8 @@
 
 
 
-**Version:** 0.11.23-dev  
-**Status:** Explicit consent coordinator and encrypted capability grants; incoming remote request transport is not implemented  
+**Version:** 0.11.24-dev  
+**Status:** Consent coordinator, encrypted capability grants and bounded request envelope; incoming remote request transport is not implemented  
 **Platform:** Android-first  
 **Network model:** Local-first
 

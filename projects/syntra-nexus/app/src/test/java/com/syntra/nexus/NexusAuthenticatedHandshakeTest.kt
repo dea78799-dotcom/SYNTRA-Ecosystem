@@ -196,13 +196,26 @@ class NexusAuthenticatedHandshakeTest {
 
     @Test
     fun replayGuardHasBoundedCapacityAndExpiresOldSessions() {
+        val shortExpiry = NOW + 30_000L
+        val shortTranscript = PairingTranscript.create(
+            requestId = "AAAAAAAAAAAAAAAAAAAAAA",
+            expiresAtMillis = shortExpiry,
+            initiatorPublicKeyEncoded = initiator.public.encoded,
+            responderPublicKeyEncoded = responder.public.encoded,
+            initiatorNonce = ByteArray(32) { (it + 1).toByte() },
+            responderNonce = ByteArray(32) { (it + 65).toByte() },
+            nowMillis = NOW
+        )
         val guard = NexusHandshakeReplayGuard(maxSessions = 1)
-        val first = signedFrame(0)
+        val first = NexusHandshakeFrame.createSigned(
+            NexusHandshakeKind.IDENTITY_PROOF, shortTranscript,
+            PairingSignerRole.RESPONDER, 0, responder.private
+        )
         assertEquals(NexusReplayDecision.ACCEPTED, guard.accept(first, NOW + 1))
 
-        val otherTranscript = PairingTranscript.create(
+        val laterTranscript = PairingTranscript.create(
             requestId = "BBBBBBBBBBBBBBBBBBBBBB",
-            expiresAtMillis = EXPIRY + 10_000,
+            expiresAtMillis = EXPIRY,
             initiatorPublicKeyEncoded = initiator.public.encoded,
             responderPublicKeyEncoded = responder.public.encoded,
             initiatorNonce = ByteArray(32) { (it + 2).toByte() },
@@ -210,17 +223,12 @@ class NexusAuthenticatedHandshakeTest {
             nowMillis = NOW
         )
         val second = NexusHandshakeFrame.createSigned(
-            NexusHandshakeKind.IDENTITY_PROOF,
-            otherTranscript,
-            PairingSignerRole.RESPONDER,
-            0,
-            responder.private,
-            SecureRandom()
+            NexusHandshakeKind.IDENTITY_PROOF, laterTranscript,
+            PairingSignerRole.RESPONDER, 0, responder.private
         )
         assertEquals(NexusReplayDecision.CAPACITY_REACHED, guard.accept(second, NOW + 2))
-        assertEquals(NexusReplayDecision.EXPIRED, guard.accept(second, EXPIRY + 10_000L))
+        assertEquals(NexusReplayDecision.ACCEPTED, guard.accept(second, shortExpiry))
     }
-
     @Test
     fun replayGuardPrunesExpiredSessionsBeforeCapacityCheck() {
         val shortExpiry = NOW + 30_000L

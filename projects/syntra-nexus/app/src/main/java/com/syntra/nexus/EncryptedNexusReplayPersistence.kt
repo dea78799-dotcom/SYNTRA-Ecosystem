@@ -68,7 +68,7 @@ class EncryptedNexusReplayPersistence(context: Context) : NexusReplayPersistence
         val sessions = JSONArray()
         records.forEach { record ->
             val nonces = JSONArray()
-            record.seenNonceHashes.forEach(nonces::put)
+            record.seenNonceHashes.forEach { hash -> nonces.put(hash) }
             sessions.put(JSONObject()
                 .put("requestId", record.requestId)
                 .put("sender", record.senderFingerprint)

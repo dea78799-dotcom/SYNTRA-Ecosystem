@@ -40,7 +40,6 @@
 
 Do not label a build as a functional remote controller until QR scanning, one-time redemption, mutual authentication, explicit approval on both devices, capability enforcement, revocation, and failure cases have been tested on real devices.
 
-
 ## Additional monitoring and filtering safeguards
 
 - Usage summaries use Android's explicit Usage Access grant and show data freshness; revoked access must stop reporting.
@@ -48,3 +47,9 @@ Do not label a build as a functional remote controller until QR scanning, one-ti
 - Website filtering is transparent, user-configured and locally processed. A VPN/DNS filter cannot inspect encrypted page content and must not claim perfect blocking.
 - Do not collect or upload browsing history, message contents, keystrokes, screen recordings or app-private data.
 - Capability permissions are separate, revocable and least-privilege. Pairing does not automatically enable monitoring or filtering.
+
+## Screen-share transmission gate (0.11.1-dev)
+
+Before any future frame is sent, the implementation must verify all seven conditions in ScreenShareAuthorization: verified peer identity, mutual pairing approval, capability grants on both devices, current MediaProjection consent from the sharer, current-session approval from the receiver, authenticated encrypted transport, and an active visible foreground notification.
+
+The gate is a policy helper only; it is not yet wired to a network boundary. No frame transmission is implemented. The receiver must have a visible stop control, and stopping on either side, system revocation, timeout, or transport loss must end the session and release capture resources.

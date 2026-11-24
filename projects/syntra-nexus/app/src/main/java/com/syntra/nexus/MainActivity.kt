@@ -32,6 +32,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -250,7 +251,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.6-dev · quản lý thiết bị tin cậy cục bộ; chưa có kết nối mạng",
+                    text = "Prototype 0.11.7-dev · quản lý hồ sơ thiết bị cục bộ; chưa có kết nối mạng",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
@@ -383,17 +384,27 @@ private fun TrustedDevicesCard(
     registry: TrustedDeviceRegistry?,
     loadError: String?
 ) {
-    var devices by remember(registry) {
-        mutableStateOf(registry?.activeDevices().orEmpty())
+    var records by remember(registry) {
+        mutableStateOf(registry?.allRecords().orEmpty())
     }
+    var filter by remember { mutableStateOf("ACTIVE") }
     var selectedForRevocation by remember { mutableStateOf<TrustedDeviceRecord?>(null) }
+    var selectedForDetails by remember { mutableStateOf<TrustedDeviceRecord?>(null) }
+    var selectedForRename by remember { mutableStateOf<TrustedDeviceRecord?>(null) }
+    var renameInput by remember { mutableStateOf("") }
     var operationError by remember { mutableStateOf<String?>(null) }
     val clipboard = LocalClipboardManager.current
+    val activeCount = records.count { !it.isRevoked }
+    val visibleRecords = when (filter) {
+        "REVOKED" -> records.filter { it.isRevoked }
+        "ALL" -> records
+        else -> records.filterNot { it.isRevoked }
+    }
 
     fun refresh() {
         if (registry == null) return
         try {
-            devices = registry.activeDevices()
+            records = registry.allRecords()
             operationError = null
         } catch (_: Exception) {
             operationError = "Không thể tải danh sách thiết bị."
@@ -417,7 +428,7 @@ private fun TrustedDevicesCard(
                     Text("Thiết bị đáng tin cậy", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
                     Text(
                         if (loadError != null) "Không thể xác minh dữ liệu lưu trữ"
-                        else "${devices.size} thiết bị được lưu trên máy này",
+                        else "$activeCount đang được tin cậy · ${records.size} bản ghi",
                         color = NexusMuted,
                         fontSize = 12.sp
                     )
@@ -435,52 +446,88 @@ private fun TrustedDevicesCard(
                 )
             } else if (registry == null) {
                 Text("Registry chưa sẵn sàng.", color = NexusMuted, fontSize = 13.sp)
-            } else if (devices.isEmpty()) {
-                Text(
-                    "Chưa có thiết bị nào được xác minh. Quét QR hoặc tìm thấy thiết bị trên LAN không tự động thêm thiết bị vào đây.",
-                    color = NexusMuted,
-                    fontSize = 13.sp
-                )
             } else {
-                devices.forEach { device ->
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    listOf("ACTIVE" to "Đang tin cậy", "REVOKED" to "Đã thu hồi", "ALL" to "Tất cả").forEach { (value, label) ->
+                        TextButton(onClick = { filter = value }) {
+                            Text(
+                                label,
+                                color = if (filter == value) NexusGold else NexusMuted,
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                }
+
+                if (visibleRecords.isEmpty()) {
+                    Text(
+                        when (filter) {
+                            "REVOKED" -> "Chưa có thiết bị nào bị thu hồi."
+                            "ALL" -> "Registry chưa có bản ghi thiết bị."
+                            else -> "Chưa có thiết bị nào được xác minh. Quét QR hoặc tìm thấy thiết bị trên LAN không tự động thêm thiết bị vào đây."
+                        },
+                        color = NexusMuted,
+                        fontSize = 13.sp
+                    )
+                } else {
+                    visibleRecords.forEachIndexed { index, device ->
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(device.displayName, fontWeight = FontWeight.SemiBold)
-                                Text(
-                                    "Đã xác minh: " + SimpleDateFormat(
-                                        "dd/MM/yyyy HH:mm",
-                                        Locale.getDefault()
-                                    ).format(Date(device.trustedAtMillis)),
-                                    color = NexusMuted,
-                                    fontSize = 11.sp
-                                )
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    Text(device.displayName, fontWeight = FontWeight.SemiBold)
+                                    Text(
+                                        "Đã xác minh: " + SimpleDateFormat(
+                                            "dd/MM/yyyy HH:mm",
+                                            Locale.getDefault()
+                                        ).format(Date(device.trustedAtMillis)),
+                                        color = NexusMuted,
+                                        fontSize = 11.sp
+                                    )
+                                    if (device.isRevoked) {
+                                        Text("Đã thu hồi", color = Color(0xFFFF8A80), fontSize = 11.sp)
+                                    }
+                                }
+                                TextButton(onClick = { selectedForDetails = device }) {
+                                    Text("Chi tiết")
+                                }
                             }
-                            TextButton(onClick = { selectedForRevocation = device }) {
-                                Text("Thu hồi", color = Color(0xFFFF8A80))
+                            Text(
+                                PairingIdentityCrypto.formatFingerprint(device.fingerprint),
+                                color = NexusGold,
+                                fontSize = 11.sp
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                TextButton(
+                                    onClick = {
+                                        clipboard.setText(AnnotatedString(device.fingerprint))
+                                    }
+                                ) { Text("Sao chép mã") }
+                                TextButton(
+                                    onClick = {
+                                        selectedForRename = device
+                                        renameInput = device.displayName
+                                        operationError = null
+                                    }
+                                ) { Text("Đổi tên") }
+                                if (!device.isRevoked) {
+                                    TextButton(onClick = { selectedForRevocation = device }) {
+                                        Text("Thu hồi", color = Color(0xFFFF8A80))
+                                    }
+                                }
                             }
-                        }
-                        Text(
-                            PairingIdentityCrypto.formatFingerprint(device.fingerprint),
-                            color = NexusGold,
-                            fontSize = 11.sp
-                        )
-                        TextButton(
-                            onClick = {
-                                clipboard.setText(AnnotatedString(device.fingerprint))
+                            if (index != visibleRecords.lastIndex) {
+                                androidx.compose.material3.HorizontalDivider(color = Color(0xFF34363D))
                             }
-                        ) {
-                            Text("Sao chép fingerprint")
-                        }
-                        if (device != devices.last()) {
-                            androidx.compose.material3.HorizontalDivider(color = Color(0xFF34363D))
                         }
                     }
                 }
@@ -495,6 +542,76 @@ private fun TrustedDevicesCard(
                 fontSize = 11.sp
             )
         }
+    }
+
+    selectedForDetails?.let { device ->
+        AlertDialog(
+            onDismissRequest = { selectedForDetails = null },
+            title = { Text("Chi tiết thiết bị") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(device.displayName, fontWeight = FontWeight.SemiBold)
+                    Text("Fingerprint SHA-256", color = NexusMuted, fontSize = 11.sp)
+                    Text(PairingIdentityCrypto.formatFingerprint(device.fingerprint), color = NexusGold, fontSize = 12.sp)
+                    Text("Ngày tin cậy: " + SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date(device.trustedAtMillis)), fontSize = 12.sp)
+                    Text(
+                        device.revokedAtMillis?.let {
+                            "Ngày thu hồi: " + SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date(it))
+                        } ?: "Trạng thái: đang được tin cậy",
+                        color = if (device.isRevoked) Color(0xFFFF8A80) else NexusMuted,
+                        fontSize = 12.sp
+                    )
+                    Text("Khóa công khai: ${device.publicKeyEncoded.size} byte. Không hiển thị khóa riêng.", color = NexusMuted, fontSize = 11.sp)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    clipboard.setText(AnnotatedString(device.fingerprint))
+                }) { Text("Sao chép fingerprint") }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectedForDetails = null }) { Text("Đóng") }
+            }
+        )
+    }
+
+    selectedForRename?.let { device ->
+        AlertDialog(
+            onDismissRequest = { selectedForRename = null },
+            title = { Text("Đổi tên thiết bị") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Tên chỉ dùng để hiển thị trên điện thoại này. Giới hạn 48 ký tự.")
+                    OutlinedTextField(
+                        value = renameInput,
+                        onValueChange = { renameInput = it.take(48) },
+                        singleLine = true,
+                        label = { Text("Tên thiết bị") }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = renameInput.isNotBlank(),
+                    onClick = {
+                        try {
+                            val changed = registry?.renameDevice(device.fingerprint, renameInput) == true
+                            if (!changed) {
+                                operationError = "Không tìm thấy thiết bị để đổi tên."
+                            } else {
+                                refresh()
+                            }
+                        } catch (_: Exception) {
+                            operationError = "Không thể lưu tên mới. Dữ liệu cũ được giữ nguyên."
+                        }
+                        selectedForRename = null
+                    }
+                ) { Text("Lưu tên") }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectedForRename = null }) { Text("Hủy") }
+            }
+        )
     }
 
     selectedForRevocation?.let { device ->
@@ -526,9 +643,7 @@ private fun TrustedDevicesCard(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { selectedForRevocation = null }) {
-                    Text("Hủy")
-                }
+                TextButton(onClick = { selectedForRevocation = null }) { Text("Hủy") }
             }
         )
     }

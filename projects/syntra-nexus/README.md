@@ -1,5 +1,16 @@
 # SYNTRA NEXUS
 
+## Explicit capability consent coordinator (0.11.23-dev)
+
+- Validate the exact transcript, peer identity, trusted-device state, expiry and peer approval signature before preparing a consent prompt.
+- Revalidate those conditions when the user approves; expiry or revocation while the prompt is open blocks approval.
+- The local signature callback is lazy and is called only by the explicit Allow action. DeviceIdentityStore signs only when its non-exportable local key matches the assigned transcript role.
+- The encrypted grant registry remains the final authority and persists before mutating memory.
+
+**Current limitation:** This is a local consent policy component, not a live incoming request flow. There is no authenticated capability-request transport yet. A future caller must receive the peer-signed request over the pinned mutual-TLS session before calling prepare(). No sockets, file transfer, screen sharing or remote actions are enabled. See [the 0.11.23 audit](docs/EXPLICIT-CAPABILITY-CONSENT-0.11.23.md).
+
+
+
 ## Capability consent and durable grant storage (0.11.22-dev)
 
 - Persist exact, short-lived capability grants using AES-256-GCM, Android Keystore and AtomicFile. Save only request metadata, role-bound approval signatures and local revocation timestamps.

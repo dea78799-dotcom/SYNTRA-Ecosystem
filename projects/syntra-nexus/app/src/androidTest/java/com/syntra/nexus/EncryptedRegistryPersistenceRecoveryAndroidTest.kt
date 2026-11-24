@@ -39,7 +39,7 @@ class EncryptedRegistryPersistenceRecoveryAndroidTest {
         trustedBackup = File(trustedBase.path + ".bak")
         tokenBase = File(context.filesDir, TOKEN_FILE)
         tokenBackup = File(tokenBase.path + ".bak")
-        listOf(trustedBase, trustedBackup, tokenBase, tokenBackup).forEach(File::delete)
+        listOf(trustedBase, trustedBackup, tokenBase, tokenBackup).forEach { it.delete() }
         deleteAlias(TRUSTED_KEY)
         deleteAlias(TOKEN_KEY)
 
@@ -56,7 +56,7 @@ class EncryptedRegistryPersistenceRecoveryAndroidTest {
 
     @After
     fun tearDown() {
-        listOf(trustedBase, trustedBackup, tokenBase, tokenBackup).forEach(File::delete)
+        listOf(trustedBase, trustedBackup, tokenBase, tokenBackup).forEach { it.delete() }
         deleteAlias(TRUSTED_KEY)
         deleteAlias(TOKEN_KEY)
     }

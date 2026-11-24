@@ -115,8 +115,16 @@ class PairingTranscript private constructor(
         }
 
         private fun requirePublicKey(encoded: ByteArray, peer: String) {
-            require(encoded.isNotEmpty() && encoded.size <= MAX_PUBLIC_KEY_BYTES) {
+            require(encoded.size <= MAX_PUBLIC_KEY_BYTES) {
                 "$peer public key has an invalid length."
+            }
+            try {
+                PairingIdentityCrypto.requireP256PublicKey(encoded)
+            } catch (error: Exception) {
+                throw IllegalArgumentException(
+                    "$peer public key must be a canonical secp256r1 identity.",
+                    error
+                )
             }
         }
 

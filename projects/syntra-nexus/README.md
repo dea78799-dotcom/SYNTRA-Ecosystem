@@ -4,7 +4,7 @@
 
 - Add an owner for an already-authenticated TLS socket with ACTIVE, REVOKED and CLOSED states.
 - Serialize protected I/O callbacks; recheck the exact socket/session binding and current peer trust before and after each callback.
-- Revocation closes the socket and permanently blocks further operations. Explicit close does not wait for the I/O lock, allowing blocked reads to be interrupted.
+- The next explicit authorization refresh or protected I/O detects peer revocation, closes the socket and permanently blocks further operations. Registry mutation alone does not asynchronously notify the manager. Explicit close does not wait for the I/O lock, allowing blocked reads to be interrupted.
 - Add loopback tests for concurrent I/O serialization, trust revocation and explicit close.
 - The manager does not create sockets, perform handshakes or enable production LAN transport. Tests are authored but not verified until CI reports success.
 - See [the 0.11.32 security note](docs/TLS-SOCKET-LIFECYCLE-0.11.32.md).

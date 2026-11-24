@@ -233,6 +233,10 @@ private fun NexusDashboard() {
             }
 
             item {
+                LanDiscoveryCard()
+            }
+
+            item {
                 Text(
                     text = "Thiết bị của tôi",
                     fontSize = 18.sp,
@@ -260,7 +264,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11-dev · phiên xin quyền MediaProjection; chưa có truyền màn hình qua mạng",
+                    text = "Prototype 0.11.2-dev · LAN discovery thử nghiệm; chưa xác thực hoặc truyền dữ liệu",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

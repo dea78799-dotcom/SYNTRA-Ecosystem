@@ -93,6 +93,11 @@ private fun NexusDashboard() {
     val tokenRegistry = remember(context) {
         OneTimePairingTokenRegistry(persistence = EncryptedPairingTokenPersistence(context))
     }
+    val pairingTransactionLoad = remember(context) {
+        runCatching {
+            PairingTransactionCoordinator(EncryptedPairingTransactionPersistence(context))
+        }
+    }
     val trustedDeviceLoad = remember(context) {
         runCatching { TrustedDeviceRegistry(EncryptedTrustedDevicePersistence(context)) }
     }
@@ -126,6 +131,13 @@ private fun NexusDashboard() {
                         fontSize = 14.sp
                     )
                 }
+            }
+
+            item {
+                PairingTransactionStatusCard(
+                    coordinator = pairingTransactionLoad.getOrNull(),
+                    loadError = pairingTransactionLoad.exceptionOrNull()?.message
+                )
             }
 
             item {
@@ -376,6 +388,74 @@ private fun NexusDashboard() {
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun PairingTransactionStatusCard(
+    coordinator: PairingTransactionCoordinator?,
+    loadError: String?
+) {
+    var revision by remember(coordinator) { mutableStateOf(0) }
+    val snapshot = remember(coordinator, revision) { coordinator?.snapshot() }
+    var operationError by remember { mutableStateOf<String?>(null) }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = NexusSurface),
+        shape = RoundedCornerShape(18.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("Trạng thái ghép đôi", fontWeight = FontWeight.SemiBold)
+            when {
+                loadError != null -> Text(
+                    "Không thể mở kho giao dịch mã hóa. NEXUS đã khóa thao tác khôi phục để tránh bỏ qua lỗi dữ liệu.",
+                    color = Color(0xFFFF8A80),
+                    fontSize = 12.sp
+                )
+                coordinator == null -> Text(
+                    "Kho giao dịch chưa sẵn sàng.",
+                    color = NexusMuted,
+                    fontSize = 12.sp
+                )
+                snapshot == null -> Text(
+                    "Không có giao dịch ghép đôi đang lưu.",
+                    color = NexusMuted,
+                    fontSize = 12.sp
+                )
+                snapshot.state == PairingTransactionState.RECOVERY_REQUIRED -> {
+                    Text(
+                        "Có giao dịch cũ cần xử lý. Phiên trước không được tiếp tục tự động; hãy tạo lời mời QR mới.",
+                        color = Color(0xFFFFC66D),
+                        fontSize = 12.sp
+                    )
+                    TextButton(onClick = {
+                        val result = coordinator.clearTerminal()
+                        if (result == PairingTransactionResult.UPDATED) {
+                            operationError = null
+                            revision++
+                        } else {
+                            operationError = "Không thể xóa giao dịch cũ. Dữ liệu vẫn được giữ nguyên."
+                        }
+                    }) { Text("Xóa giao dịch gián đoạn") }
+                }
+                else -> Text(
+                    "Trạng thái: ${snapshot.state.name}",
+                    color = NexusMuted,
+                    fontSize = 12.sp
+                )
+            }
+            operationError?.let {
+                Text(it, color = Color(0xFFFF8A80), fontSize = 12.sp)
+            }
+            Text(
+                "Giao dịch chỉ lưu metadata đã mã hóa; không lưu token QR hoặc khóa riêng.",
+                color = NexusMuted,
+                fontSize = 11.sp
+            )
+        }
     }
 }
 

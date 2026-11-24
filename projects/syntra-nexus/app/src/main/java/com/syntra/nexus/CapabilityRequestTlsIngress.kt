@@ -59,6 +59,18 @@ class CapabilityRequestTlsIngress(
         )
         if (!trustedPeer) return null
 
+        val sessionAuthorization = TlsSessionAuthorization.capture(
+            tlsSession = tlsSession,
+            expectedLocalFingerprint = PairingIdentityCrypto.fingerprint(
+                transcript.publicKeyFor(PairingSignerRole.INITIATOR)
+            ),
+            expectedPeerFingerprint = expectedPeerFingerprint,
+            expectedPairingRequestId = transcript.requestId,
+            expectedTranscriptHashHex = transcript.sha256.toTlsLowerHex(),
+            trustedDevices = trustedDevices,
+            nowMillis = nowMillis
+        ) ?: return null
+
         return consentCoordinator.prepare(
             request = request,
             transcript = transcript,
@@ -66,7 +78,8 @@ class CapabilityRequestTlsIngress(
             transaction = transaction,
             trustedDevices = trustedDevices,
             peerApprovalSignature = envelope.peerApprovalSignatureCopy(),
-            nowMillis = nowMillis
+            nowMillis = nowMillis,
+            tlsSessionAuthorization = sessionAuthorization
         )
     }
 

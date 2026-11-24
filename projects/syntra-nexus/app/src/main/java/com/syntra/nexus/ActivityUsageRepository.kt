@@ -36,10 +36,13 @@ object ScreenSessionAggregator {
         var total = 0L
 
         events.asSequence()
-            .filter { it.timestampMillis in startMillis..endMillis }
+            .filter { it.timestampMillis <= endMillis }
             .sortedBy { it.timestampMillis }
             .forEach { event ->
-                if (event.interactive && !interactive) {
+                if (event.timestampMillis < startMillis) {
+                    interactive = event.interactive
+                    if (interactive) sessionStart = startMillis
+                } else if (event.interactive && !interactive) {
                     interactive = true
                     sessionStart = event.timestampMillis
                 } else if (!event.interactive && interactive) {
@@ -114,7 +117,7 @@ class ActivityUsageRepository(private val context: Context) {
             return ScreenUsageSummary(null, appUsage, start, end, false)
         }
 
-        val events = manager.queryEvents(start, end)
+        val events = manager.queryEvents((start - 24L * 60L * 60L * 1000L).coerceAtLeast(0L), end)
         val event = UsageEvents.Event()
         val screenEvents = mutableListOf<ScreenSessionAggregator.Event>()
         while (events.hasNextEvent()) {

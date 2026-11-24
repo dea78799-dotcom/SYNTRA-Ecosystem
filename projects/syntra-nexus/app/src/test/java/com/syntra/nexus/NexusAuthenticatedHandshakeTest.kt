@@ -101,6 +101,29 @@ class NexusAuthenticatedHandshakeTest {
     }
 
     @Test
+    fun replayGuardRejectsReusedNonceEvenWithNextSequence() {
+        val guard = NexusHandshakeReplayGuard()
+        val first = signedFrame(0)
+        val reusedNonce = NexusHandshakeFrame.decoded(
+            kind = NexusHandshakeKind.IDENTITY_PROOF,
+            requestId = first.requestId,
+            expiresAtMillis = first.expiresAtMillis,
+            senderRole = first.senderRole,
+            sequence = 1,
+            senderFingerprint = first.senderFingerprint,
+            recipientFingerprint = first.recipientFingerprint,
+            transcriptHash = first.transcriptHash,
+            nonce = first.nonce,
+            signature = first.signature
+        )
+        assertEquals(NexusReplayDecision.ACCEPTED, guard.accept(first, NOW + 1))
+        assertEquals(
+            NexusReplayDecision.REPLAYED_OR_OUT_OF_ORDER,
+            guard.accept(reusedNonce, NOW + 2)
+        )
+    }
+
+    @Test
     fun replayGuardRejectsSequenceGapAndExpiredFrame() {
         val guard = NexusHandshakeReplayGuard()
         assertEquals(

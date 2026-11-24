@@ -5,6 +5,9 @@ import java.io.DataOutputStream
 import java.security.PrivateKey
 import java.security.Signature
 
+private fun sha256Hex(bytes: ByteArray): String =
+    bytes.joinToString("") { "%02x".format(it.toInt() and 0xff) }
+
 /**
  * Narrow, explicit capabilities. No blanket "device access" permission exists.
  */
@@ -130,7 +133,7 @@ class CapabilityGrantRegistry {
             nowMillis >= request.expiresAtMillis ||
             nowMillis - request.issuedAtMillis > MAX_REQUEST_AGE_MILLIS ||
             request.pairingRequestId != transcript.requestId ||
-            request.transcriptHashHex != transcript.sha256.toHexString() ||
+            request.transcriptHashHex != sha256Hex(transcript.sha256) ||
             request.peerFingerprint != PairingIdentityCrypto.fingerprint(
                 transcript.publicKeyFor(PairingSignerRole.RESPONDER)
             ) ||
@@ -187,7 +190,7 @@ class CapabilityGrantRegistry {
             nowMillis < request.issuedAtMillis ||
             nowMillis >= request.expiresAtMillis ||
             request.pairingRequestId != transcript.requestId ||
-            request.transcriptHashHex != transcript.sha256.toHexString() ||
+            request.transcriptHashHex != sha256Hex(transcript.sha256) ||
             request.peerFingerprint != PairingIdentityCrypto.fingerprint(
                 transcript.publicKeyFor(PairingSignerRole.RESPONDER)
             )

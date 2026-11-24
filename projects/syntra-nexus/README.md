@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.15-dev  
-**Status:** Encrypted pairing-transaction persistence and recovery, pairing transaction coordinator, QR-token redemption protocol, durable local handshake replay ledger, trusted-device profile management and TLS identity foundation; no live TLS transport or screen streaming yet  
+**Version:** 0.11.16-dev  
+**Status:** Pairing recovery and integrity test coverage, encrypted pairing-transaction persistence and recovery, pairing transaction coordinator, QR-token redemption protocol, durable local handshake replay ledger, trusted-device profile management and TLS identity foundation; no live TLS transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 

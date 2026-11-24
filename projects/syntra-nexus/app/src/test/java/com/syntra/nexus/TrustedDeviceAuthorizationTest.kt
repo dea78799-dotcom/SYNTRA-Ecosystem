@@ -10,7 +10,7 @@ class TrustedDeviceAuthorizationTest {
     private val local = keyPair()
     private val peer = keyPair()
     private val now = 10_000L
-    private val expiry = 130_000L
+    private val expiry = 120_000L
     private val transcript = createTranscript("CCCCCCCCCCCCCCCCCCCCCC", expiry)
 
     private fun createTranscript(requestId: String, expires: Long) = PairingTranscript.create(
@@ -117,7 +117,7 @@ class TrustedDeviceAuthorizationTest {
         )
         assertTrue(registry.revoke(oldRecord.fingerprint, now + 7))
 
-        val replacement = createTranscript("DDDDDDDDDDDDDDDDDDDDDD", expiry + 20_000L)
+        val replacement = createTranscript("DDDDDDDDDDDDDDDDDDDDDD", expiry + 5_000L)
         val replacementSession = pairedSessionFor(replacement)
         registry.registerAfterVerifiedPairing(
             replacementSession, replacement, local.public.encoded, peer.public.encoded,

@@ -14,7 +14,6 @@ import javax.net.ssl.SSLSocket
 class TlsSocketChannelBinding private constructor(
     private val socket: SSLSocket,
     private val authorization: TlsSessionAuthorization,
-    private val trustedDevices: TrustedDeviceRegistry,
     private val localAddress: SocketAddress,
     private val remoteAddress: SocketAddress,
     private val localPort: Int,
@@ -92,7 +91,6 @@ class TlsSocketChannelBinding private constructor(
                 TlsSocketChannelBinding(
                     socket = socket,
                     authorization = authorization,
-                    trustedDevices = trustedDevices,
                     localAddress = local,
                     remoteAddress = remote,
                     localPort = localPort,

@@ -231,6 +231,76 @@ class CapabilityGrantRegistryTest {
     }
 
     @Test
+    fun consentRequiresVerifiedPeerApprovalAndExplicitLocalAction() {
+        val setup = setup()
+        val request = request()
+        val peerSignature = CapabilityGrantRegistry.signApproval(
+            peer.private, request, PairingSignerRole.RESPONDER
+        )
+        val registry = CapabilityGrantRegistry()
+        val consent = CapabilityConsentCoordinator(registry)
+        val pending = consent.prepare(
+            request, transcript, setup.session, setup.transaction, setup.trusted,
+            peerSignature, now + 7
+        )
+        assertNotNull(pending)
+
+        var localSigningCalls = 0
+        val grant = consent.approve(
+            requireNotNull(pending), setup.trusted, now + 8
+        ) {
+            localSigningCalls++
+            CapabilityGrantRegistry.signApproval(
+                local.private, request, PairingSignerRole.INITIATOR
+            )
+        }
+        assertNotNull(grant)
+        assertEquals(1, localSigningCalls)
+    }
+
+    @Test
+    fun invalidPeerApprovalCannotOpenConsentOrInvokeLocalSigner() {
+        val setup = setup()
+        val request = request()
+        val wrongRoleSignature = CapabilityGrantRegistry.signApproval(
+            peer.private, request, PairingSignerRole.INITIATOR
+        )
+        val consent = CapabilityConsentCoordinator(CapabilityGrantRegistry())
+        val pending = consent.prepare(
+            request, transcript, setup.session, setup.transaction, setup.trusted,
+            wrongRoleSignature, now + 7
+        )
+        assertNull(pending)
+    }
+
+    @Test
+    fun expiredPendingConsentDoesNotInvokeLocalSigner() {
+        val setup = setup()
+        val request = request(expires = now + 20)
+        val peerSignature = CapabilityGrantRegistry.signApproval(
+            peer.private, request, PairingSignerRole.RESPONDER
+        )
+        val consent = CapabilityConsentCoordinator(CapabilityGrantRegistry())
+        val pending = consent.prepare(
+            request, transcript, setup.session, setup.transaction, setup.trusted,
+            peerSignature, now + 7
+        )
+        assertNotNull(pending)
+
+        var localSigningCalls = 0
+        val grant = consent.approve(
+            requireNotNull(pending), setup.trusted, request.expiresAtMillis
+        ) {
+            localSigningCalls++
+            CapabilityGrantRegistry.signApproval(
+                local.private, request, PairingSignerRole.INITIATOR
+            )
+        }
+        assertNull(grant)
+        assertEquals(0, localSigningCalls)
+    }
+
+    @Test
     fun grantsAndRevocationSurviveRegistryRecreation() {
         val setup = setup()
         val persistence = MemoryCapabilityGrantPersistence()

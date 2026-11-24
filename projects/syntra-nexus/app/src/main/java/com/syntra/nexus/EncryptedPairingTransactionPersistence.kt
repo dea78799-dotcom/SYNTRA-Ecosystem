@@ -111,7 +111,7 @@ class EncryptedPairingTransactionPersistence(context: Context) : PairingTransact
     private fun getOrCreateKey(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         (store.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }
-        check(!file.baseFile.exists()) {
+        check(!hasPersistedFile()) {
             "Pairing transaction key is missing while encrypted data still exists."
         }
 
@@ -132,6 +132,9 @@ class EncryptedPairingTransactionPersistence(context: Context) : PairingTransact
         )
         return generator.generateKey()
     }
+
+    private fun hasPersistedFile(): Boolean =
+        file.baseFile.exists() || File(file.baseFile.path + ".bak").exists()
 
     private companion object {
         val FILE_LOCK = Any()

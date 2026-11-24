@@ -3,7 +3,7 @@
 ## Android Keystore mutual-TLS loopback verification (0.11.28-dev)
 
 - Adds a real Android instrumentation loopback handshake using two distinct Android Keystore aliases.
-- The production installation identity remains the server identity; a temporary test-only alias supplies the client identity and is deleted after each test.
+- The client and server each use temporary Android Keystore aliases that are deleted after each test; the production installation identity is never touched.
 - Tests a successful mutual-TLS echo and rejection of a client identity that is not pinned by the server.
 - No private key fixture is added to the repository. No LAN listener, pairing transport, token exchange, file transfer, screen sharing or remote-control action is enabled.
 - The loopback test is authored but is not verified until Android emulator CI reports success. See [the 0.11.28 test note](docs/ANDROID-KEYSTORE-MUTUAL-TLS-0.11.28.md).

@@ -89,7 +89,7 @@ internal fun CapabilityGrantsCard(
                     val status = when {
                         grant.revokedAtMillis != null -> "Đã thu hồi"
                         expired -> "Đã hết hạn"
-                        else -> "Đã cấp · thời hạn ngắn"
+                        else -> "Đã lưu · cần xác thực lại khi sử dụng"
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(request.capability.wireName, color = Color(0xFFD8B56D))

@@ -138,6 +138,16 @@ class AndroidKeystoreTlsIdentityAndroidTest {
             )
         }
 
+        val mismatchedProvenanceKey = createPeerPublicKey()
+        assertThrows(IllegalArgumentException::class.java) {
+            NexusTlsContextFactory.create(
+                registryFor(mismatchedProvenanceKey),
+                PairingIdentityCrypto.fingerprint(mismatchedProvenanceKey),
+                "BBBBBBBBBBBBBBBBBBBBBB",
+                TEST_TRANSCRIPT_HASH
+            )
+        }
+
         val revokedPublicKey = createPeerPublicKey()
         val revokedFingerprint = PairingIdentityCrypto.fingerprint(revokedPublicKey)
         assertThrows(IllegalArgumentException::class.java) {

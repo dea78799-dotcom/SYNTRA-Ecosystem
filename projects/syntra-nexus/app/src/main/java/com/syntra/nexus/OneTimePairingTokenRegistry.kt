@@ -7,9 +7,10 @@ import java.util.Base64
  * Process-local, synchronized single-use invitation registry.
  *
  * Only a SHA-256 fingerprint of each high-entropy token is retained.
- * Entries remain as tombstones until this registry is discarded so an expired
- * token cannot be re-registered with a substituted expiry. This is in-memory
- * only and does not protect against replay after process death or on another device.
+ * Entries remain as tombstones to prevent expiry-extension re-registration.
+ * An optional persistence adapter stores records; the Android implementation
+ * encrypts them with an Android Keystore AES-GCM key. Without persistence,
+ * this registry is process-local. It never protects against cross-device replay.
  */
 class OneTimePairingTokenRegistry(
     private val maxEntries: Int = DEFAULT_MAX_ENTRIES,

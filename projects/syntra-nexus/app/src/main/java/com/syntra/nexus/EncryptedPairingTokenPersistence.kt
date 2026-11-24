@@ -14,6 +14,17 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
+data class PairingTokenRecord(
+    val fingerprint: String,
+    val expiresAtMillis: Long,
+    val state: String
+)
+
+interface PairingTokenPersistence {
+    fun load(): List<PairingTokenRecord>
+    fun save(records: List<PairingTokenRecord>)
+}
+
 /**
  * Encrypts local invitation fingerprints and their states using an AES-256-GCM
  * key held in Android Keystore. Raw invitation tokens are never persisted.
@@ -64,7 +75,6 @@ class EncryptedPairingTokenPersistence(context: Context) : PairingTokenPersisten
                     .put("state", record.state)
             )
         }
-        val iv = ByteArray(IV_LENGTH)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE, key)
         val actualIv = cipher.iv

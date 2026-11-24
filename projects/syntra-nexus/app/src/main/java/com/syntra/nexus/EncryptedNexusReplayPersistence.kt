@@ -164,6 +164,9 @@ class EncryptedNexusReplayPersistence(context: Context) : NexusReplayPersistence
     private fun getOrCreateKey(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         (store.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }
+        check(!hasPersistedFile()) {
+            "Replay-ledger Keystore key is missing while encrypted data still exists."
+        }
         val generator = KeyGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_AES,
             "AndroidKeyStore"
@@ -179,6 +182,9 @@ class EncryptedNexusReplayPersistence(context: Context) : NexusReplayPersistence
             .build())
         return generator.generateKey()
     }
+
+    private fun hasPersistedFile(): Boolean =
+        file.baseFile.exists() || File(file.baseFile.path + ".bak").exists()
 
     private companion object {
         const val FILE_NAME = "nexus_handshake_replay.enc"

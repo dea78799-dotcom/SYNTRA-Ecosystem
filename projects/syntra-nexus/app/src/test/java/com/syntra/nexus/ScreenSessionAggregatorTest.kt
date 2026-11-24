@@ -33,6 +33,15 @@ class ScreenSessionAggregatorTest {
     }
 
     @Test
+    fun carriesScreenOnStateAcrossStartBoundary() {
+        val events = listOf(
+            ScreenSessionAggregator.Event(50L, true),
+            ScreenSessionAggregator.Event(250L, false)
+        )
+        assertEquals(150L, ScreenSessionAggregator.totalInteractiveMillis(events, 100L, 1_000L))
+    }
+
+    @Test
     fun handlesEmptyTimeline() {
         assertEquals(0L, ScreenSessionAggregator.totalInteractiveMillis(emptyList(), 0L, 1_000L))
     }

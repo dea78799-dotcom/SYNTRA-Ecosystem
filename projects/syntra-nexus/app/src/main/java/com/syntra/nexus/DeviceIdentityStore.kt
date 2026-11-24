@@ -26,7 +26,7 @@ class DeviceIdentityStore {
     }
 
     fun getOrCreateIdentity(): DeviceIdentity {
-        val keyPair = loadExistingKeyPair() ?: generateKeyPair()
+        val keyPair = loadExistingKeyPair() ?: generateKeyPair().also(::verifyKeyPair)
         val publicKey = keyPair.public.encoded
         return DeviceIdentity(
             publicKeyEncoded = publicKey,
@@ -35,13 +35,19 @@ class DeviceIdentityStore {
     }
 
     fun signPairingTranscriptHash(
-        transcriptHash: ByteArray,
+        transcript: PairingTranscript,
         role: PairingSignerRole
     ): ByteArray {
-        require(transcriptHash.size == 32) { "Pairing transcript hash must be 32 bytes." }
         val keyPair = loadExistingKeyPair()
             ?: throw IllegalStateException("Device identity has not been created.")
-        return PairingIdentityCrypto.signTranscriptHash(keyPair.private, transcriptHash, role)
+        require(keyPair.public.encoded.contentEquals(transcript.publicKeyFor(role))) {
+            "Local device identity does not match the transcript signer role."
+        }
+        return PairingIdentityCrypto.signTranscriptHash(
+            keyPair.private,
+            transcript.sha256,
+            role
+        )
     }
 
     fun signPairingApproval(
@@ -80,6 +86,12 @@ class DeviceIdentityStore {
             ?: throw IllegalStateException("Device identity private key is unavailable.")
 
         val publicKey = certificate.publicKey
+        return KeyPair(publicKey, privateKey).also(::verifyKeyPair)
+    }
+
+    private fun verifyKeyPair(keyPair: KeyPair) {
+        val publicKey = keyPair.public
+        val privateKey = keyPair.private
         require(publicKey.algorithm.equals(KeyProperties.KEY_ALGORITHM_EC, ignoreCase = true)) {
             "Stored device identity is not an EC key."
         }
@@ -103,7 +115,8 @@ class DeviceIdentityStore {
         check(verifier.verify(signature)) {
             "Stored device identity public and private keys do not match."
         }
-        return KeyPair(publicKey, privateKey)
+    }
+
     }
 
     private fun generateKeyPair(): KeyPair {

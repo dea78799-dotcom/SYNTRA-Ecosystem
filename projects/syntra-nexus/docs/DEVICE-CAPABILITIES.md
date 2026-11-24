@@ -1,49 +1,41 @@
-# SYNTRA NEXUS — Device Capabilities (Proposed)
+# SYNTRA NEXUS — Device Capabilities
 
-## 1. Daily activity overview
+## 1. Daily activity overview — 0.10 prototype
 
-The paired device may voluntarily grant access to Android Usage Access. The controller dashboard should show:
+The current local Activity Monitor requests no runtime dialog; the user must open Android's Usage Access settings and explicitly enable SYNTRA NEXUS. It currently:
 
-- Screen-on / screen-off session timeline, based on available system events.
-- Daily screen-on total.
-- App usage totals, with optional category grouping.
-- Current foreground app only when the device grants usage access and Android's data is available; represent the state as **Online / active app** only when data is fresh.
-- A separate status for **Offline / data unavailable / permission revoked**. Never treat stale data as current.
-- Daily game-use total derived from an explicit, user-reviewed game category list; users can remove apps from that list.
-- No keystroke, message, private-app content, notification content, or covert capture.
+- Reads today's per-app foreground duration through UsageStats.
+- Reads SCREEN_INTERACTIVE / SCREEN_NON_INTERACTIVE events on supported Android versions and estimates today's screen-interactive duration.
+- Displays the six apps with the highest foreground time.
+- Keeps the report on the same device. No LAN transfer or cloud upload exists.
+- Shows a missing-data state when the event history is unavailable.
 
-Android UsageStats is permission-gated through Settings. Screen activity history may be incomplete across reboot, OS versions, or permission changes; reports must disclose that.
+Limitations: Android may omit screen events after reboot or due to OS/vendor behavior. UsageStats totals are not a precise screen-on measurement. The prototype does not identify games automatically, does not guarantee a real-time current-app signal, and does not label another device online. A future game total must use a user-reviewed app list. Permission can be revoked at any time in Settings.
 
-## 2. Screen sharing (optional, user-initiated)
+## 2. Screen sharing (future 0.11, optional and user-initiated)
 
-Use Android MediaProjection only after the device owner taps **Start screen sharing** and accepts the system confirmation. The sharing device must show an ongoing foreground-service notification and an in-app sharing indicator with a clear **Stop** control. Stop automatically on lock, session timeout, disconnect, or revocation where practical. Do not persist or record video by default. The controller must display that a live stream is being shared. This capability is for a consensual support session, not stealth monitoring.
+Use Android MediaProjection only after the device owner taps **Start screen sharing** and accepts the system confirmation. The sharing device must show an ongoing foreground-service notification and an in-app sharing indicator with a clear **Stop** control. Stop on timeout, disconnect or revocation where practical. Do not persist or record video by default. The controller must display that a live stream is being shared. This is a consensual support session, not stealth monitoring.
 
-## 3. Website and content restrictions
+## 3. Website and content restrictions (future 0.12)
 
-A future optional local filtering module may use Android VPNService with a transparent, user-visible local DNS/domain filter. It should support:
+A future optional local filtering module may use Android VPNService with a transparent, user-visible local DNS/domain filter. It should support user/guardian-configured domain blocklists and allowlists, adult-domain categories from a maintained list with source/update date, Safe Search guidance where supported, visible VPN state and an off switch. A keyword filter is limited to NEXUS-owned text fields; it must not inspect HTTPS page contents, messages, keyboard input or private app data.
 
-- User/guardian-configured domain blocklists and allowlists.
-- Adult-domain category blocking from a maintained, reputable list; list source and update date visible.
-- Safe-search guidance/configuration where supported by a service.
-- A local keyword filter only inside NEXUS features that process text (e.g., search labels or app names). It must not inspect HTTPS page contents, messages, keyboard input, or private app data.
-- A clear VPN indicator, filtering status, settings, and an off switch.
-- Local processing by default; no browsing-history upload.
-- Avoid false-positive lockouts: show a reason, provide an appeal/temporary unblock flow appropriate to the device owner or guardian, and allow essential services through.
-- Filtering cannot guarantee that all adult material is blocked. DNS/domain filtering cannot see the full path of encrypted websites and cannot reliably filter content within apps.
+DNS/domain filtering cannot see full encrypted URL paths, cannot reliably filter content inside apps and cannot guarantee that all adult material is blocked. Filtering should be locally processed by default, avoid browsing-history uploads and provide a clear false-positive/unblock process appropriate to the device owner or guardian.
 
 ## 4. Consent, roles, and safety
 
-- Pairing is mutual and capability-based. A paired device does not automatically receive every permission.
-- Each feature has a separate grant and can be revoked at the managed device.
-- Screen sharing requires a fresh OS consent flow and a visible active state.
-- Activity summaries should be aggregate and visible on the monitored device.
-- Child/teen accounts require a responsible guardian's participation for family controls; NEXUS must not enable hidden monitoring or coercive control.
-- A controller must not bypass Android permissions, accessibility protections, or device-owner restrictions.
+- Pairing is mutual and capability-based. Pairing does not automatically grant Usage Access, screen capture or filtering.
+- Each feature has a separate grant and can be revoked on the managed device.
+- Activity summaries should be visible on the device being summarized.
+- Screen sharing requires fresh OS consent and a visible active state.
+- Child/teen family controls require responsible guardian participation; NEXUS must not enable hidden monitoring or coercive control.
+- Never bypass Android permissions, accessibility protections or device-owner restrictions.
+- Do not collect messages, keystrokes, notification contents, screen recordings or private app data.
 
 ## 5. Implementation sequence
 
-- **0.9.0-dev:** encrypted local token persistence (AES-GCM; Android Keystore key; AtomicFile) and registry integration with QR issuance.
-- **0.10:** persistent registry tests and CI verification; connect the redemption protocol only after LAN transport and mutual-authentication review.
-- **0.11:** opt-in activity summary using UsageStats and screen-state events; no remote activity feed until the pairing/capability layer is real.
-- **0.12:** consented MediaProjection screen-sharing prototype, foreground indicator, stop controls and timeout; do not record by default.
-- **0.13:** local DNS/domain filtering prototype with transparent VPN UI, domain lists, test fixtures, false-positive review and privacy documentation.
+- **0.9.0-dev:** encrypted local token persistence and local QR-issuer registration.
+- **0.10.0-dev:** local Activity Monitor using UsageStats and screen-state events; unit tests for duration aggregation.
+- **0.11:** consented MediaProjection screen-sharing prototype, visible foreground notification, stop controls and timeout.
+- **0.12:** local DNS/domain filtering prototype with transparent VPN UI, domain lists, test fixtures and false-positive review.
+- LAN pairing, mutual authentication, capability grants and remote summaries remain separate milestones; no remote monitoring until these foundations are implemented and tested.

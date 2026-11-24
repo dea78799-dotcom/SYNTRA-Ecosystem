@@ -80,7 +80,12 @@ class PacketSessionSupervisor(
             return null
         }
         schedulePingIfDue(nowNanos)
-        return outbound.pollFirst()
+        val packet = outbound.pollFirst()
+        if (packet?.type == NexusMessageType.PING && packet.requestId == pendingPingId) {
+            // Start the response deadline only when the transport takes the PING for sending.
+            pingSentAtNanos = nowNanos
+        }
+        return packet
     }
 
     @Synchronized
@@ -95,7 +100,7 @@ class PacketSessionSupervisor(
 
         when (packet.type) {
             NexusMessageType.PONG -> {
-                if (pendingPingId != packet.requestId) {
+                if (pendingPingId != packet.requestId || pingSentAtNanos == null) {
                     disconnect()
                     return PacketReceiveResult.DISCONNECTED
                 }
@@ -152,7 +157,7 @@ class PacketSessionSupervisor(
         val ping = NexusTransportPacket.create(NexusMessageType.PING, requestId)
         outbound.addLast(ping)
         pendingPingId = requestId
-        pingSentAtNanos = nowNanos
+        pingSentAtNanos = null
     }
 
     private fun hasTimedOut(nowNanos: Long): Boolean {

@@ -137,7 +137,41 @@ class NexusAuthenticatedHandshakeTest {
             SecureRandom()
         )
         assertEquals(NexusReplayDecision.CAPACITY_REACHED, guard.accept(second, NOW + 2))
-        assertEquals(NexusReplayDecision.ACCEPTED, guard.accept(second, EXPIRY + 1))
+        assertEquals(NexusReplayDecision.EXPIRED, guard.accept(second, EXPIRY))
+    }
+
+    @Test
+    fun replayGuardPrunesExpiredSessionsBeforeCapacityCheck() {
+        val shortExpiry = NOW + 30_000L
+        val earlyTranscript = PairingTranscript.create(
+            requestId = "CCCCCCCCCCCCCCCCCCCCCC",
+            expiresAtMillis = shortExpiry,
+            initiatorPublicKeyEncoded = initiator.public.encoded,
+            responderPublicKeyEncoded = responder.public.encoded,
+            initiatorNonce = ByteArray(32) { (it + 3).toByte() },
+            responderNonce = ByteArray(32) { (it + 67).toByte() },
+            nowMillis = NOW
+        )
+        val laterTranscript = PairingTranscript.create(
+            requestId = "DDDDDDDDDDDDDDDDDDDDDD",
+            expiresAtMillis = EXPIRY,
+            initiatorPublicKeyEncoded = initiator.public.encoded,
+            responderPublicKeyEncoded = responder.public.encoded,
+            initiatorNonce = ByteArray(32) { (it + 4).toByte() },
+            responderNonce = ByteArray(32) { (it + 68).toByte() },
+            nowMillis = NOW
+        )
+        val guard = NexusHandshakeReplayGuard(maxSessions = 1)
+        val early = NexusHandshakeFrame.createSigned(
+            NexusHandshakeKind.IDENTITY_PROOF, earlyTranscript,
+            PairingSignerRole.RESPONDER, 0, responder.private
+        )
+        val later = NexusHandshakeFrame.createSigned(
+            NexusHandshakeKind.IDENTITY_PROOF, laterTranscript,
+            PairingSignerRole.RESPONDER, 0, responder.private
+        )
+        assertEquals(NexusReplayDecision.ACCEPTED, guard.accept(early, NOW + 1))
+        assertEquals(NexusReplayDecision.ACCEPTED, guard.accept(later, shortExpiry))
     }
 
     @Test
@@ -156,6 +190,16 @@ class NexusAuthenticatedHandshakeTest {
             NexusAuthenticatedHandshake.verifyAndAccept(
                 frame, transcript, PairingSignerRole.RESPONDER,
                 responder.public, NOW + 1, guard
+            )
+        )
+        val badBytes = NexusHandshakeFrameCodec.encode(signedFrame(0))
+        badBytes[badBytes.lastIndex] = (badBytes.last().toInt() xor 1).toByte()
+        val badFrame = NexusHandshakeFrameCodec.decode(badBytes)
+        assertEquals(
+            NexusReplayDecision.INVALID_SIGNATURE_OR_TRANSCRIPT,
+            NexusAuthenticatedHandshake.verifyAndAccept(
+                badFrame, transcript, PairingSignerRole.RESPONDER,
+                responder.public, NOW + 1, NexusHandshakeReplayGuard()
             )
         )
     }

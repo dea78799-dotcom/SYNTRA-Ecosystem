@@ -59,7 +59,11 @@ class EncryptedTrustedDevicePersistence(context: Context) : TrustedDevicePersist
                         ),
                         displayName = item.getString("displayName"),
                         trustedAtMillis = item.getLong("trustedAt"),
-                        revokedAtMillis = revoked
+                        revokedAtMillis = revoked,
+                        pairingRequestId = if (item.has("pairingRequestId") && !item.isNull("pairingRequestId"))
+                            item.getString("pairingRequestId") else null,
+                        transcriptHashHex = if (item.has("transcriptHashHex") && !item.isNull("transcriptHashHex"))
+                            item.getString("transcriptHashHex") else null
                     ))
                 }
             }
@@ -79,7 +83,9 @@ class EncryptedTrustedDevicePersistence(context: Context) : TrustedDevicePersist
                 .put("publicKey", Base64.encodeToString(record.publicKeyEncoded, Base64.NO_WRAP))
                 .put("displayName", record.displayName)
                 .put("trustedAt", record.trustedAtMillis)
-                .put("revokedAt", record.revokedAtMillis ?: JSONObject.NULL))
+                .put("revokedAt", record.revokedAtMillis ?: JSONObject.NULL)
+                .put("pairingRequestId", record.pairingRequestId ?: JSONObject.NULL)
+                .put("transcriptHashHex", record.transcriptHashHex ?: JSONObject.NULL))
         }
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, key)

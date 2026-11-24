@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.9-dev  
-**Status:** Local trusted-device profile management, bounded LAN packet codec, pinned peer-key trust policy, local activity summary and opt-in LAN discovery; no live TLS transport or screen streaming yet  
+**Version:** 0.11.10-dev  
+**Status:** Local trusted-device profile management, bounded LAN packet codec, pinned peer-key trust policy, TLS mutual-authentication foundation, local activity summary and opt-in LAN discovery; no live TLS transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -156,3 +156,8 @@ See [`docs/DEVICE-CAPABILITIES.md`](docs/DEVICE-CAPABILITIES.md) for screen-shar
 - Add unit tests for active, unknown, revoked, mismatched, malformed, oversized and RSA public keys.
 
 **Security boundary:** This is public-key identity pinning, not a general CA trust store or a completed mutual-TLS implementation. The key must already have been accepted through a transcript-bound pairing with approval on both devices. The trust manager does not yet provide a local TLS key manager, open sockets, negotiate TLS, exchange fresh handshake messages, redeem QR tokens or enforce capability grants. Do not treat LAN discovery or a certificate alone as pairing approval.
+
+
+## TLS identity foundation (0.11.10-dev)
+
+The Android Keystore identity is now exposed to JSSE through a dedicated X.509 key manager without exporting the private key. Initialization checks the local certificate and proves that the private key matches its public key by signing a fresh challenge. TLS context creation is scoped to one exact active peer fingerprint; revoked, unknown and self-referential peers are rejected. TLS 1.3 is preferred and TLS 1.2 is the minimum. Server socket configuration requires client authentication. This milestone creates configuration objects only: it does not open sockets, run a handshake, redeem invitations, exchange packets or stream screen content. See `docs/TLS-FOUNDATION-0.11.10.md`.

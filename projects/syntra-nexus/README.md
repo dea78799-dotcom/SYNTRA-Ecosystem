@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.18-dev  
-**Status:** Android Keystore and AtomicFile recovery instrumentation tests for pairing and replay stores, replay-ledger crash recovery and integrity coverage, encrypted pairing-transaction persistence and recovery, pairing transaction coordinator, QR-token redemption protocol, durable local handshake replay ledger, trusted-device profile management and TLS identity foundation; no live TLS transport or screen streaming yet  
+**Version:** 0.11.19-dev  
+**Status:** Identity and trust audit: canonical P-256 identity enforcement, Android Keystore key-pair verification, transcript-bound signatures, trusted-device validation and revocation checks; encrypted AtomicFile recovery safeguards retained; no live TLS transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -43,6 +43,19 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Keep discovery separate from trust: the app does not connect to discovered addresses, redeem QR tokens, exchange identities or send app data.
 - Clarify the screen-share UI state: it reports that a service-start request was sent, not that the MediaProjection service has confirmed an active session.
 
+
+## Identity and trust audit (0.11.19-dev)
+
+- Enforce canonical X.509 EC public keys on the secp256r1 (P-256) curve when constructing pairing transcripts; reject malformed encodings, RSA keys and other EC curves.
+- Validate P-256 keys again when loading trusted-device records and when evaluating pinned peer keys; do not rely on the caller having used the registry.
+- Verify the Android Keystore identity's public/private key match by signing a fresh random challenge before using an existing identity. Newly generated identities receive the same key-pair check.
+- Return defensive copies of the local identity public-key bytes.
+- Bind local transcript-proof signing to the exact transcript and signer role assigned to the local public key; do not expose a method that signs an arbitrary caller-provided hash as a device proof.
+- Require revocation timestamps to be at or after the original trust timestamp so a record cannot be revoked into an invalid persisted state.
+- Apply the same P-256 requirement to the local X.509 identity used by the TLS key manager.
+- Add JVM tests for malformed, RSA and non-P-256 keys; peer pinning; and invalid revocation chronology. Add Android Keystore instrumentation tests for stable identity, defensive copies, transcript-role signing and identity replacement after explicit deletion.
+
+**Verification boundary:** Tests are authored and committed but are not confirmed passing until GitHub Actions reports success. These checks do not complete remote pairing, certificate-chain validation, TLS socket transport, distributed revocation or capability authorization. No connection or data transmission is enabled.
 
 ## Encrypted AtomicFile recovery audit (0.11.18-dev)
 

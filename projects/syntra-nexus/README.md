@@ -1,5 +1,16 @@
 # SYNTRA NEXUS
 
+## Packet session supervisor (0.11.34-dev)
+
+- Add a deterministic session policy layer with NEW, ACTIVE, DISCONNECTED and CLOSED states.
+- Bound the outbound queue (default 32, hard maximum 256); enqueue never waits for capacity.
+- Reserve PING/PONG control frames, correlate heartbeat replies by request ID and disconnect on missing or mismatched replies.
+- Respond to peer PING frames with a correlated PONG; fail closed if the control queue is full.
+- Use a caller-supplied monotonic clock; no wall-clock deadlines, scheduler, worker thread or socket is created.
+- Add unit tests for queue bounds, heartbeat correlation, timeout, peer PING, queue overflow, terminal close and backwards clock.
+- No production LAN transport, token exchange, file transfer, screen capture or remote action is enabled. Tests are authored but not verified until CI reports success.
+- See [the 0.11.34 security note](docs/PACKET-SESSION-SUPERVISOR-0.11.34.md).
+
 ## TLS bounded packet channel (0.11.33-dev)
 
 - Add a bounded SNX1 packet reader/writer on top of the already-authenticated TLS socket lifecycle manager.

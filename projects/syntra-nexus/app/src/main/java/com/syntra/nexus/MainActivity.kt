@@ -273,7 +273,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.33-dev · đọc/ghi SNX1 có giới hạn; chưa mở kết nối LAN",
+                    text = "Prototype 0.11.34-dev · quản lý phiên PING/PONG; chưa mở kết nối LAN",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

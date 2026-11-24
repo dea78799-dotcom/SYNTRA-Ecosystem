@@ -32,7 +32,7 @@ The Android application is the first controller. A TV client is deferred until t
 
 ## Current implementation boundary
 
-MVP 0.4-dev generates QR invitations, scans QR codes through Google Play services Code Scanner, and creates a local EC P-256 device signing key in Android Keystore. Scanned payloads are validated locally for scheme, host, version, required and duplicate fields, token format, payload length and expiry. A valid scan is shown for review. A local-only state machine can record pending review, accepted on this device, rejected on this device, or expired. A local acceptance is not peer approval and does not establish trust. The private key is non-exportable; only the public key and SHA-256 fingerprint are exposed. ECDSA/SHA-256 transcript-signing helpers include a NEXUS-specific domain separator. The app does not yet build a canonical peer transcript or verify a remote peer. No token is redeemed and no trust relationship is created. There is still no LAN receiver, mutual authentication, TLS session, trusted-device record or replay database.
+MVP 0.4-dev generates QR invitations, scans QR codes through Google Play services Code Scanner, and creates a local EC P-256 device signing key in Android Keystore. Scanned payloads are validated locally for scheme, host, version, required and duplicate fields, token format, payload length and expiry. A valid scan is shown for review. A local acceptance is not peer approval and does not establish trust. The private key is non-exportable; only the public key and SHA-256 fingerprint are exposed. ECDSA/SHA-256 transcript-signing helpers include a NEXUS-specific domain separator. The app does not yet build a canonical peer transcript or verify a remote peer. No token is redeemed and no trust relationship is created. There is still no LAN receiver, mutual authentication, TLS session, trusted-device record or replay database.
 
 ## Device identity implementation
 
@@ -76,7 +76,7 @@ Do not put long-lived secrets in QR codes. Do not trust a device based only on i
 
 ## TV strategy
 
-Keep the protocol and capability model platform-neutral. Implement a TV client only after confirming whether the target is Android TV / Google TV, Samsung Tizen, LG webOS, or a TV box. Different platforms expose different APIs and permissions.
+Keep the protocol and capability model platform-neutral. Implement a TV client only after confirming whether the target TV platform is Android TV / Google TV, Samsung Tizen, LG webOS, or a TV box. Different platforms expose different APIs and permissions.
 
 ## Milestones
 
@@ -90,7 +90,6 @@ Keep the protocol and capability model platform-neutral. Implement a TV client o
 - **0.6 Capabilities:** small, safe allow-list of device actions.
 - **0.7 TV Client:** platform-specific client after target selection.
 
-
 ## Pairing protocol foundation (0.5-dev)
 
 The current implementation defines a canonical transcript with a fixed field order: protocol marker and version, invitation request ID, expiry, initiator public key, responder public key, initiator nonce, and responder nonce. Integer fields use big-endian encoding; variable-length values are length-prefixed. Both peer nonces must be independently supplied as 32-byte values.
@@ -98,7 +97,6 @@ The current implementation defines a canonical transcript with a fixed field ord
 The transcript is SHA-256 hashed. ECDSA signatures cover the hash together with a NEXUS-specific domain separator and the signer's explicit initiator/responder role. Role separation is intended to prevent a signature produced in one protocol role from being reflected as the other role.
 
 This is not yet a complete handshake. Nonce exchange, one-time invitation redemption, peer-side signature verification, mutual approval, trusted-device persistence, and authenticated LAN transport remain unimplemented.
-
 
 ## Capability roadmap
 
@@ -108,4 +106,12 @@ Proposed optional capabilities are documented in `docs/DEVICE-CAPABILITIES.md`:
 - Live screen sharing only through MediaProjection's system consent, foreground notification, visible sharing indicator, and stop controls; no default recording.
 - Local adult-domain filtering through an opt-in VPNService/DNS filter with visible settings and an off switch. Keyword filtering is limited to NEXUS-owned text fields; encrypted web content is not inspected.
 
-These capabilities remain unimplemented until the pairing and capability-grant system is real and tested. A pairing alone will not grant them.
+These capabilities remain unimplemented until the pairing and capability-grant system is real and tested. A pairing alone will not enable monitoring or filtering.
+
+## Screen-share authorization foundation (0.11.1-dev)
+
+The app now contains a pure policy gate that returns true only when all of these conditions are present: the peer identity is verified, both devices approved pairing, both devices granted the screen-share capability, the sharer approved the current MediaProjection session, the receiver approved the current viewing session, encrypted transport is established, and a visible foreground notification is active.
+
+The gate is deliberately not connected to a socket or capture pipeline yet. It is a fail-closed policy component and a testable prerequisite, not proof of an authenticated session. Frame metadata has bounded dimensions and encoded-size checks; it carries no pixel bytes.
+
+The consent card also distinguishes a start request from a confirmed active service. The current foreground service still does not create a VirtualDisplay, capture frames, record, or transmit content. Actual streaming remains blocked until real mutual pairing, a trust store, authenticated transport, receiver approval, and lifecycle-safe capture are implemented and tested on physical devices.

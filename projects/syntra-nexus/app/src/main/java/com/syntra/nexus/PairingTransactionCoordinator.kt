@@ -135,7 +135,12 @@ class PairingTransactionCoordinator(
         if (!verifiedSession.isBoundToTranscript(transcript) ||
             verifiedSession.state != PairingHandshakeState.WAITING_FOR_PEER_APPROVAL &&
             verifiedSession.state != PairingHandshakeState.PAIRED ||
-            transcript.sha256.toHexString() != active.transcriptHashHex
+            transcript.sha256.toHexString() != active.transcriptHashHex ||
+            transcript.requestId != active.requestId ||
+            transcript.expiresAtMillis != active.expiresAtMillis ||
+            PairingIdentityCrypto.fingerprint(
+                transcript.publicKeyFor(PairingSignerRole.RESPONDER)
+            ) != active.peerFingerprint
         ) return PairingTransactionResult.INVALID_TRANSITION
         return advance(
             PairingTransactionState.IDENTITY_VERIFIED,

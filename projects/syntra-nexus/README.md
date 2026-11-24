@@ -51,7 +51,7 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Verify the Android Keystore identity's public/private key match by signing a fresh random challenge before using an existing identity. Newly generated identities receive the same key-pair check.
 - Return defensive copies of the local identity public-key bytes.
 - Bind local transcript-proof signing to the exact transcript and signer role assigned to the local public key; do not expose a method that signs an arbitrary caller-provided hash as a device proof.
-- Require revocation timestamps to be at or after the original trust timestamp so a record cannot be revoked into an invalid persisted state.
+- Require trusted-device registration to occur before transcript expiry, and require revocation timestamps to be at or after the original trust timestamp so expired sessions cannot create trust and records cannot be revoked into an invalid persisted state.
 - Apply the same P-256 requirement to the local X.509 identity used by the TLS key manager.
 - Add JVM tests for malformed, RSA and non-P-256 keys; peer pinning; and invalid revocation chronology. Add Android Keystore instrumentation tests for stable identity, defensive copies, transcript-role signing and identity replacement after explicit deletion.
 

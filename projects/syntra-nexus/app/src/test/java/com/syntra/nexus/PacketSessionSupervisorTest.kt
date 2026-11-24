@@ -84,8 +84,9 @@ class PacketSessionSupervisorTest {
         supervisor.start(0L)
         supervisor.enqueue(packet(NexusMessageType.HELLO))
         assertEquals(NexusMessageType.HELLO, supervisor.pollOutbound(10L)?.type)
-        assertEquals(NexusMessageType.PING, supervisor.pollOutbound(10L)?.type)
-        assertEquals(PacketSessionState.DISCONNECTED, supervisor.tick(15L).state)
+        assertEquals(PacketSessionState.ACTIVE, supervisor.tick(14L).state)
+        assertEquals(NexusMessageType.PING, supervisor.pollOutbound(14L)?.type)
+        assertEquals(PacketSessionState.DISCONNECTED, supervisor.tick(19L).state)
         assertEquals(0, supervisor.snapshot().queuedPackets)
         assertNull(supervisor.pollOutbound(16L))
     }

@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.9.0-dev  
-**Status:** Encrypted local invitation-token registry prototype; no network pairing yet  
+**Version:** 0.10.0-dev  
+**Status:** Local opt-in activity summary prototype; no network pairing yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -20,31 +20,26 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Verify that a peer's supplied public key exactly matches the identity assigned to that role in the transcript.
 - Reject invalid signatures, wrong-role signatures, identity mismatches, tampered transcripts, and proofs presented after expiry.
 - Pin each handshake session to the SHA-256 hash of its exact canonical transcript and verify that the local controller key is the transcript's initiator identity; an unbound or substituted transcript is rejected.
-- The controller accepts only the responder role as the remote peer, preventing the local initiator identity from being reflected as the peer.
-- Integrate peer-proof verification into the handshake state machine. The transition into local approval is private and can only be reached through the verifier.
-- Require a separate role-bound signature over an explicit APPROVE decision from the peer after local approval; the Android Keystore identity store can produce an approval signature only when its public key matches the signer's transcript role.
-- The state machine requires local approval and cryptographically verified peer approval before entering PAIRED.
-- Add a synchronized one-time token registry with explicit ACTIVE, REDEEMED, and REVOKED states.
-- Compute and retain only a SHA-256 fingerprint of each 256-bit invitation token; the raw token is not stored by the registry.
-- Enforce atomic redemption so concurrent calls against one registered token can produce only one REDEEMED result.
-- Reject malformed and unknown tokens, expired invitations, previously redeemed tokens, revoked tokens, duplicate registrations, and attempts to extend an already registered token's expiry.
-- Bound registry memory use and retain token fingerprints as tombstones to prevent expiry-extension re-registration.
-- Persist registry records encrypted using AES-256-GCM with an Android Keystore key and atomic file writes; raw tokens are not persisted.
-- The QR issuer registers each generated invitation in its local encrypted registry before displaying the QR.
-- JVM unit tests cover cryptographic proof verification, transcript pinning, signed approval, token expiry, duplicate registration, revocation, malformed/unknown tokens, token re-registration, and concurrent redemption.
+- Require a separate role-bound signature over an explicit APPROVE decision from the peer after local approval; the state machine requires both approvals before entering PAIRED.
+- Maintain a synchronized one-time token registry with ACTIVE, REDEEMED, and REVOKED states; store token fingerprints rather than raw tokens.
+- Persist registry records using AES-256-GCM, Android Keystore and atomic file writes. The QR issuer registers each invitation locally before showing it.
+- Provide a local Activity Monitor card using Android UsageStats after the device owner explicitly grants Usage Access in Settings.
+- Show today's app foreground-time totals and an estimated screen-interactive total from Android screen-state events when those events are available.
+- Keep activity data on the same phone; no remote activity feed or background upload is implemented.
+- Add unit tests for screen-session aggregation, including multiple sessions, open sessions, duplicate state events and empty timelines.
 
 ## Not implemented yet
 
-- Redeeming invitations over a real peer-to-peer connection; QR registration is local to the issuer and not yet exchanged with the scanner.
-- Verified Android Keystore and encrypted-file persistence behavior on a physical device.
-- Distributed one-time redemption or replay prevention across multiple devices.
+- Redeeming invitations over a real peer-to-peer connection; QR registration is local to the issuer and is not exchanged with the scanner.
+- Distributed one-time redemption or replay prevention across devices.
 - Live exchange of fresh nonces and signatures between two devices.
-- Exchange and transport of the signed peer-approval message over a live authenticated connection.
-- TLS handshake, LAN transport, or NSD/mDNS discovery.
-- Persistent trusted-device registry or remote revocation.
-- Remote actions, TV client, or cloud sync.
+- TLS handshake, LAN transport, NSD/mDNS discovery, trusted-device registry or remote revocation.
+- Automatic game classification. A future game-time total needs an explicit user-reviewed app list.
+- Reliable real-time foreground-app/online status; UsageStats does not provide a guaranteed live presence signal.
+- Remote activity summaries, screen sharing, website filtering, remote actions, TV client or cloud sync.
+- Verified Android Keystore persistence and UsageStats behavior on physical devices.
 
-**Important:** The 0.9.0-dev registry persists issuer-side token fingerprints and states locally in an encrypted file. The actual token redemption protocol is not connected to LAN pairing, so this does not provide cross-device replay protection or establish a trusted connection. Screen sharing, usage monitoring, and website filtering are not implemented yet; their privacy/consent boundaries and proposed milestones are documented in `docs/DEVICE-CAPABILITIES.md`.
+**Important:** Activity Monitor is local to the phone where permission was granted. It does not monitor another device. Screen-state history may be incomplete on some Android versions or after reboot. App usage values are Android-reported foreground totals, not a guarantee of exact screen-on time. NEXUS does not collect messages, keystrokes, notification contents or private app data.
 
 ## Build and test
 
@@ -55,18 +50,17 @@ gradle :app:testDebugUnitTest
 gradle :app:assembleDebug
 ```
 
-The GitHub Actions workflow is configured to run unit tests and a debug build. A successful CI build validates compilation and the included unit tests; it does not replace testing on two physical devices. No successful build or test result is claimed until a workflow reports it.
+The GitHub Actions workflow is configured to run unit tests and a debug build. A successful CI build validates compilation and included unit tests; it does not replace testing on a physical device. No successful build or test result is claimed until a workflow reports it.
 
 ## Planned device capabilities
 
-See [`docs/DEVICE-CAPABILITIES.md`](docs/DEVICE-CAPABILITIES.md) for the proposed opt-in usage summary, live screen-sharing consent flow, and local domain filtering design.
+See [`docs/DEVICE-CAPABILITIES.md`](docs/DEVICE-CAPABILITIES.md) for screen-sharing consent and local domain-filtering design.
 
 ## Security baseline
 
 - Both devices must explicitly approve pairing before trust is established.
-- QR invitations are short-lived and must be single-use when redemption is connected to the real pairing flow.
-- Long-lived private keys must be generated and protected with Android Keystore.
-- LAN peers must be authenticated; IP address or mDNS discovery alone is never proof of identity.
-- Every future capability must be scoped, visible, and revocable.
+- Every future capability requires a separate, visible and revocable grant.
+- Usage Access must be granted by the device owner in Android Settings.
+- Screen sharing must use MediaProjection's system consent and a visible foreground notification.
 - Never store passwords, pairing secrets, or private keys in source control.
 - No hidden collection of messages, photos, screens, or private app data.

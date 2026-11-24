@@ -129,3 +129,14 @@ The current `PinnedPeerTrustManager` is an identity-pin adapter, not a complete 
 - Only transmit after mutual TLS has completed and the peer identity is pinned to the expected device. The current codec/verifier is not wired to a socket or TLS session and does not itself provide transport security.
 - If pairing is interrupted after successful redemption, keep the token consumed and require a fresh QR invitation. Do not reactivate a consumed token to make retries easier.
 - A receiver public key in a redemption request is only a claim. Require the later transcript-bound signature proof and explicit approval on both devices before adding it to the trusted-device registry.
+
+
+## Pairing transaction recovery (0.11.14-dev)
+
+- Bind transaction state to one request ID, expiry, transcript hash and peer fingerprint.
+- Require the existing cryptographic handshake verifier to establish responder identity and signed peer approval; do not accept a remote Boolean as proof of consent.
+- Enter PAIRED only when the exact transcript-bound handshake session reports PAIRED and BOTH_APPROVED.
+- Persist candidate state before mutating memory; storage failures fail closed.
+- Downgrade restored non-terminal attempts to RECOVERY_REQUIRED. Never treat an old in-memory approval as fresh consent after process restart.
+- Discard interrupted transactions and require a new QR invitation. A redeemed token remains consumed.
+- The current coordinator is not yet wired to Android encrypted persistence, UI, transport or trusted-device insertion.

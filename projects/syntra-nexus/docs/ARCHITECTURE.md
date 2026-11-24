@@ -121,3 +121,10 @@ The app now contains a pure policy gate that returns true only when all of these
 The gate is deliberately not connected to a socket or capture pipeline yet. It is a fail-closed policy component and a testable prerequisite, not proof of an authenticated session. Frame metadata has bounded dimensions and encoded-size checks; it carries no pixel bytes.
 
 The consent card also distinguishes a start request from a confirmed active service. The current foreground service still does not create a VirtualDisplay, capture frames, record, or transmit content. Actual streaming remains blocked until real mutual pairing, a trust store, authenticated transport, receiver approval, and lifecycle-safe capture are implemented and tested on physical devices.
+
+
+## Bounded LAN packet protocol (0.11.8-dev)
+
+The transport foundation defines a binary envelope with a fixed `SNX1` marker, protocol version, enumerated message type, fixed 22-character request ID, big-endian payload length and bounded payload. The codec accepts only known message types and protocol version 1, limits payloads to 64 KiB, and rejects truncation, trailing bytes, malformed identifiers and invalid packet sizes. Payload bytes are defensively copied.
+
+The current implementation is deliberately transport-independent. It does not open a socket, advertise a service, authenticate a peer, redeem a pairing token, verify a signature, establish TLS or execute a remote capability. A packet that passes structural parsing is still untrusted input. The next stage must define and review mutual authentication, certificate/identity binding, replay handling and TLS lifecycle before connecting this codec to LAN sockets.

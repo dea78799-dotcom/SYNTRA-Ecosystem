@@ -273,7 +273,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.25-dev · ingress TLS đã có; chưa triển khai socket",
+                    text = "Prototype 0.11.26-dev · kiểm thử mutual TLS loopback; chưa mở socket LAN",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

@@ -1,5 +1,15 @@
 # SYNTRA NEXUS
 
+## TLS session authorization (0.11.30-dev)
+
+- Add a short-lived authorization handle for one completed mutual-TLS session.
+- Validate both local and peer P-256 certificate identities, TLS protocol, certificate validity and exact pairing provenance.
+- Recheck the current trusted-device registry before protected operations; revocation invalidates a previously captured authorization.
+- Carry the TLS authorization handle through capability consent and recheck it when the device owner explicitly approves.
+- This is not a live transport: no LAN socket, QR-token exchange, file transfer, screen streaming or remote-control action is enabled. The underlying socket state must also be checked by any future transport.
+- Tests are authored but not yet verified by a successful Gradle/CI run. See [the 0.11.30 security note](docs/TLS-SESSION-AUTHORIZATION-0.11.30.md).
+
+
 ## Exact pairing provenance enforced at TLS trust boundary (0.11.29-dev)
 
 - TLS context creation now requires the expected peer fingerprint, exact 22-character pairing request ID and 64-character transcript SHA-256.

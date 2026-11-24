@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.3-dev  
-**Status:** Local activity summary, explicit MediaProjection consent prototype, fail-closed screen-share authorization foundation, and opt-in LAN service discovery; no authenticated pairing or screen streaming yet  
+**Version:** 0.11.4-dev  
+**Status:** Local activity summary, explicit MediaProjection consent prototype, fail-closed screen-share authorization foundation, and opt-in LAN service discovery; no network pairing transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -48,7 +48,7 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Redeeming invitations over a real peer-to-peer connection; QR registration is local to the issuer and is not exchanged with the scanner.
 - Distributed one-time redemption or replay prevention across devices.
 - Live exchange of fresh nonces and signatures between two devices.
-- TLS handshake, authenticated LAN transport, trusted-device registry or remote revocation.
+- TLS handshake, authenticated LAN transport, encrypted durable trusted-device persistence or remote revocation.
 - NEXUS companion service advertisement; discovery currently searches for compatible advertisements but this app does not yet publish one.
 - Connecting the authorization gate to a real transport or enforcing it at a network boundary.
 - Actual screen-frame capture, encoding, transmission, receiver rendering or remote stop signaling.
@@ -58,6 +58,16 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Verified Android Keystore persistence and UsageStats behavior on physical devices.
 
 **Important:** Activity Monitor is local to the phone where permission was granted. It does not monitor another device. Screen-state history may be incomplete on some Android versions or after reboot. App usage values are Android-reported foreground totals, not a guarantee of exact screen-on time. NEXUS does not collect messages, keystrokes, notification contents or private app data.
+
+## Local trusted-device registry foundation (0.11.4-dev)
+
+- Add a local in-memory registry for peer identities only after the pairing state machine reaches PAIRED with BOTH_APPROVED.
+- Registration requires the exact transcript pinned by the handshake, the local public key and peer public key assigned to their transcript roles, and a valid display name.
+- Store the peer's public key and SHA-256 fingerprint in the registry; callers receive defensive copies of key bytes.
+- Revoke a local record by fingerprint; revoked records are excluded from the active-device list.
+- Reject unverified sessions, transcript substitution, and peer keys that do not match the transcript.
+
+**Current limitation:** this registry is an in-memory prototype. It is cleared when the app process is restarted, has no UI yet, and does not send revocation to another device. Encrypted durable persistence is the next step. This feature does not make the QR scanner or LAN discovery a trust mechanism.
 
 ## Device identity display (0.11.3-dev)
 

@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.8-dev  
-**Status:** Local trusted-device profile management, encrypted registry foundation, bounded versioned LAN packet codec, local activity summary and opt-in LAN discovery; no authenticated network pairing or screen streaming yet  
+**Version:** 0.11.9-dev  
+**Status:** Local trusted-device profile management, bounded LAN packet codec, pinned peer-key trust policy, local activity summary and opt-in LAN discovery; no live TLS transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -48,7 +48,8 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Redeeming invitations over a real peer-to-peer connection; QR registration is local to the issuer and is not exchanged with the scanner.
 - Distributed one-time redemption or replay prevention across devices.
 - Live exchange of fresh nonces and signatures between two devices.
-- TLS handshake, authenticated LAN transport, remote revocation.
+- Live TLS handshake and authenticated LAN transport; the pinned trust manager is not wired to a socket or key manager yet.
+- Remote revocation.
 - NEXUS companion service advertisement; discovery currently searches for compatible advertisements but this app does not yet publish one.
 - Connecting the authorization gate to a real transport or enforcing it at a network boundary.
 - Actual screen-frame capture, encoding, transmission, receiver rendering or remote stop signaling.
@@ -144,3 +145,14 @@ See [`docs/DEVICE-CAPABILITIES.md`](docs/DEVICE-CAPABILITIES.md) for screen-shar
 - Add unit tests for valid round trips, defensive copies, empty payloads and malformed/oversized packets.
 
 **Security boundary:** This is a packet codec only. It does not open sockets, authenticate peers, establish TLS, redeem tokens, verify signatures, approve pairing or execute remote actions. All decoded data remains untrusted until a future authenticated handshake succeeds. The next milestone must implement and review mutual TLS/identity binding before any real connection or capability message is enabled.
+
+
+## Pinned peer identity trust policy (0.11.9-dev)
+
+- Add a fail-closed EC public-key pin policy that matches the presented key bytes and SHA-256 fingerprint against an active local trusted-device record.
+- Reject unknown keys, revoked devices, malformed/non-canonical key encodings, oversized key material and non-EC keys.
+- Add an X.509 trust-manager foundation for both client and server peer checks. It checks leaf-certificate validity, rejects CA certificates as device identities, checks digital-signature key usage when present, and requires the leaf EC public key to match an active trusted record.
+- Keep the trust manager separate from socket creation and TLS configuration; no live network connection is started.
+- Add unit tests for active, unknown, revoked, mismatched, malformed, oversized and RSA public keys.
+
+**Security boundary:** This is public-key identity pinning, not a general CA trust store or a completed mutual-TLS implementation. The key must already have been accepted through a transcript-bound pairing with approval on both devices. The trust manager does not yet provide a local TLS key manager, open sockets, negotiate TLS, exchange fresh handshake messages, redeem QR tokens or enforce capability grants. Do not treat LAN discovery or a certificate alone as pairing approval.

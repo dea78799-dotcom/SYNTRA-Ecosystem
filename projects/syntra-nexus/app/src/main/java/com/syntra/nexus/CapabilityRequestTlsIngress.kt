@@ -50,10 +50,12 @@ class CapabilityRequestTlsIngress(
         val request = envelope.request
         if (request.peerFingerprint != expectedPeerFingerprint) return null
 
-        val trustedPeer = PinnedPeerKeyPolicy.isTrusted(
-            peerLeaf.publicKey,
-            trustedDevices.activeDevices(),
-            expectedPeerFingerprint
+        val trustedPeer = PinnedPeerKeyPolicy.isTrustedForSession(
+            peerPublicKey = peerLeaf.publicKey,
+            registry = trustedDevices,
+            expectedPeerFingerprint = expectedPeerFingerprint,
+            expectedPairingRequestId = transcript.requestId,
+            expectedTranscriptHashHex = transcript.sha256.toLowerHex()
         )
         if (!trustedPeer) return null
 

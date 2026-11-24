@@ -8,6 +8,11 @@ import java.security.KeyPairGenerator
 import java.security.spec.ECGenParameterSpec
 
 class PinnedPeerTrustManagerTest {
+    private companion object {
+        const val TEST_REQUEST_ID = "AAAAAAAAAAAAAAAAAAAAAA"
+        const val TEST_TRANSCRIPT_HASH = "a".repeat(64)
+    }
+
 
     @Test
     fun acceptsExactActiveEcPeerKey() {
@@ -79,7 +84,9 @@ class PinnedPeerTrustManagerTest {
             fingerprint = "0".repeat(64),
             publicKeyEncoded = byteArrayOf(1, 2, 3),
             displayName = "Broken record",
-            trustedAtMillis = 1_000L
+            trustedAtMillis = 1_000L,
+            pairingRequestId = TEST_REQUEST_ID,
+            transcriptHashHex = TEST_TRANSCRIPT_HASH
         )
 
         assertFalse(PinnedPeerKeyPolicy.isTrusted(peer.public, listOf(record)))
@@ -119,6 +126,50 @@ class PinnedPeerTrustManagerTest {
                 listOf(trustedRecord(otherCurve))
             )
         )
+    }
+
+
+    @Test
+    fun acceptsOnlyExactActivePairingProvenance() {
+        val peer = ecKeyPair()
+        val registry = TrustedDeviceRegistry(object : TrustedDevicePersistence {
+            override fun load() = listOf(trustedRecord(peer))
+            override fun save(records: List<TrustedDeviceRecord>) = Unit
+        })
+        assertTrue(PinnedPeerKeyPolicy.isTrustedForSession(
+            peer.public, registry, PairingIdentityCrypto.fingerprint(peer.public.encoded),
+            TEST_REQUEST_ID, TEST_TRANSCRIPT_HASH
+        ))
+    }
+
+    @Test
+    fun rejectsSameKeyWhenPairingRequestOrTranscriptDiffers() {
+        val peer = ecKeyPair()
+        val registry = TrustedDeviceRegistry(object : TrustedDevicePersistence {
+            override fun load() = listOf(trustedRecord(peer))
+            override fun save(records: List<TrustedDeviceRecord>) = Unit
+        })
+        val fingerprint = PairingIdentityCrypto.fingerprint(peer.public.encoded)
+        assertFalse(PinnedPeerKeyPolicy.isTrustedForSession(
+            peer.public, registry, fingerprint, "BBBBBBBBBBBBBBBBBBBBBB", TEST_TRANSCRIPT_HASH
+        ))
+        assertFalse(PinnedPeerKeyPolicy.isTrustedForSession(
+            peer.public, registry, fingerprint, TEST_REQUEST_ID, "b".repeat(64)
+        ))
+    }
+
+    @Test
+    fun rejectsLegacyRecordWithoutPairingProvenanceForTlsSession() {
+        val peer = ecKeyPair()
+        val legacy = trustedRecord(peer).copy(pairingRequestId = null, transcriptHashHex = null)
+        val registry = TrustedDeviceRegistry(object : TrustedDevicePersistence {
+            override fun load() = listOf(legacy)
+            override fun save(records: List<TrustedDeviceRecord>) = Unit
+        })
+        assertFalse(PinnedPeerKeyPolicy.isTrustedForSession(
+            peer.public, registry, PairingIdentityCrypto.fingerprint(peer.public.encoded),
+            TEST_REQUEST_ID, TEST_TRANSCRIPT_HASH
+        ))
     }
 
     private fun ecKeyPair(): KeyPair =

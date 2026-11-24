@@ -8,7 +8,9 @@ data class TrustedDeviceRecord(
     val publicKeyEncoded: ByteArray,
     val displayName: String,
     val trustedAtMillis: Long,
-    val revokedAtMillis: Long? = null
+    val revokedAtMillis: Long? = null,
+    val pairingRequestId: String? = null,
+    val transcriptHashHex: String? = null
 ) {
     val isRevoked: Boolean
         get() = revokedAtMillis != null
@@ -85,7 +87,9 @@ class TrustedDeviceRegistry(
             fingerprint = fingerprint,
             publicKeyEncoded = peerPublicKeyEncoded.copyOf(),
             displayName = displayName.trim(),
-            trustedAtMillis = nowMillis
+            trustedAtMillis = nowMillis,
+            pairingRequestId = transcript.requestId,
+            transcriptHashHex = transcript.sha256.joinToString("") { "%02x".format(it.toInt() and 0xff) }
         )
         commit(records + (fingerprint to record))
         return copyRecord(record)
@@ -122,6 +126,36 @@ class TrustedDeviceRegistry(
     @Synchronized
     fun allRecords(): List<TrustedDeviceRecord> = records.values.map(::copyRecord)
 
+    /**
+     * Revalidates exact pairing provenance against the current registry.
+     * Call at every new-session authorization boundary, not only at TLS setup.
+     * Legacy records without provenance remain visible but cannot authorize sessions.
+     */
+    @Synchronized
+    fun isActiveForSession(
+        fingerprint: String,
+        publicKeyEncoded: ByteArray,
+        requestId: String,
+        transcriptHashHex: String
+    ): Boolean {
+        if (!fingerprint.matches(Regex("^[a-f0-9]{64}$")) ||
+            !requestId.matches(Regex("^[A-Za-z0-9_-]{22}$")) ||
+            !transcriptHashHex.matches(Regex("^[a-f0-9]{64}$"))
+        ) return false
+
+        val current = records[fingerprint] ?: return false
+        if (current.isRevoked ||
+            current.pairingRequestId != requestId ||
+            current.transcriptHashHex != transcriptHashHex
+        ) return false
+
+        val computedFingerprint = runCatching {
+            PairingIdentityCrypto.fingerprint(publicKeyEncoded)
+        }.getOrNull() ?: return false
+        return computedFingerprint == fingerprint &&
+            java.security.MessageDigest.isEqual(current.publicKeyEncoded, publicKeyEncoded)
+    }
+
     private fun commit(next: Map<String, TrustedDeviceRecord>) {
         persistence?.save(next.values.map(::copyRecord))
         records.clear()
@@ -142,6 +176,13 @@ class TrustedDeviceRegistry(
         require(record.trustedAtMillis >= 0L &&
             (record.revokedAtMillis == null || record.revokedAtMillis >= record.trustedAtMillis)) {
             "Stored timestamps are invalid."
+        }
+        require(
+            (record.pairingRequestId == null && record.transcriptHashHex == null) ||
+                (record.pairingRequestId?.matches(Regex("^[A-Za-z0-9_-]{22}$")) == true &&
+                    record.transcriptHashHex?.matches(Regex("^[a-f0-9]{64}$")) == true)
+        ) {
+            "Stored pairing provenance is invalid."
         }
     }
 

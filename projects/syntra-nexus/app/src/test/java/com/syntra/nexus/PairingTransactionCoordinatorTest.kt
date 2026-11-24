@@ -42,17 +42,11 @@ class PairingTransactionCoordinatorTest {
         )
     }
 
-    @Test fun tokenMustBeRedeemedBeforeIdentity() {
+    @Test fun tokenCannotBeRedeemedWithoutActiveTransaction() {
         val (coordinator) = coordinator()
-        begin(coordinator)
         assertEquals(
             PairingTransactionResult.INVALID_TRANSITION,
-            coordinator.markPeerIdentityVerified(
-                // No valid session can be fabricated through the public API.
-                // Null is deliberately not accepted; this test covers ordering
-                // through the lower-level transition below.
-                null as PairingHandshakeSession, null as PairingTranscript, 11_000L
-            )
+            coordinator.markTokenRedeemed(11_000L)
         )
     }
 

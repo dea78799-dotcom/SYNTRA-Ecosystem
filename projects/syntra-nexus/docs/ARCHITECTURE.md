@@ -128,3 +128,10 @@ The consent card also distinguishes a start request from a confirmed active serv
 The transport foundation defines a binary envelope with a fixed `SNX1` marker, protocol version, enumerated message type, fixed 22-character request ID, big-endian payload length and bounded payload. The codec accepts only known message types and protocol version 1, limits payloads to 64 KiB, and rejects truncation, trailing bytes, malformed identifiers and invalid packet sizes. Payload bytes are defensively copied.
 
 The current implementation is deliberately transport-independent. It does not open a socket, advertise a service, authenticate a peer, redeem a pairing token, verify a signature, establish TLS or execute a remote capability. A packet that passes structural parsing is still untrusted input. The next stage must define and review mutual authentication, certificate/identity binding, replay handling and TLS lifecycle before connecting this codec to LAN sockets.
+
+
+## Pinned peer identity trust policy (0.11.9-dev)
+
+The transport security foundation adds an EC public-key pin policy backed by the active local trusted-device registry. A presented leaf certificate is accepted by the policy only when its EC SubjectPublicKeyInfo bytes and SHA-256 fingerprint match an active, non-revoked record. The X.509 trust-manager adapter also checks certificate validity, rejects CA certificates as device identities, and checks the digital-signature key-usage bit when that extension is present. It applies the same pinned-peer rule to client and server certificates.
+
+This is an identity pin, not a public CA chain validator. Its trust input must come only from a completed, transcript-bound pairing that both devices approved. The adapter is not yet installed in an SSLContext, there is no TLS KeyManager for presenting the local Android Keystore identity, and no SSLSocket is opened. The next implementation must bind the TLS handshake to the same approved identities, define replay-resistant handshake state, and ensure the negotiated TLS version and certificate proof-of-possession are verified before any application packet is accepted.

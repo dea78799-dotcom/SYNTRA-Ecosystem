@@ -115,8 +115,20 @@ class CapabilityGrant internal constructor(
  * the registered peer as RESPONDER. A future role-symmetric transport must
  * explicitly extend and test that role mapping before enabling network use.
  */
-class CapabilityGrantRegistry {
+class CapabilityGrantRegistry(
+    private val persistence: CapabilityGrantPersistence? = null
+) {
     private val grants = linkedMapOf<String, CapabilityGrant>()
+
+    init {
+        val restored = persistence?.load().orEmpty()
+        require(restored.size <= MAX_GRANTS) { "Capability ledger exceeds capacity." }
+        restored.forEach { grant ->
+            require(grants.put(grant.request.grantId, copyGrant(grant)) == null) {
+                "Capability ledger contains duplicate grant IDs."
+            }
+        }
+    }
 
     @Synchronized
     fun issue(
@@ -162,8 +174,8 @@ class CapabilityGrantRegistry {
         val grant = CapabilityGrant(
             request, localApprovalSignature, peerApprovalSignature
         )
-        grants[request.grantId] = grant
-        return grant
+        commit(grants + (request.grantId to grant))
+        return copyGrant(grant)
     }
 
     /**
@@ -221,21 +233,28 @@ class CapabilityGrantRegistry {
         if (current.revokedAtMillis != null || nowMillis < current.request.issuedAtMillis) {
             return false
         }
-        grants[grantId] = current.withRevocation(nowMillis)
+        commit(grants + (grantId to current.withRevocation(nowMillis)))
         return true
     }
 
     @Synchronized
-    fun snapshot(): List<CapabilityGrant> = grants.values.map {
-        CapabilityGrant(
-            it.request,
-            it.localSignatureCopy(),
-            it.peerSignatureCopy(),
-            it.revokedAtMillis
-        )
+    fun snapshot(): List<CapabilityGrant> = grants.values.map(::copyGrant)
+
+    private fun commit(next: Map<String, CapabilityGrant>) {
+        persistence?.save(next.values.map(::copyGrant))
+        grants.clear()
+        next.forEach { (id, grant) -> grants[id] = copyGrant(grant) }
     }
 
+    private fun copyGrant(grant: CapabilityGrant) = CapabilityGrant(
+        grant.request,
+        grant.localSignatureCopy(),
+        grant.peerSignatureCopy(),
+        grant.revokedAtMillis
+    )
+
     companion object {
+        private const val MAX_GRANTS = 128
         private const val MAX_REQUEST_AGE_MILLIS = 30_000L
         private val SIGNATURE_DOMAIN =
             "SYNTRA-NEXUS-CAPABILITY-GRANT-v1\u0000".toByteArray(Charsets.UTF_8)

@@ -145,7 +145,9 @@ class TlsBoundedPacketChannelTest {
             val payloadLength = ByteBuffer.wrap(header)
                 .order(ByteOrder.BIG_ENDIAN)
                 .getInt(NexusTransportCodec.HEADER_BYTES - Int.SIZE_BYTES)
-            val frame = header + ByteArray(payloadLength).also(input::readFully)
+            val payload = ByteArray(payloadLength)
+            input.readFully(payload)
+            val frame = header + payload
             assertEquals(expected.type, NexusTransportCodec.decode(frame).type)
             assertArrayEquals(expected.payload, NexusTransportCodec.decode(frame).payload)
             release.await(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS)

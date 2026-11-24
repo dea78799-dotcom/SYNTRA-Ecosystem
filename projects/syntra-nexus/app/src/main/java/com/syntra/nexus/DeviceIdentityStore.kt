@@ -65,6 +65,32 @@ class DeviceIdentityStore {
     }
 
     /**
+     * Signs the exact capability request only when the caller explicitly
+     * invokes this method after local consent. The role must match this
+     * installation's public key in the already verified pairing transcript.
+     */
+    fun signCapabilityGrantApproval(
+        request: CapabilityGrantRequest,
+        transcript: PairingTranscript,
+        role: PairingSignerRole
+    ): ByteArray {
+        require(request.pairingRequestId == transcript.requestId) {
+            "Capability request is not bound to this pairing transcript."
+        }
+        require(request.transcriptHashHex == transcript.sha256.joinToString("") {
+            "%02x".format(it.toInt() and 0xff)
+        }) {
+            "Capability request transcript hash does not match."
+        }
+        val keyPair = loadExistingKeyPair()
+            ?: throw IllegalStateException("Device identity has not been created.")
+        require(keyPair.public.encoded.contentEquals(transcript.publicKeyFor(role))) {
+            "Local device identity does not match the transcript signer role."
+        }
+        return CapabilityGrantRegistry.signApproval(keyPair.private, request, role)
+    }
+
+    /**
      * Deletes the local identity key. Existing peers will no longer be able
      * to authenticate this installation under its previous identity.
      * This does not notify or revoke records on other devices.

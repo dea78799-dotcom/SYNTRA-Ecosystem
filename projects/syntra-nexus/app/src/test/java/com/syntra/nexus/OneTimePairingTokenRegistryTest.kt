@@ -137,6 +137,51 @@ class OneTimePairingTokenRegistryTest {
         )
     }
 
+    @Test
+    fun restoresRedeemedTokenStateFromPersistence() {
+        val request = PairingRequest.create(nowMillis = 10_000L)
+        val memory = FakePersistence()
+        val registry = OneTimePairingTokenRegistry(persistence = memory)
+        assertTrue(registry.register(request.toInvitation(), nowMillis = 10_001L))
+        assertEquals(
+            OneTimePairingTokenRegistry.RedemptionResult.REDEEMED,
+            registry.redeem(request.token, nowMillis = 10_002L)
+        )
+
+        val reopened = OneTimePairingTokenRegistry(persistence = memory)
+        assertEquals(
+            OneTimePairingTokenRegistry.RedemptionResult.ALREADY_REDEEMED,
+            reopened.redeem(request.token, nowMillis = 10_003L)
+        )
+    }
+
+    @Test
+    fun persistenceFailureDoesNotMarkTokenRedeemedInMemory() {
+        val request = PairingRequest.create(nowMillis = 10_000L)
+        val memory = FakePersistence()
+        val registry = OneTimePairingTokenRegistry(persistence = memory)
+        assertTrue(registry.register(request.toInvitation(), nowMillis = 10_001L))
+        memory.failWrites = true
+
+        try {
+            registry.redeem(request.token, nowMillis = 10_002L)
+            throw AssertionError("Expected persistence failure")
+        } catch (_: IllegalStateException) {
+            // Fail closed: no successful redemption result was returned.
+        }
+    }
+
+    private class FakePersistence(
+        var failWrites: Boolean = false
+    ) : PairingTokenPersistence {
+        private var records: List<PairingTokenRecord> = emptyList()
+        override fun load(): List<PairingTokenRecord> = records
+        override fun save(records: List<PairingTokenRecord>) {
+            if (failWrites) throw IllegalStateException("simulated storage failure")
+            this.records = records.toList()
+        }
+    }
+
     private fun PairingRequest.toInvitation() = ParsedPairingInvitation(
         requestId = requestId,
         token = token,

@@ -273,7 +273,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.29-dev · TLS gắn fingerprint + pairing transcript; chưa mở socket LAN",
+                    text = "Prototype 0.11.30-dev · kiểm tra lại TLS session + thu hồi trust; chưa mở socket LAN",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

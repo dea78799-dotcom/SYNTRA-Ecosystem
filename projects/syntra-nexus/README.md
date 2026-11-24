@@ -44,17 +44,18 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Clarify the screen-share UI state: it reports that a service-start request was sent, not that the MediaProjection service has confirmed an active session.
 
 
-## Durable replay-ledger recovery audit (0.11.18-dev)
+## Encrypted AtomicFile recovery audit (0.11.18-dev)
 
-- Serialize replay-ledger reads and writes across all persistence adapter instances in this process with one shared lock; Android AtomicFile does not provide caller synchronization.
-- Always recover through `AtomicFile.openRead()` before deciding the store is absent. A crash may leave the last committed snapshot only in the `.bak` file, even when the base file does not exist.
-- Read encrypted bytes with a strict 20 MiB streaming bound instead of trusting a pre-read base-file length or using unbounded `readBytes()`.
-- Validate replay-session identifiers, fingerprints, transcript hashes, sequence bounds, nonce-hash count/format/uniqueness and duplicate session keys before saving or accepting restored records.
-- Add Android instrumentation coverage for normal persistence recreation, backup-only recovery, partial-replacement recovery, ciphertext tampering and missing Keystore-key fail-closed behavior.
+- Audit all four Android Keystore-backed AtomicFile stores: replay ledger, trusted devices, one-time pairing tokens and pairing transaction.
+- Serialize each store's read/write operations across adapter instances in the process with a shared lock.
+- Call `AtomicFile.openRead()` before deciding a store is absent, so a committed `.bak` snapshot is recovered even when the base file is missing.
+- Bound encrypted reads and validate persisted record counts, identifiers, fingerprints, state values, sequence counters and duplicate entries.
+- If an encryption key is missing while the base file or backup still exists, fail closed. Do not silently generate a replacement key that cannot decrypt the existing data.
+- Add Android instrumentation coverage for backup-only recovery, partial replacement recovery, ciphertext tampering and missing-key behavior, alongside normal persistence recreation.
 
-**Audit finding addressed:** The previous replay adapter returned an empty ledger whenever the base file was missing, without allowing AtomicFile to restore a committed backup. That could discard local replay history after an interrupted replacement. The new read path uses `openRead()` first and fails closed for all errors other than a genuinely missing store.
+**Audit findings addressed:** The replay, trusted-device and token adapters previously bypassed backup recovery when the base file was missing. The replay adapter also needed to fail closed rather than create a replacement key when ciphertext remained. The trusted-device and token adapters now receive the same recovery, locking, bounded-read and missing-key protections. The transaction adapter's key check now also accounts for a backup-only file.
 
-**Verification boundary:** The new instrumentation tests are authored and committed, but have not been confirmed by a successful emulator/CI run. Replay protection remains a local component and is not connected to a socket or distributed across devices. No live pairing or token transmission is enabled.
+**Verification boundary:** Instrumentation tests are authored and committed, but no successful emulator/CI run is confirmed. Replay protection remains local and is not connected to a socket or distributed across devices. No live pairing or token transmission is enabled.
 
 ## Android storage recovery verification (0.11.17-dev)
 

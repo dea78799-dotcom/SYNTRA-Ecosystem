@@ -273,7 +273,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.22-dev · grant mã hóa cục bộ; chưa mở socket",
+                    text = "Prototype 0.11.23-dev · consent coordinator đã có; chưa nhận yêu cầu từ xa",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

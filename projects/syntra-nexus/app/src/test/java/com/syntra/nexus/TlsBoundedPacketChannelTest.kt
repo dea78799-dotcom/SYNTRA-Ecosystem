@@ -28,12 +28,12 @@ class TlsBoundedPacketChannelTest {
             NexusMessageType.PAIRING_CHALLENGE, requestId, byteArrayOf(1, 2, 3, 4, 5)
         )
         val frame = NexusTransportCodec.encode(expected)
-        val fixture = openFixture { peer ->
+        val fixture = openFixture { peer, release ->
             peer.outputStream.write(frame, 0, 7)
             peer.outputStream.flush()
             peer.outputStream.write(frame, 7, frame.size - 7)
             peer.outputStream.flush()
-            fixtureHold.await(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS)
+            release.await(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS)
         }
         try {
             val actual = fixture.channel.readPacket(2_000)
@@ -49,7 +49,7 @@ class TlsBoundedPacketChannelTest {
 
     @Test
     fun idleReadTimeoutDoesNotConsumeFrameOrCloseChannel() {
-        val fixture = openFixture { fixtureHold.await(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS) }
+        val fixture = openFixture { _, release -> release.await(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS) }
         try {
             assertThrows(SocketTimeoutException::class.java) {
                 fixture.channel.readPacket(150)
@@ -64,10 +64,10 @@ class TlsBoundedPacketChannelTest {
 
     @Test
     fun partialHeaderTimeoutClosesChannelToPreventStreamDesynchronization() {
-        val fixture = openFixture { peer ->
+        val fixture = openFixture { peer, release ->
             peer.outputStream.write(byteArrayOf(0x53, 0x4e, 0x58, 0x31, 0x01, 0x06))
             peer.outputStream.flush()
-            fixtureHold.await(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS)
+            release.await(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS)
         }
         try {
             assertThrows(SocketTimeoutException::class.java) {
@@ -83,7 +83,7 @@ class TlsBoundedPacketChannelTest {
 
     @Test
     fun oversizedLengthIsRejectedBeforePayloadAllocationAndClosesChannel() {
-        val fixture = openFixture { peer ->
+        val fixture = openFixture { peer, release ->
             val header = ByteBuffer.allocate(NexusTransportCodec.HEADER_BYTES)
                 .order(ByteOrder.BIG_ENDIAN)
                 .put(byteArrayOf(0x53, 0x4e, 0x58, 0x31))
@@ -94,7 +94,7 @@ class TlsBoundedPacketChannelTest {
                 .array()
             peer.outputStream.write(header)
             peer.outputStream.flush()
-            fixtureHold.await(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS)
+            release.await(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS)
         }
         try {
             assertThrows(IllegalArgumentException::class.java) {
@@ -113,7 +113,7 @@ class TlsBoundedPacketChannelTest {
         val expected = NexusTransportPacket.create(
             NexusMessageType.PING, "AbCdEf0123456789_-XYZa", byteArrayOf(8, 9, 10)
         )
-        val fixture = openFixture { peer ->
+        val fixture = openFixture { peer, release ->
             val input = DataInputStream(peer.inputStream)
             val header = ByteArray(NexusTransportCodec.HEADER_BYTES)
             input.readFully(header)
@@ -123,7 +123,7 @@ class TlsBoundedPacketChannelTest {
             val frame = header + ByteArray(payloadLength).also(input::readFully)
             assertEquals(expected.type, NexusTransportCodec.decode(frame).type)
             assertArrayEquals(expected.payload, NexusTransportCodec.decode(frame).payload)
-            fixtureHold.await(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS)
+            release.await(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS)
         }
         try {
             fixture.channel.writePacket(expected)
@@ -134,7 +134,7 @@ class TlsBoundedPacketChannelTest {
         }
     }
 
-    private fun openFixture(serverAction: (SSLSocket) -> Unit): Fixture {
+    private fun openFixture(serverAction: (SSLSocket, CountDownLatch) -> Unit): Fixture {
         val serverContext = context("device_a", "device_b")
         val clientContext = context("device_b", "device_a")
         val registry = registryFor("device_a")
@@ -151,7 +151,7 @@ class TlsBoundedPacketChannelTest {
                 val peer = raw as SSLSocket
                 peer.soTimeout = TIMEOUT_MILLIS
                 peer.startHandshake()
-                serverAction(peer)
+                serverAction(peer, release)
             }
         }
 
@@ -245,6 +245,5 @@ class TlsBoundedPacketChannelTest {
         const val TIMEOUT_MILLIS = 5_000
         const val TEST_REQUEST_ID = "EEEEEEEEEEEEEEEEEEEEEE"
         const val TEST_TRANSCRIPT_HASH = "a".repeat(64)
-        val fixtureHold = CountDownLatch(1)
     }
 }

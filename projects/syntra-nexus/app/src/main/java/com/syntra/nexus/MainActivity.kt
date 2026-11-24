@@ -251,7 +251,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.9-dev · chính sách ghim khóa thiết bị; chưa có TLS/socket",
+                    text = "Prototype 0.11.10-dev · nền tảng TLS ghim đúng thiết bị; chưa mở socket",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

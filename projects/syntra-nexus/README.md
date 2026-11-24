@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.0-dev  
-**Status:** Local activity summary and explicit MediaProjection consent prototype; no network pairing or screen streaming yet  
+**Version:** 0.11.1-dev  
+**Status:** Local activity summary, explicit MediaProjection consent prototype, and fail-closed screen-share authorization foundation; no network pairing or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -18,7 +18,6 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Build a canonical, versioned transcript with fixed field ordering, length-prefixed values, both public identities, invitation request ID, expiry, and independent 32-byte peer nonces.
 - Sign and verify transcript hashes with ECDSA/SHA-256, a NEXUS-specific domain separator, and explicit initiator/responder role binding.
 - Verify that a peer's supplied public key exactly matches the identity assigned to that role in the transcript.
-- Reject invalid signatures, wrong-role signatures, identity mismatches, tampered transcripts, and proofs presented after expiry.
 - Pin each handshake session to the SHA-256 hash of its exact canonical transcript and verify that the local controller key is the transcript's initiator identity; an unbound or substituted transcript is rejected.
 - Require a separate role-bound signature over an explicit APPROVE decision from the peer after local approval; the state machine requires both approvals before entering PAIRED.
 - Maintain a synchronized one-time token registry with ACTIVE, REDEEMED, and REVOKED states; store token fingerprints rather than raw tokens.
@@ -31,7 +30,10 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Hold the approved MediaProjection session in a non-exported foreground service with an ongoing notification and a visible Stop action.
 - Require notification permission on Android 13+ before opening the consent flow.
 - Automatically end the consent session after 30 minutes.
-- Do not create a VirtualDisplay, capture frames, record, or transmit screen content in this milestone; this is only a tested-permission-flow foundation until authenticated LAN transport exists.
+- Add a fail-closed authorization gate for future screen sharing. It requires verified peer identity, mutual pairing approval, capability grants on both devices, sharer MediaProjection consent, receiver approval for the current session, encrypted transport, and a visible foreground notification.
+- Add bounded frame-metadata validation for future encoded frames; no pixel payload is accepted by this metadata model.
+- Add unit tests proving each missing authorization requirement blocks transmission and invalid frame metadata is rejected.
+- Clarify the UI state: it reports that a service-start request was sent, not that the MediaProjection service has confirmed an active session.
 
 ## Not implemented yet
 
@@ -39,9 +41,11 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Distributed one-time redemption or replay prevention across devices.
 - Live exchange of fresh nonces and signatures between two devices.
 - TLS handshake, LAN transport, NSD/mDNS discovery, trusted-device registry or remote revocation.
+- Connecting the authorization gate to a real transport or enforcing it at a network boundary.
+- Actual screen-frame capture, encoding, transmission, receiver rendering or remote stop signaling.
 - Automatic game classification. A future game-time total needs an explicit user-reviewed app list.
 - Reliable real-time foreground-app/online status; UsageStats does not provide a guaranteed live presence signal.
-- Remote activity summaries, actual screen-frame capture/streaming, website filtering, remote actions, TV client or cloud sync.
+- Remote activity summaries, website filtering, remote actions, TV client or cloud sync.
 - Verified Android Keystore persistence and UsageStats behavior on physical devices.
 
 **Important:** Activity Monitor is local to the phone where permission was granted. It does not monitor another device. Screen-state history may be incomplete on some Android versions or after reboot. App usage values are Android-reported foreground totals, not a guarantee of exact screen-on time. NEXUS does not collect messages, keystrokes, notification contents or private app data.
@@ -66,6 +70,7 @@ See [`docs/DEVICE-CAPABILITIES.md`](docs/DEVICE-CAPABILITIES.md) for screen-shar
 - Both devices must explicitly approve pairing before trust is established.
 - Every future capability requires a separate, visible and revocable grant.
 - Usage Access must be granted by the device owner in Android Settings.
-- Screen sharing must use MediaProjection's system consent and a visible foreground notification; the current 0.11 prototype does not capture or transmit frames.
+- Screen sharing must use MediaProjection's system consent and a visible foreground notification; the current prototype does not capture or transmit frames.
+- The future frame-transmission path must pass every ScreenShareAuthorization gate; discovery or QR scanning alone is insufficient.
 - Never store passwords, pairing secrets, or private keys in source control.
 - No hidden collection of messages, photos, screens, or private app data.

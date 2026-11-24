@@ -13,15 +13,18 @@ import javax.net.ssl.SSLSocket
 import javax.net.ssl.X509KeyManager
 
 /**
- * Presents this installation's non-exportable Android Keystore identity in TLS.
- * The certificate is the X.509 certificate already associated with the identity alias.
+ * Presents one non-exportable Android Keystore identity in TLS.
+ * The default alias is the installation identity; alternate aliases are
+ * useful only for isolated instrumentation identities and explicit callers.
  */
 class AndroidKeystoreX509KeyManager(
-    keyStore: KeyStore? = null
+    keyStore: KeyStore? = null,
+    identityAlias: String = DEFAULT_IDENTITY_ALIAS
 ) : X509KeyManager {
     private val store: KeyStore = keyStore ?: KeyStore.getInstance(ANDROID_KEYSTORE).apply {
         load(null)
     }
+    private val selectedAlias = identityAlias
 
     private val privateKey: PrivateKey
     private val certificateChain: Array<X509Certificate>
@@ -29,13 +32,16 @@ class AndroidKeystoreX509KeyManager(
     val localFingerprint: String
 
     init {
-        require(store.containsAlias(IDENTITY_ALIAS)) {
+        require(selectedAlias.isNotBlank() && selectedAlias.length <= MAX_ALIAS_LENGTH) {
+            "Android Keystore identity alias is invalid."
+        }
+        require(store.containsAlias(selectedAlias)) {
             "Create the NEXUS device identity before initializing TLS."
         }
-        privateKey = store.getKey(IDENTITY_ALIAS, null) as? PrivateKey
+        privateKey = store.getKey(selectedAlias, null) as? PrivateKey
             ?: throw IllegalStateException("Android Keystore private identity key is unavailable.")
 
-        val rawChain = store.getCertificateChain(IDENTITY_ALIAS)
+        val rawChain = store.getCertificateChain(selectedAlias)
             ?: throw IllegalStateException("Android Keystore identity certificate is unavailable.")
         require(rawChain.isNotEmpty() && rawChain.size <= MAX_CERTIFICATE_CHAIN_LENGTH) {
             "Local TLS certificate chain length is invalid."
@@ -67,28 +73,28 @@ class AndroidKeystoreX509KeyManager(
     }
 
     override fun getClientAliases(keyType: String?, issuers: Array<out Principal>?): Array<String>? =
-        if (supportsEc(keyType)) arrayOf(IDENTITY_ALIAS) else null
+        if (supportsEc(keyType)) arrayOf(selectedAlias) else null
 
     override fun chooseClientAlias(
         keyType: Array<out String>?,
         issuers: Array<out Principal>?,
         socket: Socket?
-    ): String? = if (keyType.orEmpty().any(::supportsEc)) IDENTITY_ALIAS else null
+    ): String? = if (keyType.orEmpty().any(::supportsEc)) selectedAlias else null
 
     override fun getServerAliases(keyType: String?, issuers: Array<out Principal>?): Array<String>? =
-        if (supportsEc(keyType)) arrayOf(IDENTITY_ALIAS) else null
+        if (supportsEc(keyType)) arrayOf(selectedAlias) else null
 
     override fun chooseServerAlias(
         keyType: String?,
         issuers: Array<out Principal>?,
         socket: Socket?
-    ): String? = if (supportsEc(keyType)) IDENTITY_ALIAS else null
+    ): String? = if (supportsEc(keyType)) selectedAlias else null
 
     override fun getCertificateChain(alias: String?): Array<X509Certificate>? =
-        if (alias == IDENTITY_ALIAS) certificateChain.copyOf() else null
+        if (alias == selectedAlias) certificateChain.copyOf() else null
 
     override fun getPrivateKey(alias: String?): PrivateKey? =
-        if (alias == IDENTITY_ALIAS) privateKey else null
+        if (alias == selectedAlias) privateKey else null
 
     private fun verifyPrivateKeyMatchesCertificate(
         key: PrivateKey,
@@ -114,12 +120,13 @@ class AndroidKeystoreX509KeyManager(
                 keyType.contains("ECDSA", ignoreCase = true)
             )
 
-    private companion object {
-        const val ANDROID_KEYSTORE = "AndroidKeyStore"
-        const val IDENTITY_ALIAS = "syntra.nexus.device.identity.v1"
-        const val SIGNATURE_ALGORITHM = "SHA256withECDSA"
-        const val CHALLENGE_BYTES = 32
-        const val MAX_CERTIFICATE_CHAIN_LENGTH = 8
+    companion object {
+        const val DEFAULT_IDENTITY_ALIAS = "syntra.nexus.device.identity.v1"
+        private const val ANDROID_KEYSTORE = "AndroidKeyStore"
+        private const val SIGNATURE_ALGORITHM = "SHA256withECDSA"
+        private const val CHALLENGE_BYTES = 32
+        private const val MAX_CERTIFICATE_CHAIN_LENGTH = 8
+        private const val MAX_ALIAS_LENGTH = 128
     }
 }
 

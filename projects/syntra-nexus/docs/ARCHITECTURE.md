@@ -170,3 +170,10 @@ The bearer token is present in the encoded request and therefore must never be t
 The coordinator binds one local transaction to the invitation request ID, expiry, exact transcript hash and responder fingerprint. It enforces the local lifecycle and requires the existing PairingHandshakeSession to prove transcript-bound identity verification and both approvals before the transaction can enter PAIRED. It does not accept a peer-approved Boolean or infer consent from a valid signature alone.
 
 A restored non-terminal attempt is downgraded to RECOVERY_REQUIRED. The user must explicitly discard it and create a new invitation; the consumed QR token is never reactivated. Persistence is committed before in-memory mutation and failures stop the transition. The coordinator is currently a pure local component: no Android Keystore adapter, UI integration, socket transport or automatic trusted-device registration is included.
+
+
+## Encrypted pairing transaction storage (0.11.15-dev)
+
+The controller stores one local transaction snapshot in an AES-256-GCM encrypted AtomicFile. Android Keystore owns the non-exportable AES key. A versioned AAD value binds ciphertext to the NEXUS transaction format, and a fresh GCM IV is generated for each write. The fixed-width binary snapshot contains only the invitation request ID and expiry, canonical transcript hash, peer fingerprint, state enum and update timestamp. The QR bearer token, private keys, signatures, raw nonces and application payloads are excluded.
+
+Startup authenticates and validates the entire snapshot. Any authentication, parsing, key-access or file error fails closed; it is never treated as an empty transaction store. A restored non-terminal transaction is downgraded to RECOVERY_REQUIRED and that downgrade is durably written before the coordinator becomes available. The dashboard allows the user to discard this interrupted local transaction, but it cannot reactivate its already redeemed invitation. This component is local persistence only and does not create a network pairing session.

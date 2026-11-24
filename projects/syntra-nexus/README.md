@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.7-dev  
-**Status:** Local trusted-device profile management, encrypted registry foundation, local activity summary, explicit MediaProjection consent prototype, and opt-in LAN discovery; no network pairing transport or screen streaming yet  
+**Version:** 0.11.8-dev  
+**Status:** Local trusted-device profile management, encrypted registry foundation, bounded versioned LAN packet codec, local activity summary and opt-in LAN discovery; no authenticated network pairing or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -132,3 +132,15 @@ See [`docs/DEVICE-CAPABILITIES.md`](docs/DEVICE-CAPABILITIES.md) for screen-shar
 - The future frame-transmission path must pass every ScreenShareAuthorization gate; discovery or QR scanning alone is insufficient.
 - Never store passwords, pairing secrets, or private keys in source control.
 - No hidden collection of messages, photos, screens, or private app data.
+
+
+## Bounded LAN transport protocol (0.11.8-dev)
+
+- Define a versioned binary envelope with the `SNX1` marker, message type, fixed-length request ID and big-endian payload length.
+- Support only the initial protocol message types: HELLO, PAIRING_CHALLENGE, PAIRING_PROOF, PAIRING_APPROVAL, ERROR, PING and PONG.
+- Limit payloads to 64 KiB and reject packets outside the permitted total size before parsing.
+- Reject unknown protocol versions, unknown message types, invalid request IDs, malformed lengths, truncated packets and trailing bytes.
+- Copy payload bytes at object boundaries to prevent callers from mutating packet contents after construction.
+- Add unit tests for valid round trips, defensive copies, empty payloads and malformed/oversized packets.
+
+**Security boundary:** This is a packet codec only. It does not open sockets, authenticate peers, establish TLS, redeem tokens, verify signatures, approve pairing or execute remote actions. All decoded data remains untrusted until a future authenticated handshake succeeds. The next milestone must implement and review mutual TLS/identity binding before any real connection or capability message is enabled.

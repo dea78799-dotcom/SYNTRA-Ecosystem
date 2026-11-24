@@ -1,11 +1,9 @@
 package com.syntra.nexus
 
-import java.security.KeyFactory
 import java.security.MessageDigest
 import java.security.PublicKey
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
-import java.security.spec.X509EncodedKeySpec
 import javax.net.ssl.X509TrustManager
 
 /**
@@ -29,14 +27,11 @@ object PinnedPeerKeyPolicy {
         val encoded = peerPublicKey.encoded ?: return false
         if (encoded.isEmpty() || encoded.size > MAX_PUBLIC_KEY_BYTES) return false
 
-        val canonicalKey = try {
-            KeyFactory.getInstance("EC")
-                .generatePublic(X509EncodedKeySpec(encoded))
+        val canonicalEncoded = try {
+            PairingIdentityCrypto.requireP256PublicKey(encoded).encoded
         } catch (_: Exception) {
             return false
         }
-
-        val canonicalEncoded = canonicalKey.encoded ?: return false
         if (!MessageDigest.isEqual(encoded, canonicalEncoded)) return false
 
         val fingerprint = PairingIdentityCrypto.fingerprint(canonicalEncoded)

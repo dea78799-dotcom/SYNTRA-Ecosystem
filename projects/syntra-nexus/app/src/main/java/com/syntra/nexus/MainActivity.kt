@@ -87,6 +87,9 @@ private fun NexusDashboard() {
     var scannedInvitation by remember { mutableStateOf<ParsedPairingInvitation?>(null) }
     var deviceIdentity by remember { mutableStateOf<DeviceIdentityStore.DeviceIdentity?>(null) }
     val context = LocalContext.current
+    val tokenRegistry = remember(context) {
+        OneTimePairingTokenRegistry(persistence = EncryptedPairingTokenPersistence(context))
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -150,6 +153,10 @@ private fun NexusDashboard() {
                     onClick = {
                         try {
                             val request = PairingRequest.create()
+                            val parsed = PairingPayloadParser.parse(request.payload)
+                            check(tokenRegistry.register(parsed)) {
+                                "Invitation token already exists in the local registry."
+                            }
                             pairingRequest = request
                             qrBitmap = QrCodeRenderer.render(request.payload)
                             pairingError = null

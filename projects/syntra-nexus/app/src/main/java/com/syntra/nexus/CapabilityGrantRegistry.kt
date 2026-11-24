@@ -108,8 +108,9 @@ class CapabilityGrant internal constructor(
 }
 
 /**
- * Local capability ledger. It is intentionally memory-only in this milestone:
- * after process death no old capability silently becomes active again.
+ * Local capability ledger. Optional persistence restores records after process
+ * death, but restoration never bypasses expiry, transcript binding, signature
+ * verification or current trusted-device authorization in mayUse().
  *
  * The current pairing coordinator treats this installation as INITIATOR and
  * the registered peer as RESPONDER. A future role-symmetric transport must

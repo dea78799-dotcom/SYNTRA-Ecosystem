@@ -138,7 +138,7 @@ class PairingTokenRedemptionProtocolTest {
         val invalidLength = encoded.copyOf()
         ByteBuffer.wrap(invalidLength).putShort(
             PairingTokenRedemptionCodec.FIXED_HEADER_BYTES - 2,
-            0
+            0.toShort()
         )
         assertTrue(runCatching {
             PairingTokenRedemptionCodec.decode(invalidLength)

@@ -229,6 +229,10 @@ private fun NexusDashboard() {
             }
 
             item {
+                ScreenShareConsentCard()
+            }
+
+            item {
                 Text(
                     text = "Thiết bị của tôi",
                     fontSize = 18.sp,
@@ -256,7 +260,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.9-dev · token mời được lưu mã hóa; chưa có ghép đôi LAN",
+                    text = "Prototype 0.11-dev · phiên xin quyền MediaProjection; chưa có truyền màn hình qua mạng",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

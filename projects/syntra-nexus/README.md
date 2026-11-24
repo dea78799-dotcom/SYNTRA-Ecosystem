@@ -1,5 +1,15 @@
 # SYNTRA NEXUS
 
+## Exact pairing provenance enforced at TLS trust boundary (0.11.29-dev)
+
+- TLS context creation now requires the expected peer fingerprint, exact 22-character pairing request ID and 64-character transcript SHA-256.
+- Context creation rejects peers whose active trust record does not match that exact pairing provenance.
+- `PinnedPeerTrustManager` rechecks the current registry at certificate-validation time, including public-key equality, revocation state, pairing request ID and transcript hash.
+- Capability-request TLS ingress independently rechecks the same transcript provenance before presenting a consent request.
+- Added unit and Android instrumentation coverage for mismatched request IDs/transcript hashes and legacy trust records without provenance.
+- No LAN listener, discovery transport, QR-token exchange, file transfer, screen sharing or remote-control action is enabled. CI must pass before this milestone is considered verified. See [the 0.11.29 security note](docs/TLS-PAIRING-PROVENANCE-0.11.29.md).
+
+
 ## Android Keystore mutual-TLS loopback verification (0.11.28-dev)
 
 - Adds a real Android instrumentation loopback handshake using two distinct Android Keystore aliases.

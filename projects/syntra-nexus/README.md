@@ -1,5 +1,17 @@
 # SYNTRA NEXUS
 
+## TLS bounded packet channel (0.11.33-dev)
+
+- Add a bounded SNX1 packet reader/writer on top of the already-authenticated TLS socket lifecycle manager.
+- Read the fixed 32-byte header first and reject negative or over-64-KiB payload lengths before allocating the frame buffer.
+- Read exactly the declared payload, then delegate protocol marker/version/type/request-ID/trailing-byte validation to the existing codec.
+- Apply a positive socket read timeout before blocking reads and restore the previous timeout afterward.
+- A timeout before any frame byte arrives is recoverable. A partial-frame timeout, truncation, malformed packet, oversized length, clean EOF or I/O failure closes the channel to prevent stream desynchronization.
+- Writes are serialized and size-bounded. Java socket SO_TIMEOUT does not bound writes; cancellation still requires closing the lifecycle manager.
+- Add six mutual-TLS loopback tests for fragmented frames, idle timeout, partial-header timeout, payload timeout, oversized length and packet writes.
+- This is not production LAN transport. No socket creation, peer discovery, token exchange, file transfer, screen capture or remote action is enabled.
+- See [the 0.11.33 security note](docs/TLS-BOUNDED-PACKET-CHANNEL-0.11.33.md).
+
 ## TLS socket lifecycle manager (0.11.32-dev)
 
 - Add an owner for an already-authenticated TLS socket with ACTIVE, REVOKED and CLOSED states.

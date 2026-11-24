@@ -135,3 +135,12 @@ The current implementation is deliberately transport-independent. It does not op
 The transport security foundation adds an EC public-key pin policy backed by the active local trusted-device registry. A presented leaf certificate is accepted by the policy only when its EC SubjectPublicKeyInfo bytes and SHA-256 fingerprint match an active, non-revoked record. The X.509 trust-manager adapter also checks certificate validity, rejects CA certificates as device identities, and checks the digital-signature key-usage bit when that extension is present. It applies the same pinned-peer rule to client and server certificates.
 
 This is an identity pin, not a public CA chain validator. Its trust input must come only from a completed, transcript-bound pairing that both devices approved. The adapter is not yet installed in an SSLContext, there is no TLS KeyManager for presenting the local Android Keystore identity, and no SSLSocket is opened. The next implementation must bind the TLS handshake to the same approved identities, define replay-resistant handshake state, and ensure the negotiated TLS version and certificate proof-of-possession are verified before any application packet is accepted.
+
+
+## TLS identity foundation (0.11.10-dev)
+
+The Android controller now has an X.509 key manager that presents the existing EC P-256 Android Keystore identity. The private key remains non-exportable. Before exposing the identity to JSSE, the manager checks the leaf certificate and signs a fresh random challenge with the private key, then verifies the proof using the certificate public key. This detects a mismatched certificate/key pair.
+
+TLS context construction is scoped to one exact active peer fingerprint. The trust manager checks that expected fingerprint in addition to the active registry record, so a different trusted device cannot satisfy the peer check. TLS 1.3 is preferred and TLS 1.2 is the minimum. Server socket configuration requires client certificate authentication.
+
+This is configuration only. No socket, listener, TLS handshake, invitation redemption or application-packet exchange is implemented. Identity pinning is not public CA-chain or DNS-name validation; the selected peer fingerprint is the identity boundary. The next stage must implement a replay-resistant pairing exchange and lifecycle-safe socket transport before application capabilities are connected.

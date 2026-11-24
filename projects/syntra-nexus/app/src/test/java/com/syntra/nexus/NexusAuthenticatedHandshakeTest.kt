@@ -67,6 +67,37 @@ class NexusAuthenticatedHandshakeTest {
         )
     }
 
+    @Test(expected = IllegalArgumentException::class)
+    fun refusesToSignAsPeerWithAnotherDevicesPrivateKey() {
+        NexusHandshakeFrame.createSigned(
+            NexusHandshakeKind.IDENTITY_PROOF,
+            transcript,
+            PairingSignerRole.RESPONDER,
+            0,
+            initiator.private
+        )
+    }
+
+    @Test
+    fun rejectsAValidSignatureWhenTranscriptWasSubstituted() {
+        val substituted = PairingTranscript.create(
+            requestId = transcript.requestId,
+            expiresAtMillis = transcript.expiresAtMillis,
+            initiatorPublicKeyEncoded = initiator.public.encoded,
+            responderPublicKeyEncoded = responder.public.encoded,
+            initiatorNonce = ByteArray(32) { (it + 9).toByte() },
+            responderNonce = ByteArray(32) { (it + 73).toByte() },
+            nowMillis = NOW
+        )
+        assertEquals(
+            NexusHandshakeVerificationResult.INVALID,
+            NexusHandshakeFrameVerifier.verify(
+                signedFrame(0), substituted, PairingSignerRole.RESPONDER,
+                responder.public, NOW + 1
+            )
+        )
+    }
+
     @Test
     fun rejectsExpiredFrame() {
         val frame = signedFrame(0)

@@ -12,9 +12,16 @@ The current local Activity Monitor requests no runtime dialog; the user must ope
 
 Limitations: Android may omit screen events after reboot or due to OS/vendor behavior. UsageStats totals are not a precise screen-on measurement. The prototype does not identify games automatically, does not guarantee a real-time current-app signal, and does not label another device online. A future game total must use a user-reviewed app list. Permission can be revoked at any time in Settings.
 
-## 2. Screen sharing (future 0.11, optional and user-initiated)
+## 2. Screen sharing — 0.11 consent foundation
 
-Use Android MediaProjection only after the device owner taps **Start screen sharing** and accepts the system confirmation. The sharing device must show an ongoing foreground-service notification and an in-app sharing indicator with a clear **Stop** control. Stop on timeout, disconnect or revocation where practical. Do not persist or record video by default. The controller must display that a live stream is being shared. This is a consensual support session, not stealth monitoring.
+The Android prototype now provides a **Xin quyền** action that opens the system MediaProjection confirmation. The user must accept it. On Android 13+, notification permission is also required so the session has a visible notification. The non-exported foreground service holds the granted projection session, displays an ongoing notification with a **Dừng** action and ends automatically after 30 minutes.
+
+Important limitations of 0.11:
+
+- This is a permission-flow foundation only. It does not create a VirtualDisplay, capture frames, record video or transmit screen content.
+- No remote viewer exists because authenticated LAN pairing and transport are not implemented.
+- The user can stop from the app or the ongoing notification; Android can also revoke the projection.
+- No background or hidden capture is performed. Actual live streaming requires a later milestone with mutual device authentication, a visible sharing state on both devices and an immediate stop control.
 
 ## 3. Website and content restrictions (future 0.12)
 
@@ -36,6 +43,6 @@ DNS/domain filtering cannot see full encrypted URL paths, cannot reliably filter
 
 - **0.9.0-dev:** encrypted local token persistence and local QR-issuer registration.
 - **0.10.0-dev:** local Activity Monitor using UsageStats and screen-state events; unit tests for duration aggregation.
-- **0.11:** consented MediaProjection screen-sharing prototype, visible foreground notification, stop controls and timeout.
+- **0.11.0-dev:** explicit MediaProjection consent foundation, foreground notification, stop action and 30-minute timeout; no frame capture or network streaming.
 - **0.12:** local DNS/domain filtering prototype with transparent VPN UI, domain lists, test fixtures and false-positive review.
 - LAN pairing, mutual authentication, capability grants and remote summaries remain separate milestones; no remote monitoring until these foundations are implemented and tested.

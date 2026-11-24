@@ -115,6 +115,23 @@ class PairingIdentityCryptoTest {
         PairingIdentityCrypto.requireP256PublicKey(rsa.public.encoded)
     }
 
+
+    @Test
+    fun rejectsSignatureFromNonP256Curve() {
+        val otherCurve = KeyPairGenerator.getInstance("EC").apply {
+            initialize(ECGenParameterSpec("secp384r1"))
+        }.generateKeyPair()
+        val hash = ByteArray(32) { 9 }
+        val signature = PairingIdentityCrypto.signTranscriptHash(
+            otherCurve.private, hash, PairingSignerRole.INITIATOR
+        )
+        assertFalse(
+            PairingIdentityCrypto.verifyTranscriptHash(
+                otherCurve.public.encoded, hash, signature, PairingSignerRole.INITIATOR
+            )
+        )
+    }
+
     private fun createKeyPair() = KeyPairGenerator.getInstance("EC").apply {
         initialize(ECGenParameterSpec("secp256r1"))
     }.generateKeyPair()

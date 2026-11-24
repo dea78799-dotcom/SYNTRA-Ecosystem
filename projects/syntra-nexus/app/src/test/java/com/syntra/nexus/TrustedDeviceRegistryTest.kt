@@ -88,6 +88,64 @@ class TrustedDeviceRegistryTest {
         )
     }
 
+    @Test
+    fun restoresPersistedDeviceAndRevocationAfterRegistryRecreation() {
+        val persistence = FakeTrustedDevicePersistence()
+        val first = TrustedDeviceRegistry(persistence)
+        val record = first.registerAfterVerifiedPairing(
+            pairedSession(), transcript, local.public.encoded, peer.public.encoded,
+            PairingSignerRole.RESPONDER, "Persisted peer", NOW + 6
+        )
+        val restored = TrustedDeviceRegistry(persistence)
+        assertEquals(record.fingerprint, restored.activeDevices().single().fingerprint)
+        assertTrue(restored.revoke(record.fingerprint, NOW + 7))
+        val afterRevoke = TrustedDeviceRegistry(persistence)
+        assertTrue(afterRevoke.activeDevices().isEmpty())
+        assertTrue(afterRevoke.allRecords().single().isRevoked)
+    }
+
+    @Test
+    fun persistenceFailureDoesNotMutateInMemoryRegistry() {
+        val persistence = FakeTrustedDevicePersistence().apply { failWrites = true }
+        val registry = TrustedDeviceRegistry(persistence)
+        try {
+            registry.registerAfterVerifiedPairing(
+                pairedSession(), transcript, local.public.encoded, peer.public.encoded,
+                PairingSignerRole.RESPONDER, "Peer", NOW + 6
+            )
+            throw AssertionError("Expected persistence failure.")
+        } catch (_: IllegalStateException) {
+            assertTrue(registry.activeDevices().isEmpty())
+            assertTrue(persistence.records.isEmpty())
+        }
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsPersistedFingerprintThatDoesNotMatchPublicKey() {
+        val invalid = TrustedDeviceRecord(
+            fingerprint = "0".repeat(64),
+            publicKeyEncoded = peer.public.encoded,
+            displayName = "Invalid",
+            trustedAtMillis = NOW
+        )
+        TrustedDeviceRegistry(FakeTrustedDevicePersistence(mutableListOf(invalid)))
+    }
+
+    private class FakeTrustedDevicePersistence(
+        val records: MutableList<TrustedDeviceRecord> = mutableListOf()
+    ) : TrustedDevicePersistence {
+        var failWrites: Boolean = false
+
+        override fun load(): List<TrustedDeviceRecord> =
+            records.map { it.copy(publicKeyEncoded = it.publicKeyEncoded.copyOf()) }
+
+        override fun save(records: List<TrustedDeviceRecord>) {
+            if (failWrites) throw IllegalStateException("Simulated storage failure.")
+            this.records.clear()
+            this.records.addAll(records.map { it.copy(publicKeyEncoded = it.publicKeyEncoded.copyOf()) })
+        }
+    }
+
     private fun pairedSession(): PairingHandshakeSession {
         val verified = session().invitationSent(NOW + 1).peerConnected(NOW + 2)
             .verifyPeerProofAndAdvance(

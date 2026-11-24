@@ -20,7 +20,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material.icons.rounded.Tv
@@ -121,7 +120,7 @@ private fun NexusDashboard() {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Quản lý thiết bị đã được ghép nối",
+                        text = "Quản lý thiết bị và quyền cục bộ",
                         color = NexusMuted,
                         fontSize = 14.sp
                     )

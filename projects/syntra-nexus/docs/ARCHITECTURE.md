@@ -151,4 +151,15 @@ This is configuration only. No socket, listener, TLS handshake, invitation redem
 The handshake frame binds each signed message to the exact invitation request ID, expiry, canonical transcript hash, sender role, sender and recipient fingerprints, a fresh 32-byte nonce and monotonic per-sender sequence. Its bounded binary codec rejects malformed or oversized frames. The signature covers all frame fields and is verified against the public key assigned to the sender role in the canonical transcript. The receiver checks both role fingerprints and expiry before accepting the proof.
 
 A bounded in-memory replay guard enforces sequence 0 for the first message and the next consecutive sequence thereafter for each invitation/sender pair. Expired sessions are pruned. This guard is process-local and not durable or distributed; it is not a substitute for persistent single-use invitation redemption. The frame verifier and replay guard are not connected to a socket. No token is redeemed, no remote approval is inferred from a signature, and no capabilities are transmitted.
-\n\n## Durable handshake replay state (0.11.12-dev)\n\nThe handshake replay guard now accepts an optional persistence adapter. The Android adapter stores bounded session sequence and nonce-hash history in an AES-GCM encrypted AtomicFile backed by Android Keystore. Each accepted frame is written before the in-memory state advances. A persistence error fails closed. This remains a local component and is not yet wired to the LAN transport or pairing UI.\n
+
+
+## Durable handshake replay state (0.11.12-dev)
+
+The handshake replay guard now accepts an optional persistence adapter. The Android adapter stores bounded session sequence and nonce-hash history in an AES-GCM encrypted AtomicFile backed by Android Keystore. Each accepted frame is written before the in-memory state advances. A persistence error fails closed. This remains a local component and is not yet wired to the LAN transport or pairing UI.
+
+
+## QR token redemption protocol (0.11.13-dev)
+
+The issuer-side redemption foundation defines a bounded SNR1 request containing the exact invitation request ID and expiry, the short-lived bearer token and the receiver's canonical EC P-256 public key. The verifier compares all invitation fields against the issuer's original PairingRequest before invoking the synchronized one-time token registry. The registry remains the durable authority for single-use state.
+
+The bearer token is present in the encoded request and therefore must never be transmitted over plaintext or an unverified connection. The payload may only be sent after mutual TLS and peer pinning succeed. A successful redemption consumes the token even if the subsequent pairing is interrupted; recovery requires a new QR invitation. The codec and verifier are not yet connected to TLS, a socket, UI or trusted-device registration.

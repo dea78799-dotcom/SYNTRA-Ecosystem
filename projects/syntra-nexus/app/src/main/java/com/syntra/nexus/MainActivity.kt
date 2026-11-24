@@ -102,6 +102,9 @@ private fun NexusDashboard() {
         runCatching { TrustedDeviceRegistry(EncryptedTrustedDevicePersistence(context)) }
     }
     val trustedDeviceRegistry = trustedDeviceLoad.getOrNull()
+    val capabilityGrantLoad = remember(context) {
+        runCatching { CapabilityGrantRegistry(EncryptedCapabilityGrantPersistence(context)) }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -144,6 +147,13 @@ private fun NexusDashboard() {
                 TrustedDevicesCard(
                     registry = trustedDeviceRegistry,
                     loadError = trustedDeviceLoad.exceptionOrNull()?.message
+                )
+            }
+
+            item {
+                CapabilityGrantsCard(
+                    registry = capabilityGrantLoad.getOrNull(),
+                    loadError = capabilityGrantLoad.exceptionOrNull()?.message
                 )
             }
 
@@ -263,7 +273,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.15-dev · lưu giao dịch mã hóa; chưa mở socket",
+                    text = "Prototype 0.11.22-dev · grant mã hóa cục bộ; chưa mở socket",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

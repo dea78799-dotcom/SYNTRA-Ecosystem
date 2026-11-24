@@ -1,5 +1,16 @@
 # SYNTRA NEXUS
 
+## Capability consent and durable grant storage (0.11.22-dev)
+
+- Persist exact, short-lived capability grants using AES-256-GCM, Android Keystore and AtomicFile. Save only request metadata, role-bound approval signatures and local revocation timestamps.
+- Commit grant issuance and revocation to encrypted storage before mutating in-memory state. Fail closed on storage, authentication, parsing or Keystore-key errors.
+- Display saved grants, expiry and local revoke controls in the dashboard. Add a reusable consent dialog with explicit Allow/Deny callbacks for a future authenticated incoming-request flow.
+- Add JVM registry tests and Android instrumentation tests for encrypted restoration, revocation, tamper detection, missing keys and AtomicFile recovery.
+
+**Current limitation:** The authenticated incoming capability-request transport does not exist yet. The dashboard has no remote request to approve or deny; the consent dialog is a reusable component only. A grant is not usable unless its exact transcript, both signatures, session and current trusted-device record are revalidated. No sockets, file transfer, screen capture or remote actions are enabled. See [the 0.11.22 audit](docs/CAPABILITY-CONSENT-AND-STORAGE-0.11.22.md).
+
+
+
 **Version:** 0.11.21-dev  
 **Status:** Capability authorization foundation: per-capability, dual-signature, session-bound grants; no live transport or remote actions enabled  
 **Platform:** Android-first  

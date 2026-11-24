@@ -144,3 +144,10 @@ The Android controller now has an X.509 key manager that presents the existing E
 TLS context construction is scoped to one exact active peer fingerprint. The trust manager checks that expected fingerprint in addition to the active registry record, so a different trusted device cannot satisfy the peer check. TLS 1.3 is preferred and TLS 1.2 is the minimum. Server socket configuration requires client certificate authentication.
 
 This is configuration only. No socket, listener, TLS handshake, invitation redemption or application-packet exchange is implemented. Identity pinning is not public CA-chain or DNS-name validation; the selected peer fingerprint is the identity boundary. The next stage must implement a replay-resistant pairing exchange and lifecycle-safe socket transport before application capabilities are connected.
+
+
+## Transcript-bound LAN handshake foundation (0.11.11-dev)
+
+The handshake frame binds each signed message to the exact invitation request ID, expiry, canonical transcript hash, sender role, sender and recipient fingerprints, a fresh 32-byte nonce and monotonic per-sender sequence. Its bounded binary codec rejects malformed or oversized frames. The signature covers all frame fields and is verified against the public key assigned to the sender role in the canonical transcript. The receiver checks both role fingerprints and expiry before accepting the proof.
+
+A bounded in-memory replay guard enforces sequence 0 for the first message and the next consecutive sequence thereafter for each invitation/sender pair. Expired sessions are pruned. This guard is process-local and not durable or distributed; it is not a substitute for persistent single-use invitation redemption. The frame verifier and replay guard are not connected to a socket. No token is redeemed, no remote approval is inferred from a signature, and no capabilities are transmitted.

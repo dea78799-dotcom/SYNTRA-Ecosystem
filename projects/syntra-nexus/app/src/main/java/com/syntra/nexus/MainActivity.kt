@@ -44,6 +44,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -87,6 +89,7 @@ private fun NexusDashboard() {
     var scannedInvitation by remember { mutableStateOf<ParsedPairingInvitation?>(null) }
     var deviceIdentity by remember { mutableStateOf<DeviceIdentityStore.DeviceIdentity?>(null) }
     val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
     val tokenRegistry = remember(context) {
         OneTimePairingTokenRegistry(persistence = EncryptedPairingTokenPersistence(context))
     }
@@ -264,7 +267,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.2-dev · LAN discovery thử nghiệm; chưa xác thực hoặc truyền dữ liệu",
+                    text = "Prototype 0.11.3-dev · danh tính thiết bị; chưa có kết nối xác thực",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
@@ -292,7 +295,7 @@ private fun NexusDashboard() {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Khóa riêng đã được tạo trong Android Keystore và không được xuất ra ngoài.")
                     Text("SHA-256 fingerprint:", color = NexusMuted, fontSize = 12.sp)
-                    Text(identity.fingerprint.chunked(4).joinToString(" "), color = NexusGold, fontSize = 12.sp)
+                    Text(PairingIdentityCrypto.formatFingerprint(identity.fingerprint), color = NexusGold, fontSize = 12.sp)
                     Text(
                         "Đây chỉ là danh tính cục bộ. Chưa xác thực thiết bị khác, chưa ghép đôi và chưa có kết nối.",
                         color = NexusMuted,
@@ -302,6 +305,11 @@ private fun NexusDashboard() {
             },
             confirmButton = {
                 TextButton(onClick = { deviceIdentity = null }) { Text("Đóng") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    clipboardManager.setText(AnnotatedString(identity.fingerprint))
+                }) { Text("Sao chép mã SHA-256") }
             }
         )
     }

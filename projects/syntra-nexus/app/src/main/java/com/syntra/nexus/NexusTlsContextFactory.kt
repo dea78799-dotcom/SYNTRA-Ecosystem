@@ -160,7 +160,8 @@ object NexusTlsProtocolPolicy {
 object NexusTlsContextFactory {
     fun create(
         trustedDeviceRegistry: TrustedDeviceRegistry,
-        expectedPeerFingerprint: String
+        expectedPeerFingerprint: String,
+        localIdentityAlias: String = AndroidKeystoreX509KeyManager.DEFAULT_IDENTITY_ALIAS
     ): SSLContext {
         require(expectedPeerFingerprint.matches(Regex("^[a-f0-9]{64}$"))) {
             "Expected peer fingerprint must be 64 lowercase hexadecimal characters."
@@ -171,7 +172,7 @@ object NexusTlsContextFactory {
             "Expected peer is unknown or has been revoked."
         }
 
-        val keyManager = AndroidKeystoreX509KeyManager()
+        val keyManager = AndroidKeystoreX509KeyManager(identityAlias = localIdentityAlias)
         require(keyManager.localFingerprint != expectedPeerFingerprint) {
             "Local and remote device identities must be different."
         }

@@ -48,6 +48,14 @@ Do not label a build as a functional remote controller until QR scanning, one-ti
 - Do not collect or upload browsing history, message contents, keystrokes, screen recordings or app-private data.
 - Capability permissions are separate, revocable and least-privilege. Pairing does not automatically enable monitoring or filtering.
 
+## LAN discovery safeguards (0.11.2-dev)
+
+- NSD discovery is opt-in and can be stopped by the user.
+- A DNS-SD service name, IP address, port, or service type is untrusted metadata and never authenticates a peer.
+- Do not connect to discovered endpoints or send QR tokens until the mutual-authentication protocol and TLS certificate/pinning policy are implemented and reviewed.
+- The current discovery component only lists candidate services; it does not advertise the local device, open sockets, or exchange app data.
+- Validate all service metadata and treat resolution callbacks as untrusted input.
+
 ## Screen-share transmission gate (0.11.1-dev)
 
 Before any future frame is sent, the implementation must verify all seven conditions in ScreenShareAuthorization: verified peer identity, mutual pairing approval, capability grants on both devices, current MediaProjection consent from the sharer, current-session approval from the receiver, authenticated encrypted transport, and an active visible foreground notification.

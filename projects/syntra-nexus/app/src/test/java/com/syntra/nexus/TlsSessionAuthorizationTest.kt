@@ -51,6 +51,29 @@ class TlsSessionAuthorizationTest {
     }
 
     @Test
+    fun changedPairingProvenanceInvalidatesCapturedAuthorization() {
+        val fixtures = fixtures()
+        val originalRegistry = registryFor(fixtures.peer)
+        val authorization = requireNotNull(
+            TlsSessionAuthorization.capture(
+                tlsSession = fakeSession(fixtures.local, fixtures.peer),
+                expectedLocalFingerprint = fingerprint(fixtures.local),
+                expectedPeerFingerprint = fingerprint(fixtures.peer),
+                expectedPairingRequestId = TEST_REQUEST_ID,
+                expectedTranscriptHashHex = TEST_TRANSCRIPT_HASH,
+                trustedDevices = originalRegistry,
+                nowMillis = fixtures.validAtMillis
+            )
+        )
+
+        val changedRegistry = registryFor(
+            fixtures.peer,
+            pairingRequestId = "FFFFFFFFFFFFFFFFFFFFFF"
+        )
+        assertFalse(authorization.isAuthorized(changedRegistry, fixtures.validAtMillis))
+    }
+
+    @Test
     fun rejectsWrongLocalIdentityAndUnsupportedTlsProtocol() {
         val fixtures = fixtures()
         val registry = registryFor(fixtures.peer)
@@ -112,15 +135,19 @@ class TlsSessionAuthorizationTest {
         return CertificateFixtures(local, peer, validAt)
     }
 
-    private fun registryFor(peer: X509Certificate): TrustedDeviceRegistry {
+    private fun registryFor(
+        peer: X509Certificate,
+        pairingRequestId: String = TEST_REQUEST_ID,
+        transcriptHashHex: String = TEST_TRANSCRIPT_HASH
+    ): TrustedDeviceRegistry {
         val key = peer.publicKey.encoded
         val record = TrustedDeviceRecord(
             fingerprint = fingerprint(peer),
             publicKeyEncoded = key,
             displayName = "TLS authorization test peer",
             trustedAtMillis = 0L,
-            pairingRequestId = TEST_REQUEST_ID,
-            transcriptHashHex = TEST_TRANSCRIPT_HASH
+            pairingRequestId = pairingRequestId,
+            transcriptHashHex = transcriptHashHex
         )
         return TrustedDeviceRegistry(object : TrustedDevicePersistence {
             override fun load(): List<TrustedDeviceRecord> = listOf(record)

@@ -72,10 +72,10 @@ class CapabilityRequestTlsIngress(
         certificates.isNotEmpty() && certificates.size <= MAX_CERTIFICATE_CHAIN_LENGTH &&
             certificates.firstOrNull() is X509Certificate
 
-    private fun isSupportedTlsProtocol(protocol: String?): Boolean =
-        protocol == "TLSv1.2" || protocol == "TLSv1.3"
-
-    private companion object {
+    internal companion object {
         const val MAX_CERTIFICATE_CHAIN_LENGTH = 8
+
+        fun isSupportedTlsProtocol(protocol: String?): Boolean =
+            protocol == "TLSv1.2" || protocol == "TLSv1.3"
     }
 }

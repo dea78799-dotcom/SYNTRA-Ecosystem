@@ -159,12 +159,12 @@ class CapabilityGrantRegistry(
             )
         ) return null
 
-        if (!verifyApproval(
+        if (!verifyApprovalSignature(
                 transcript.publicKeyFor(PairingSignerRole.INITIATOR),
                 request,
                 PairingSignerRole.INITIATOR,
                 localApprovalSignature
-            ) || !verifyApproval(
+            ) || !verifyApprovalSignature(
                 transcript.publicKeyFor(PairingSignerRole.RESPONDER),
                 request,
                 PairingSignerRole.RESPONDER,
@@ -214,12 +214,12 @@ class CapabilityGrantRegistry(
             )
         ) return false
 
-        return verifyApproval(
+        return verifyApprovalSignature(
             transcript.publicKeyFor(PairingSignerRole.INITIATOR),
             request,
             PairingSignerRole.INITIATOR,
             grant.localSignatureCopy()
-        ) && verifyApproval(
+        ) && verifyApprovalSignature(
             transcript.publicKeyFor(PairingSignerRole.RESPONDER),
             request,
             PairingSignerRole.RESPONDER,
@@ -274,7 +274,7 @@ class CapabilityGrantRegistry(
             return signer.sign()
         }
 
-        private fun verifyApproval(
+        internal fun verifyApprovalSignature(
             publicKeyEncoded: ByteArray,
             request: CapabilityGrantRequest,
             role: PairingSignerRole,

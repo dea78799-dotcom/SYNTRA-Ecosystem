@@ -58,9 +58,20 @@ class NexusDurableReplayGuardTest {
     @Test fun expiredSessionsAreRemovedFromDurableSnapshot() {
         val store = MemoryReplayStore()
         val guard = NexusHandshakeReplayGuard(maxSessions = 1, persistence = store)
-        assertEquals(NexusReplayDecision.ACCEPTED, guard.accept(signedFrame(0), NOW + 1))
+        val shortExpiry = NOW + 30_000L
+        val earlyTranscript = PairingTranscript.create(
+            "AAAAAAAAAAAAAAAAAAAAAA", shortExpiry,
+            initiator.public.encoded, responder.public.encoded,
+            ByteArray(32) { (it + 3).toByte() },
+            ByteArray(32) { (it + 67).toByte() }, NOW
+        )
+        val earlyFrame = NexusHandshakeFrame.createSigned(
+            NexusHandshakeKind.IDENTITY_PROOF, earlyTranscript,
+            PairingSignerRole.RESPONDER, 0, responder.private
+        )
+        assertEquals(NexusReplayDecision.ACCEPTED, guard.accept(earlyFrame, NOW + 1))
         val nextTranscript = PairingTranscript.create(
-            "BBBBBBBBBBBBBBBBBBBBBB", EXPIRY + 1,
+            "BBBBBBBBBBBBBBBBBBBBBB", EXPIRY,
             initiator.public.encoded, responder.public.encoded,
             ByteArray(32) { (it + 2).toByte() },
             ByteArray(32) { (it + 66).toByte() }, NOW
@@ -69,7 +80,7 @@ class NexusDurableReplayGuardTest {
             NexusHandshakeKind.IDENTITY_PROOF, nextTranscript,
             PairingSignerRole.RESPONDER, 0, responder.private
         )
-        assertEquals(NexusReplayDecision.ACCEPTED, guard.accept(later, EXPIRY))
+        assertEquals(NexusReplayDecision.ACCEPTED, guard.accept(later, shortExpiry))
         assertEquals(1, store.records.size)
         assertEquals(nextTranscript.requestId, store.records.single().requestId)
     }

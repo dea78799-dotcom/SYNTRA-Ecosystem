@@ -98,6 +98,23 @@ class PairingIdentityCryptoTest {
         )
     }
 
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsNonP256EcPublicKey() {
+        val otherCurve = KeyPairGenerator.getInstance("EC").apply {
+            initialize(ECGenParameterSpec("secp384r1"))
+        }.generateKeyPair()
+        PairingIdentityCrypto.requireP256PublicKey(otherCurve.public.encoded)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsRsaPublicKeyAsDeviceIdentity() {
+        val rsa = KeyPairGenerator.getInstance("RSA").apply {
+            initialize(2048)
+        }.generateKeyPair()
+        PairingIdentityCrypto.requireP256PublicKey(rsa.public.encoded)
+    }
+
     private fun createKeyPair() = KeyPairGenerator.getInstance("EC").apply {
         initialize(ECGenParameterSpec("secp256r1"))
     }.generateKeyPair()

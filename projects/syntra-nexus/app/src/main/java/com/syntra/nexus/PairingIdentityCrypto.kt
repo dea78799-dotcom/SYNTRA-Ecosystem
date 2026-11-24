@@ -24,6 +24,13 @@ object PairingIdentityCrypto {
         return digest.joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
     }
 
+    /** Formats a SHA-256 fingerprint for manual comparison. */
+    fun formatFingerprint(fingerprint: String): String {
+        require(fingerprint.matches(Regex("^[a-fA-F0-9]{64}$"))) {
+            "Fingerprint must contain exactly 64 hexadecimal characters."
+        }
+        return fingerprint.chunked(4).joinToString(" ") { it.uppercase() }
+    }
     fun signTranscriptHash(
         privateKey: PrivateKey,
         transcriptHash: ByteArray,

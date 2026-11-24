@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.13-dev  
-**Status:** Local trusted-device profile management, bounded LAN packet codec, pinned peer-key trust policy, TLS mutual-authentication foundation, local activity summary, opt-in LAN discovery and durable local handshake replay ledger and bounded QR-token redemption protocol; no live TLS transport or screen streaming yet  
+**Version:** 0.11.14-dev  
+**Status:** Pairing transaction coordinator, QR-token redemption protocol, durable local handshake replay ledger, trusted-device profile management, pinned peer-key trust policy and TLS mutual-authentication foundation; no live TLS transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 

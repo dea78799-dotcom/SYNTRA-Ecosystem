@@ -107,6 +107,29 @@ class PairingTranscriptTest {
         )
     }
 
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsNonP256PublicKey() {
+        val otherCurve = KeyPairGenerator.getInstance("EC").apply {
+            initialize(ECGenParameterSpec("secp384r1"))
+        }.generateKeyPair()
+        PairingTranscript.create(
+            REQUEST_ID, EXPIRY, otherCurve.public.encoded, responder.public.encoded,
+            initiatorNonce, responderNonce, NOW
+        )
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsRsaPublicKey() {
+        val rsa = KeyPairGenerator.getInstance("RSA").apply {
+            initialize(2048)
+        }.generateKeyPair()
+        PairingTranscript.create(
+            REQUEST_ID, EXPIRY, rsa.public.encoded, responder.public.encoded,
+            initiatorNonce, responderNonce, NOW
+        )
+    }
+
     private fun createTranscript(
         requestId: String = REQUEST_ID,
         expiry: Long = EXPIRY,

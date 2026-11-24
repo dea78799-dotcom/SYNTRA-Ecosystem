@@ -274,7 +274,8 @@ object NexusHandshakeFrameVerifier {
         val recipientRole = opposite(expectedSenderRole)
         val expectedSenderKey = transcript.publicKeyFor(expectedSenderRole)
         val expectedRecipientKey = transcript.publicKeyFor(recipientRole)
-        if (!MessageDigest.isEqual(peerPublicKey.encoded, expectedSenderKey)) {
+        if (!peerPublicKey.algorithm.equals("EC", ignoreCase = true) ||
+            !MessageDigest.isEqual(peerPublicKey.encoded, expectedSenderKey)) {
             return NexusHandshakeVerificationResult.INVALID
         }
         if (frame.senderFingerprint != PairingIdentityCrypto.fingerprint(expectedSenderKey) ||
@@ -302,6 +303,7 @@ enum class NexusReplayDecision {
     REPLAYED_OR_OUT_OF_ORDER,
     EXPIRED,
     CAPACITY_REACHED,
+    FRAME_LIMIT_REACHED,
     INVALID_SIGNATURE_OR_TRANSCRIPT
 }
 
@@ -314,6 +316,7 @@ class NexusHandshakeReplayGuard(
 ) {
     private data class SessionReplayState(
         val expiresAtMillis: Long,
+        val transcriptHashHex: String,
         var lastSequence: Long,
         val seenNonceHashes: MutableSet<String>
     )
@@ -333,24 +336,29 @@ class NexusHandshakeReplayGuard(
             if (iterator.next().value.expiresAtMillis <= nowMillis) iterator.remove()
         }
 
-        val key = frame.requestId + ":" + frame.senderFingerprint + ":" +
-            frame.transcriptHash.toHexString()
+        val key = frame.requestId + ":" + frame.senderFingerprint
         val nonceHash = MessageDigest.getInstance("SHA-256").digest(frame.nonce).toHexString()
         val current = sessions[key]
         if (current == null) {
             if (sessions.size >= maxSessions) return NexusReplayDecision.CAPACITY_REACHED
             if (frame.sequence != 0L) return NexusReplayDecision.REPLAYED_OR_OUT_OF_ORDER
             sessions[key] = SessionReplayState(
-                frame.expiresAtMillis, frame.sequence, mutableSetOf(nonceHash)
+                frame.expiresAtMillis,
+                frame.transcriptHash.toHexString(),
+                frame.sequence,
+                mutableSetOf(nonceHash)
             )
             return NexusReplayDecision.ACCEPTED
         }
 
         if (frame.expiresAtMillis != current.expiresAtMillis ||
+            frame.transcriptHash.toHexString() != current.transcriptHashHex ||
             frame.sequence != current.lastSequence + 1L ||
-            nonceHash in current.seenNonceHashes ||
-            current.seenNonceHashes.size >= MAX_FRAMES_PER_SESSION
+            nonceHash in current.seenNonceHashes
         ) return NexusReplayDecision.REPLAYED_OR_OUT_OF_ORDER
+        if (current.seenNonceHashes.size >= MAX_FRAMES_PER_SESSION) {
+            return NexusReplayDecision.FRAME_LIMIT_REACHED
+        }
 
         current.lastSequence = frame.sequence
         current.seenNonceHashes.add(nonceHash)

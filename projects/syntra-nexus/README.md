@@ -191,3 +191,16 @@ The Android Keystore identity is now exposed to JSSE through a dedicated X.509 k
 ## Transcript-bound handshake foundation (0.11.11-dev)
 
 Adds a bounded `SNH1` signed handshake frame bound to the invitation request, expiry, canonical transcript hash, sender role, sender/recipient fingerprints, a fresh 32-byte nonce and a monotonic sequence. ECDSA signatures cover the complete frame header. Verification checks the exact transcript and role-bound public keys. A bounded in-memory replay guard accepts sequence 0 once and then only the next sequence for that sender and invitation. This is a protocol foundation only: the replay guard is not durable or distributed, and no socket, token redemption, remote approval, trust registration or capability transport is enabled. See `docs/HANDSHAKE-0.11.11.md`.
+
+
+## Pairing transaction coordinator (0.11.14-dev)
+
+- Add a single-attempt coordinator bound to the exact request ID, invitation expiry, canonical transcript SHA-256 and responder fingerprint.
+- Enforce the sequence CREATED → TOKEN_REDEEMED → IDENTITY_VERIFIED → LOCAL_APPROVAL_PENDING → PAIRED.
+- Identity and peer approval are accepted only through the existing transcript-bound PairingHandshakeSession verifier; no peer-approved Boolean is accepted from transport input.
+- The only transition to PAIRED requires the verifier-produced session to be PAIRED with BOTH_APPROVED and bound to the exact same transcript.
+- Commit persistence before changing in-memory state; storage errors fail closed.
+- A restored non-terminal attempt becomes RECOVERY_REQUIRED. It cannot resume using stale process memory or silently reuse an already redeemed QR token. The user must discard the interrupted attempt and create a fresh invitation.
+- Add unit tests for field validation, transition ordering, persistence failure, recovery downgrade, terminal cleanup and expiry.
+
+**Current limitation:** This coordinator is not yet wired to the Android UI, encrypted Android Keystore persistence adapter, network socket or trusted-device registration flow. Tests are authored but have not been executed.

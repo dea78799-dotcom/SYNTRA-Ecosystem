@@ -5,7 +5,7 @@
 - Add a single owner for an already-connected, mutually authenticated SSLSocket.
 - Serialize protected I/O callbacks with a fair lock so two callers cannot interleave socket operations.
 - Recheck the exact socket binding, TLS session, certificate identities, transcript provenance and current trusted-device registry immediately before and after each callback.
-- Revoke the manager and close the socket when the authorization check fails.
+- On the next explicit authorization refresh or protected I/O, detect peer revocation, revoke the manager and close the socket. A registry mutation does not asynchronously notify this manager.
 - Explicit close() changes the lifecycle to CLOSED and closes the socket without waiting for the I/O lock. This is intentional: closing the socket can unblock a pending read.
 - Reject all future operations after REVOKED or CLOSED.
 - Add JSSE loopback tests for serialized operations, trust revocation and explicit close.

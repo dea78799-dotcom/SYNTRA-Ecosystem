@@ -140,7 +140,7 @@ class DeviceIdentityStore {
 
     private companion object {
         val IDENTITY_KEY_CHECK_DOMAIN =
-            "SYNTRA-NEXUS-IDENTITY-KEY-CHECK-v1\\u0000".toByteArray(Charsets.US_ASCII)
+            "SYNTRA-NEXUS-IDENTITY-KEY-CHECK-v1:".toByteArray(Charsets.US_ASCII)
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
         const val KEY_ALIAS = "syntra.nexus.device.identity.v1"
         const val EC_CURVE = "secp256r1"

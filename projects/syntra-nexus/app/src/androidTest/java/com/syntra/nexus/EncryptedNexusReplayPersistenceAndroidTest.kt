@@ -119,6 +119,25 @@ class EncryptedNexusReplayPersistenceAndroidTest {
         assertTrue(original.contentEquals(baseFile.readBytes()))
     }
 
+
+    @Test
+    fun missingKeystoreKeyWithBackupOnlyDoesNotCreateReplacementOrEraseLedger() {
+        persistence().save(listOf(record()))
+        val original = baseFile.readBytes()
+        assertTrue(baseFile.renameTo(backupFile))
+        deleteKey()
+
+        assertThrows(IllegalStateException::class.java) {
+            persistence().load()
+        }
+
+        val store = KeyStore.getInstance("AndroidKeyStore")
+        store.load(null)
+        assertTrue(!store.containsAlias(KEY_ALIAS))
+        assertTrue(baseFile.isFile)
+        assertTrue(original.contentEquals(baseFile.readBytes()))
+    }
+
     private companion object {
         const val FILE_NAME = "nexus_handshake_replay.enc"
         const val KEY_ALIAS = "syntra.nexus.handshake.replay.aes.v1"

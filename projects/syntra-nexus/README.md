@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.5-dev  
-**Status:** Local activity summary, explicit MediaProjection consent prototype, fail-closed screen-share authorization foundation, and opt-in LAN service discovery; no network pairing transport or screen streaming yet  
+**Version:** 0.11.6-dev  
+**Status:** Local trusted-device management UI, encrypted registry foundation, local activity summary, explicit MediaProjection consent prototype, and opt-in LAN discovery; no network pairing transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -58,6 +58,18 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Verified Android Keystore persistence and UsageStats behavior on physical devices.
 
 **Important:** Activity Monitor is local to the phone where permission was granted. It does not monitor another device. Screen-state history may be incomplete on some Android versions or after reboot. App usage values are Android-reported foreground totals, not a guarantee of exact screen-on time. NEXUS does not collect messages, keystrokes, notification contents or private app data.
+
+## Trusted-device management UI (0.11.6-dev)
+
+- Replace the misleading connected-device count with a dedicated local trusted-device card.
+- Display the active trusted-device count, display name, trust timestamp and grouped SHA-256 fingerprint.
+- Add copy-fingerprint and refresh actions.
+- Add a confirmation dialog before local revocation.
+- After successful revocation, reload the active list from the registry.
+- Show storage/operation errors explicitly; a failed encrypted-registry load is not presented as an empty device list.
+- Explain that local revocation does not notify or disconnect a remote peer because authenticated network transport is not implemented.
+
+**Current limitation:** The UI can display and revoke records already in the encrypted local registry. The current prototype has no completed network pairing flow that inserts a new peer record, so scanning QR or discovering a LAN service still does not add a trusted device.
 
 ## Encrypted trusted-device persistence (0.11.5-dev)
 

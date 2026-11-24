@@ -1,5 +1,14 @@
 # SYNTRA NEXUS
 
+## TLS socket lifecycle manager (0.11.32-dev)
+
+- Add an owner for an already-authenticated TLS socket with ACTIVE, REVOKED and CLOSED states.
+- Serialize protected I/O callbacks; recheck the exact socket/session binding and current peer trust before and after each callback.
+- Revocation closes the socket and permanently blocks further operations. Explicit close does not wait for the I/O lock, allowing blocked reads to be interrupted.
+- Add loopback tests for concurrent I/O serialization, trust revocation and explicit close.
+- The manager does not create sockets, perform handshakes or enable production LAN transport. Tests are authored but not verified until CI reports success.
+- See [the 0.11.32 security note](docs/TLS-SOCKET-LIFECYCLE-0.11.32.md).
+
 ## TLS channel binding (0.11.31-dev)
 
 - Bind capability authorization to one exact connected `SSLSocket`, including local/remote endpoints and negotiated JSSE session identity.
@@ -76,8 +85,8 @@
 
 
 
-**Version:** 0.11.28-dev  
-**Status:** Android Keystore mutual-TLS loopback test added; no production listener, LAN transport, token exchange or remote action is enabled  
+**Version:** 0.11.32-dev  
+**Status:** TLS socket lifecycle manager and loopback tests authored; no production listener, LAN transport, token exchange or remote action is enabled  
 **Platform:** Android-first  
 **Network model:** Local-first
 

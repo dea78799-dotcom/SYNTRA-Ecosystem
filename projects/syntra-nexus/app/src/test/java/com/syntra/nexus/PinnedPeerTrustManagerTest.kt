@@ -10,7 +10,7 @@ import java.security.spec.ECGenParameterSpec
 class PinnedPeerTrustManagerTest {
     private companion object {
         const val TEST_REQUEST_ID = "AAAAAAAAAAAAAAAAAAAAAA"
-        const val TEST_TRANSCRIPT_HASH = "a".repeat(64)
+        val TEST_TRANSCRIPT_HASH = "a".repeat(64)
     }
 
 

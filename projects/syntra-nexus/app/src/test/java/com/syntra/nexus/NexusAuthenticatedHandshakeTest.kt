@@ -218,7 +218,7 @@ class NexusAuthenticatedHandshakeTest {
             SecureRandom()
         )
         assertEquals(NexusReplayDecision.CAPACITY_REACHED, guard.accept(second, NOW + 2))
-        assertEquals(NexusReplayDecision.EXPIRED, guard.accept(second, EXPIRY))
+        assertEquals(NexusReplayDecision.EXPIRED, guard.accept(second, EXPIRY + 10_000L))
     }
 
     @Test

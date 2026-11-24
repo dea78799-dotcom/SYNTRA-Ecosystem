@@ -18,6 +18,34 @@ class PinnedPeerTrustManagerTest {
     }
 
     @Test
+    fun acceptsOnlyTheExpectedActivePeerFingerprint() {
+        val peer = ecKeyPair()
+        val other = ecKeyPair()
+        val records = listOf(trustedRecord(peer), trustedRecord(other))
+
+        assertTrue(
+            PinnedPeerKeyPolicy.isTrusted(
+                peer.public,
+                records,
+                PairingIdentityCrypto.fingerprint(peer.public.encoded)
+            )
+        )
+        assertFalse(
+            PinnedPeerKeyPolicy.isTrusted(
+                peer.public,
+                records,
+                PairingIdentityCrypto.fingerprint(other.public.encoded)
+            )
+        )
+    }
+
+    @Test
+    fun rejectsMalformedExpectedFingerprint() {
+        val peer = ecKeyPair()
+        assertFalse(PinnedPeerKeyPolicy.isTrusted(peer.public, listOf(trustedRecord(peer)), "bad"))
+    }
+
+    @Test
     fun rejectsUnknownPeerKey() {
         val approved = ecKeyPair()
         val presented = ecKeyPair()

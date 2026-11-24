@@ -55,7 +55,7 @@ class CapabilityRequestTlsIngress(
             registry = trustedDevices,
             expectedPeerFingerprint = expectedPeerFingerprint,
             expectedPairingRequestId = transcript.requestId,
-            expectedTranscriptHashHex = transcript.sha256.toLowerHex()
+            expectedTranscriptHashHex = transcript.sha256.toTlsLowerHex()
         )
         if (!trustedPeer) return null
 
@@ -81,3 +81,6 @@ class CapabilityRequestTlsIngress(
             protocol == "TLSv1.2" || protocol == "TLSv1.3"
     }
 }
+
+private fun ByteArray.toTlsLowerHex(): String =
+    joinToString("") { "%02x".format(it.toInt() and 0xff) }

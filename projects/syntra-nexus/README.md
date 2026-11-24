@@ -1,5 +1,14 @@
 # SYNTRA NEXUS
 
+## Android Keystore mutual-TLS loopback verification (0.11.28-dev)
+
+- Adds a real Android instrumentation loopback handshake using two distinct Android Keystore aliases.
+- The production installation identity remains the server identity; a temporary test-only alias supplies the client identity and is deleted after each test.
+- Tests a successful mutual-TLS echo and rejection of a client identity that is not pinned by the server.
+- No private key fixture is added to the repository. No LAN listener, pairing transport, token exchange, file transfer, screen sharing or remote-control action is enabled.
+- The loopback test is authored but is not verified until Android emulator CI reports success. See [the 0.11.28 test note](docs/ANDROID-KEYSTORE-MUTUAL-TLS-0.11.28.md).
+
+
 ## Android Keystore TLS identity verification (0.11.27-dev)
 
 - Adds Android instrumentation coverage for the Android Keystore-backed TLS key manager and context factory.
@@ -36,8 +45,8 @@
 
 
 
-**Version:** 0.11.26-dev  
-**Status:** Consent coordinator, encrypted grants, bounded request envelope, TLS ingress gate and loopback mutual-TLS test foundation; no production socket or remote action is enabled  
+**Version:** 0.11.28-dev  
+**Status:** Android Keystore mutual-TLS loopback test added; no production listener, LAN transport, token exchange or remote action is enabled  
 **Platform:** Android-first  
 **Network model:** Local-first
 

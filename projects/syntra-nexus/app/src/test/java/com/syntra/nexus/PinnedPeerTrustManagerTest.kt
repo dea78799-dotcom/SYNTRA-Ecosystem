@@ -106,6 +106,21 @@ class PinnedPeerTrustManagerTest {
         assertFalse(PinnedPeerKeyPolicy.isTrusted(oversized, emptyList()))
     }
 
+
+    @Test
+    fun rejectsNonP256EcKeyEvenWhenItsFingerprintIsListed() {
+        val otherCurve = KeyPairGenerator.getInstance("EC").apply {
+            initialize(ECGenParameterSpec("secp384r1"))
+        }.generateKeyPair()
+
+        assertFalse(
+            PinnedPeerKeyPolicy.isTrusted(
+                otherCurve.public,
+                listOf(trustedRecord(otherCurve))
+            )
+        )
+    }
+
     private fun ecKeyPair(): KeyPair =
         KeyPairGenerator.getInstance("EC").apply {
             initialize(ECGenParameterSpec("secp256r1"))

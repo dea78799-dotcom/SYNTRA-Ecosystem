@@ -140,3 +140,15 @@ The current `PinnedPeerTrustManager` is an identity-pin adapter, not a complete 
 - Downgrade restored non-terminal attempts to RECOVERY_REQUIRED. Never treat an old in-memory approval as fresh consent after process restart.
 - Discard interrupted transactions and require a new QR invitation. A redeemed token remains consumed.
 - The current coordinator is not yet wired to Android encrypted persistence, UI, transport or trusted-device insertion.
+
+
+## Encrypted pairing transaction persistence (0.11.15-dev)
+
+- Encrypt the single transaction snapshot with AES-256-GCM and a non-exportable Android Keystore key; use a fresh 96-bit IV for each encryption and a 128-bit authentication tag.
+- Bind the ciphertext to the versioned transaction format with authenticated additional data.
+- Persist through AtomicFile; sync the file descriptor and call finishWrite only after the complete ciphertext is written. On failure, call failWrite and do not advance in-memory transaction state.
+- Store only request ID, invitation expiry, transcript hash, peer fingerprint, lifecycle enum and update timestamp. Do not persist the QR bearer token, private key, signature, raw nonce or message payload.
+- Reject invalid ciphertext size, authentication failure, unknown format version, malformed fixed-width fields, unknown state, truncation and trailing bytes. Never silently reset corrupt storage.
+- If the Keystore key is missing or invalidated while ciphertext remains, fail closed and require explicit recovery/re-pairing. Do not create a replacement key and pretend old data was decrypted.
+- After process restart, no old approval is treated as current consent. Restore non-terminal transaction states as RECOVERY_REQUIRED and require a fresh QR invitation for another attempt.
+- Physical-device tests must cover process death, app restart, corrupted ciphertext, missing/invalidated Keystore key, interrupted AtomicFile writes and storage-full failures before release.

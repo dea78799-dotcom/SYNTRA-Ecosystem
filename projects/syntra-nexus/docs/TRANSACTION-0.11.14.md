@@ -22,3 +22,7 @@ This release adds a local coordinator around the existing transcript-bound pairi
 
 ## Verification status
 Unit tests have been authored but have not been run in this environment. No APK, Android build, device test, or successful CI run is claimed.
+
+
+## Persistence follow-up (implemented in 0.11.15-dev)
+The coordinator now has a separate Android persistence adapter. It encrypts a fixed-width snapshot with AES-256-GCM/Android Keystore and writes it atomically. The dashboard loads the coordinator, surfaces recovery-required state and provides an explicit local discard action. The transaction is not wired to a real network handshake; no token or private key is stored.

@@ -1,12 +1,7 @@
 package com.syntra.nexus
 
 /**
- * Local in-memory trust registry foundation.
- *
- * A peer can be added only from a completed, transcript-bound handshake
- * with both approvals. LAN discovery and QR scanning are not trust evidence.
- * This prototype is intentionally memory-only; encrypted persistence and
- * remote revocation are not implemented yet.
+ * Local trust record. Public-key bytes are defensively copied at registry boundaries.
  */
 data class TrustedDeviceRecord(
     val fingerprint: String,
@@ -19,8 +14,30 @@ data class TrustedDeviceRecord(
         get() = revokedAtMillis != null
 }
 
-class TrustedDeviceRegistry {
+interface TrustedDevicePersistence {
+    fun load(): List<TrustedDeviceRecord>
+    fun save(records: List<TrustedDeviceRecord>)
+}
+
+/**
+ * Registry accepts peers only from a completed transcript-bound handshake
+ * with both approvals. Persistence is committed before in-memory mutation.
+ */
+class TrustedDeviceRegistry(
+    private val persistence: TrustedDevicePersistence? = null
+) {
     private val records = linkedMapOf<String, TrustedDeviceRecord>()
+
+    init {
+        val loaded = persistence?.load().orEmpty()
+        require(loaded.size <= MAX_RECORDS) { "Trusted-device registry exceeds capacity." }
+        loaded.forEach { record ->
+            validateRecord(record)
+            require(records.put(record.fingerprint, copyRecord(record)) == null) {
+                "Trusted-device registry contains duplicate fingerprints."
+            }
+        }
+    }
 
     @Synchronized
     fun registerAfterVerifiedPairing(
@@ -58,14 +75,17 @@ class TrustedDeviceRegistry {
         require(existing == null || existing.isRevoked) {
             "This device is already registered."
         }
+        require(existing != null || records.size < MAX_RECORDS) {
+            "Trusted-device registry is full."
+        }
         val record = TrustedDeviceRecord(
             fingerprint = fingerprint,
             publicKeyEncoded = peerPublicKeyEncoded.copyOf(),
             displayName = displayName.trim(),
             trustedAtMillis = nowMillis
         )
-        records[fingerprint] = record
-        return record.copy(publicKeyEncoded = record.publicKeyEncoded.copyOf())
+        commit(records + (fingerprint to record))
+        return copyRecord(record)
     }
 
     @Synchronized
@@ -73,21 +93,48 @@ class TrustedDeviceRegistry {
         require(nowMillis >= 0L) { "Timestamp cannot be negative." }
         val current = records[fingerprint] ?: return false
         if (current.isRevoked) return false
-        records[fingerprint] = current.copy(revokedAtMillis = nowMillis)
+        val revoked = current.copy(revokedAtMillis = nowMillis)
+        commit(records + (fingerprint to revoked))
         return true
     }
 
     @Synchronized
     fun activeDevices(): List<TrustedDeviceRecord> =
-        records.values.filterNot { it.isRevoked }.map {
-            it.copy(publicKeyEncoded = it.publicKeyEncoded.copyOf())
-        }
+        records.values.filterNot { it.isRevoked }.map(::copyRecord)
 
     @Synchronized
-    fun allRecords(): List<TrustedDeviceRecord> =
-        records.values.map { it.copy(publicKeyEncoded = it.publicKeyEncoded.copyOf()) }
+    fun allRecords(): List<TrustedDeviceRecord> = records.values.map(::copyRecord)
+
+    private fun commit(next: Map<String, TrustedDeviceRecord>) {
+        persistence?.save(next.values.map(::copyRecord))
+        records.clear()
+        next.forEach { (fingerprint, record) -> records[fingerprint] = copyRecord(record) }
+    }
+
+    private fun validateRecord(record: TrustedDeviceRecord) {
+        require(record.fingerprint.matches(Regex("^[a-f0-9]{64}$"))) {
+            "Stored fingerprint has an invalid format."
+        }
+        require(record.publicKeyEncoded.isNotEmpty() && record.publicKeyEncoded.size <= 512) {
+            "Stored public key has an invalid length."
+        }
+        require(PairingIdentityCrypto.fingerprint(record.publicKeyEncoded) == record.fingerprint) {
+            "Stored public key does not match its fingerprint."
+        }
+        require(record.displayName.isNotBlank() && record.displayName.length <= MAX_NAME_LENGTH) {
+            "Stored device name is invalid."
+        }
+        require(record.trustedAtMillis >= 0L &&
+            (record.revokedAtMillis == null || record.revokedAtMillis >= record.trustedAtMillis)) {
+            "Stored timestamps are invalid."
+        }
+    }
+
+    private fun copyRecord(record: TrustedDeviceRecord) =
+        record.copy(publicKeyEncoded = record.publicKeyEncoded.copyOf())
 
     private companion object {
         const val MAX_NAME_LENGTH = 48
+        const val MAX_RECORDS = 128
     }
 }

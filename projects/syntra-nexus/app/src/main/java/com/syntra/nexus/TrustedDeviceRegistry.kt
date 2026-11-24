@@ -99,6 +99,17 @@ class TrustedDeviceRegistry(
     }
 
     @Synchronized
+    fun renameDevice(fingerprint: String, newDisplayName: String): Boolean {
+        require(newDisplayName.isNotBlank() && newDisplayName.trim().length <= MAX_NAME_LENGTH) {
+            "Device name must contain 1 to $MAX_NAME_LENGTH characters."
+        }
+        val current = records[fingerprint] ?: return false
+        val renamed = current.copy(displayName = newDisplayName.trim())
+        commit(records + (fingerprint to renamed))
+        return true
+    }
+
+    @Synchronized
     fun activeDevices(): List<TrustedDeviceRecord> =
         records.values.filterNot { it.isRevoked }.map(::copyRecord)
 

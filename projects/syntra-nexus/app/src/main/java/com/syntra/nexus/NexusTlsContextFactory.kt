@@ -161,15 +161,30 @@ object NexusTlsContextFactory {
     fun create(
         trustedDeviceRegistry: TrustedDeviceRegistry,
         expectedPeerFingerprint: String,
+        expectedPairingRequestId: String,
+        expectedTranscriptHashHex: String,
         localIdentityAlias: String = AndroidKeystoreX509KeyManager.DEFAULT_IDENTITY_ALIAS
     ): SSLContext {
         require(expectedPeerFingerprint.matches(Regex("^[a-f0-9]{64}$"))) {
             "Expected peer fingerprint must be 64 lowercase hexadecimal characters."
         }
-        require(trustedDeviceRegistry.activeDevices().any {
+        require(expectedPairingRequestId.matches(Regex("^[A-Za-z0-9_-]{22}$"))) {
+            "Expected pairing request ID is invalid."
+        }
+        require(expectedTranscriptHashHex.matches(Regex("^[a-f0-9]{64}$"))) {
+            "Expected transcript hash is invalid."
+        }
+
+        val trustedPeer = trustedDeviceRegistry.activeDevices().firstOrNull {
             it.fingerprint == expectedPeerFingerprint
-        }) {
-            "Expected peer is unknown or has been revoked."
+        } ?: throw IllegalArgumentException("Expected peer is unknown or has been revoked.")
+        require(trustedDeviceRegistry.isActiveForSession(
+            fingerprint = expectedPeerFingerprint,
+            publicKeyEncoded = trustedPeer.publicKeyEncoded,
+            requestId = expectedPairingRequestId,
+            transcriptHashHex = expectedTranscriptHashHex
+        )) {
+            "Expected peer is not trusted for this exact pairing transaction."
         }
 
         val keyManager = AndroidKeystoreX509KeyManager(identityAlias = localIdentityAlias)
@@ -179,7 +194,9 @@ object NexusTlsContextFactory {
 
         val trustManager = PinnedPeerTrustManager(
             trustedDeviceRegistry = trustedDeviceRegistry,
-            expectedPeerFingerprint = expectedPeerFingerprint
+            expectedPeerFingerprint = expectedPeerFingerprint,
+            expectedPairingRequestId = expectedPairingRequestId,
+            expectedTranscriptHashHex = expectedTranscriptHashHex
         )
         return SSLContext.getInstance("TLS").apply {
             init(

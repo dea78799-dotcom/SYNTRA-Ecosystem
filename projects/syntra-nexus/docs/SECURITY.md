@@ -61,3 +61,14 @@ Do not label a build as a functional remote controller until QR scanning, one-ti
 Before any future frame is sent, the implementation must verify all seven conditions in ScreenShareAuthorization: verified peer identity, mutual pairing approval, capability grants on both devices, current MediaProjection consent from the sharer, current-session approval from the receiver, authenticated encrypted transport, and an active visible foreground notification.
 
 The gate is a policy helper only; it is not yet wired to a network boundary. No frame transmission is implemented. The receiver must have a visible stop control, and stopping on either side, system revocation, timeout, or transport loss must end the session and release capture resources.
+
+
+## Bounded transport parser safeguards (0.11.8-dev)
+
+- Parse only the exact supported protocol version and enumerated message types.
+- Reject packets larger than the fixed header plus 64 KiB before processing payload contents.
+- Require the request identifier to use the fixed 22-character URL-safe format.
+- Require the declared payload length to match the remaining packet bytes exactly; reject truncation and trailing data.
+- Copy payload arrays at construction and access boundaries.
+- Treat every decoded packet as untrusted. Structural validity is not identity authentication or authorization.
+- Do not connect this codec to sockets or allow capability execution until mutual identity authentication, TLS certificate binding, replay protection, approval and revocation are implemented and tested.

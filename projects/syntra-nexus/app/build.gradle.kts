@@ -12,8 +12,8 @@ android {
         applicationId = "com.syntra.nexus"
         minSdk = 26
         targetSdk = 35
-        versionCode = 14
-        versionName = "0.11.3-dev"
+        versionCode = 15
+        versionName = "0.11.4-dev"
     }
 
     buildFeatures {

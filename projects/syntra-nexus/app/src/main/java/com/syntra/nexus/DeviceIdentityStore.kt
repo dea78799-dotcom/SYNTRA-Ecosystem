@@ -117,8 +117,6 @@ class DeviceIdentityStore {
         }
     }
 
-    }
-
     private fun generateKeyPair(): KeyPair {
         val generator = KeyPairGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_EC,

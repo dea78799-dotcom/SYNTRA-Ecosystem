@@ -250,6 +250,29 @@ class CapabilityGrantRegistryTest {
     }
 
     @Test
+    fun failedRevocationPersistenceKeepsExistingGrantUnchanged() {
+        val setup = setup()
+        val persistence = MemoryCapabilityGrantPersistence()
+        val registry = CapabilityGrantRegistry(persistence)
+        val request = request()
+        val signatures = signedPair(request)
+
+        assertNotNull(registry.issue(
+            request, transcript, setup.session, setup.transaction, setup.trusted,
+            signatures.first, signatures.second, now + 7
+        ))
+        persistence.failWrites = true
+
+        try {
+            registry.revoke(request.grantId, now + 8)
+        } catch (_: IllegalStateException) {
+            // Expected: failed durable revoke must not mutate memory.
+        }
+
+        assertNull(registry.snapshot().single().revokedAtMillis)
+    }
+
+    @Test
     fun failedPersistenceDoesNotMutateInMemoryGrantRegistry() {
         val setup = setup()
         val persistence = MemoryCapabilityGrantPersistence().apply { failWrites = true }

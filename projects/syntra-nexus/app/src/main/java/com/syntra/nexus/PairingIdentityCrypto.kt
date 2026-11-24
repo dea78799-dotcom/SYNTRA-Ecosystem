@@ -4,6 +4,10 @@ import java.security.KeyFactory
 import java.security.MessageDigest
 import java.security.PrivateKey
 import java.security.Signature
+import java.security.AlgorithmParameters
+import java.security.interfaces.ECPublicKey
+import java.security.spec.ECGenParameterSpec
+import java.security.spec.ECParameterSpec
 import java.security.spec.X509EncodedKeySpec
 
 /**
@@ -23,6 +27,38 @@ object PairingIdentityCrypto {
         val digest = MessageDigest.getInstance("SHA-256").digest(publicKeyEncoded)
         return digest.joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
     }
+
+
+    /**
+     * Accept only canonical X.509 encodings of secp256r1 (NIST P-256) keys.
+     * This prevents arbitrary EC curves or non-EC keys from entering the
+     * pairing transcript and trusted-device registry.
+     */
+    fun requireP256PublicKey(publicKeyEncoded: ByteArray): ECPublicKey {
+        require(publicKeyEncoded.isNotEmpty() && publicKeyEncoded.size <= 512) {
+            "Public key has an invalid length."
+        }
+        val decoded = KeyFactory.getInstance(KEY_ALGORITHM)
+            .generatePublic(X509EncodedKeySpec(publicKeyEncoded))
+        require(decoded is ECPublicKey) { "Device identity must be an EC public key." }
+        require(decoded.encoded.contentEquals(publicKeyEncoded)) {
+            "Public key encoding is not canonical."
+        }
+        val actual = decoded.params
+        val expected = p256Parameters()
+        require(actual.curve == expected.curve &&
+            actual.generator == expected.generator &&
+            actual.order == expected.order &&
+            actual.cofactor == expected.cofactor
+        ) { "Device identity must use the secp256r1 curve." }
+        return decoded
+    }
+
+    private fun p256Parameters(): ECParameterSpec =
+        AlgorithmParameters.getInstance(KEY_ALGORITHM).run {
+            init(ECGenParameterSpec("secp256r1"))
+            getParameterSpec(ECParameterSpec::class.java)
+        }
 
     /** Formats a SHA-256 fingerprint for manual comparison. */
     fun formatFingerprint(fingerprint: String): String {

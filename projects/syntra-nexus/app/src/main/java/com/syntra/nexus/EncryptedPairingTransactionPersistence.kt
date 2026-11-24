@@ -25,7 +25,9 @@ class EncryptedPairingTransactionPersistence(context: Context) : PairingTransact
     private val file = AtomicFile(File(context.filesDir, FILE_NAME))
     private val key: SecretKey by lazy { getOrCreateKey() }
 
-    override fun load(): PairingTransactionSnapshot? {
+    override fun load(): PairingTransactionSnapshot? = synchronized(FILE_LOCK) { loadLocked() }
+
+    private fun loadLocked(): PairingTransactionSnapshot? {
         val encrypted = try {
             file.openRead().use { input ->
                 val output = ByteArrayOutputStream(MIN_ENCRYPTED_BYTES)
@@ -72,7 +74,9 @@ class EncryptedPairingTransactionPersistence(context: Context) : PairingTransact
         }
     }
 
-    override fun save(snapshot: PairingTransactionSnapshot) {
+    override fun save(snapshot: PairingTransactionSnapshot) = synchronized(FILE_LOCK) { saveLocked(snapshot) }
+
+    private fun saveLocked(snapshot: PairingTransactionSnapshot) {
         val plaintext = PairingTransactionSnapshotCodec.encode(snapshot)
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, key)
@@ -94,7 +98,9 @@ class EncryptedPairingTransactionPersistence(context: Context) : PairingTransact
         }
     }
 
-    override fun clear() {
+    override fun clear() = synchronized(FILE_LOCK) { clearLocked() }
+
+    private fun clearLocked() {
         try {
             file.delete()
         } catch (error: Exception) {
@@ -128,6 +134,7 @@ class EncryptedPairingTransactionPersistence(context: Context) : PairingTransact
     }
 
     private companion object {
+        val FILE_LOCK = Any()
         const val FILE_NAME = "nexus_pairing_transaction.enc"
         const val KEY_ALIAS = "syntra.nexus.pairing.transaction.aes.v1"
         const val TRANSFORMATION = "AES/GCM/NoPadding"

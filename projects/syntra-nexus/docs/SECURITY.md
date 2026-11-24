@@ -87,3 +87,14 @@ The gate is a policy helper only; it is not yet wired to a network boundary. No 
 ### Important limitation of the pinned trust manager
 
 The current `PinnedPeerTrustManager` is an identity-pin adapter, not a complete X.509 path validator. It does not validate a certificate authority chain or a DNS hostname, and it is not installed in an `SSLContext`. Its decision is safe only when the pinned public key was previously established by the full transcript-bound, mutually approved pairing flow. Android's raw `SSLSocket` API does not perform hostname verification automatically; any future socket integration must explicitly bind the connection to the intended active peer identity and perform the appropriate endpoint verification. Never solve a verification error by accepting every certificate or using a trust-all manager.
+
+
+## Mutual TLS configuration foundation (0.11.10-dev)
+
+- Present the local EC identity through the Android Keystore X.509 key manager; never export the private key.
+- Before TLS use, prove the Keystore private key matches the local certificate by signing a fresh random challenge and verifying it with the certificate public key.
+- Scope each TLS trust manager to one exact expected active peer fingerprint. Do not accept a different device merely because it is also in the registry.
+- Prefer TLS 1.3 and allow TLS 1.2 as the minimum. Never enable TLS 1.0 or TLS 1.1.
+- Server-side socket configuration must require a client certificate.
+- A TLS context is not proof that a network session exists. Do not send capabilities or screen frames until the complete pairing, replay protection, socket lifecycle, mutual authentication and explicit capability approval are implemented and tested.
+- The pinned identity policy does not validate public CA chains or DNS hostnames. Treat the previously approved peer fingerprint as the identity boundary and never silently fall back to trust-all behavior.

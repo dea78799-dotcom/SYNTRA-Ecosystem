@@ -97,9 +97,6 @@ private fun NexusDashboard() {
         runCatching { TrustedDeviceRegistry(EncryptedTrustedDevicePersistence(context)) }
     }
     val trustedDeviceRegistry = trustedDeviceLoad.getOrNull()
-    val trustedDeviceCount = remember(trustedDeviceRegistry) {
-        trustedDeviceRegistry?.activeDevices()?.size ?: 0
-    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -132,30 +129,10 @@ private fun NexusDashboard() {
             }
 
             item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = NexusSurface),
-                    shape = RoundedCornerShape(20.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(18.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("Thiết bị đã kết nối", color = NexusMuted, fontSize = 13.sp)
-                            Text("$trustedDeviceCount thiết bị", fontSize = 25.sp, fontWeight = FontWeight.Bold)
-                            Text(trustedDeviceLoad.exceptionOrNull()?.let { "Không đọc được registry mã hóa · chưa thể xác nhận thiết bị" } ?: if (trustedDeviceCount == 0) "Chưa có thiết bị nào được xác minh" else "Thiết bị đã được xác minh trên máy này", color = NexusMuted, fontSize = 12.sp)
-                        }
-                        Icon(
-                            imageVector = Icons.Rounded.Devices,
-                            contentDescription = null,
-                            tint = NexusGold,
-                            modifier = Modifier.size(42.dp)
-                        )
-                    }
-                }
+                TrustedDevicesCard(
+                    registry = trustedDeviceRegistry,
+                    loadError = trustedDeviceLoad.exceptionOrNull()?.message
+                )
             }
 
             item {
@@ -274,7 +251,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.5-dev · registry thiết bị mã hóa; chưa có kết nối mạng",
+                    text = "Prototype 0.11.6-dev · quản lý thiết bị tin cậy cục bộ; chưa có kết nối mạng",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
@@ -396,6 +373,162 @@ private fun NexusDashboard() {
                     qrBitmap = null
                 }) {
                     Text("Đóng")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun TrustedDevicesCard(
+    registry: TrustedDeviceRegistry?,
+    loadError: String?
+) {
+    var devices by remember(registry) {
+        mutableStateOf(registry?.activeDevices().orEmpty())
+    }
+    var selectedForRevocation by remember { mutableStateOf<TrustedDeviceRecord?>(null) }
+    var operationError by remember { mutableStateOf<String?>(null) }
+    val clipboard = LocalClipboardManager.current
+
+    fun refresh() {
+        if (registry == null) return
+        try {
+            devices = registry.activeDevices()
+            operationError = null
+        } catch (_: Exception) {
+            operationError = "Không thể tải danh sách thiết bị."
+        }
+    }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = NexusSurface),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text("Thiết bị đáng tin cậy", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        if (loadError != null) "Không thể xác minh dữ liệu lưu trữ"
+                        else "${devices.size} thiết bị được lưu trên máy này",
+                        color = NexusMuted,
+                        fontSize = 12.sp
+                    )
+                }
+                TextButton(onClick = { refresh() }, enabled = registry != null) {
+                    Text("Làm mới")
+                }
+            }
+
+            if (loadError != null) {
+                Text(
+                    "Registry mã hóa không đọc được. Dữ liệu không được coi là danh sách trống. Chi tiết: ${loadError.take(140)}",
+                    color = Color(0xFFFF8A80),
+                    fontSize = 12.sp
+                )
+            } else if (registry == null) {
+                Text("Registry chưa sẵn sàng.", color = NexusMuted, fontSize = 13.sp)
+            } else if (devices.isEmpty()) {
+                Text(
+                    "Chưa có thiết bị nào được xác minh. Quét QR hoặc tìm thấy thiết bị trên LAN không tự động thêm thiết bị vào đây.",
+                    color = NexusMuted,
+                    fontSize = 13.sp
+                )
+            } else {
+                devices.forEach { device ->
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Text(device.displayName, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    "Đã xác minh: " + SimpleDateFormat(
+                                        "dd/MM/yyyy HH:mm",
+                                        Locale.getDefault()
+                                    ).format(Date(device.trustedAtMillis)),
+                                    color = NexusMuted,
+                                    fontSize = 11.sp
+                                )
+                            }
+                            TextButton(onClick = { selectedForRevocation = device }) {
+                                Text("Thu hồi", color = Color(0xFFFF8A80))
+                            }
+                        }
+                        Text(
+                            PairingIdentityCrypto.formatFingerprint(device.fingerprint),
+                            color = NexusGold,
+                            fontSize = 11.sp
+                        )
+                        TextButton(
+                            onClick = {
+                                clipboard.setText(AnnotatedString(device.fingerprint))
+                            }
+                        ) {
+                            Text("Sao chép fingerprint")
+                        }
+                        if (device != devices.last()) {
+                            androidx.compose.material3.HorizontalDivider(color = Color(0xFF34363D))
+                        }
+                    }
+                }
+            }
+
+            operationError?.let {
+                Text(it, color = Color(0xFFFF8A80), fontSize = 12.sp)
+            }
+            Text(
+                "Thu hồi chỉ cập nhật registry trên điện thoại này. Chưa có lệnh thu hồi từ xa vì NEXUS chưa có kết nối mạng xác thực.",
+                color = NexusMuted,
+                fontSize = 11.sp
+            )
+        }
+    }
+
+    selectedForRevocation?.let { device ->
+        AlertDialog(
+            onDismissRequest = { selectedForRevocation = null },
+            title = { Text("Thu hồi thiết bị?") },
+            text = {
+                Text(
+                    "Thiết bị \"${device.displayName}\" sẽ bị đánh dấu đã thu hồi trên máy này. Thao tác không thể thay thế việc thu hồi từ xa."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        try {
+                            val changed = registry?.revoke(device.fingerprint, System.currentTimeMillis()) == true
+                            if (!changed) {
+                                operationError = "Không tìm thấy thiết bị hoặc thiết bị đã được thu hồi."
+                            } else {
+                                refresh()
+                            }
+                        } catch (_: Exception) {
+                            operationError = "Không thể lưu trạng thái thu hồi. Danh sách chưa được thay đổi."
+                        }
+                        selectedForRevocation = null
+                    }
+                ) {
+                    Text("Xác nhận thu hồi", color = Color(0xFFFF8A80))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectedForRevocation = null }) {
+                    Text("Hủy")
                 }
             }
         )

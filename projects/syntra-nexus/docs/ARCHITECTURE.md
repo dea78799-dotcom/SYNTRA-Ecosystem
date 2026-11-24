@@ -163,3 +163,10 @@ The handshake replay guard now accepts an optional persistence adapter. The Andr
 The issuer-side redemption foundation defines a bounded SNR1 request containing the exact invitation request ID and expiry, the short-lived bearer token and the receiver's canonical EC P-256 public key. The verifier compares all invitation fields against the issuer's original PairingRequest before invoking the synchronized one-time token registry. The registry remains the durable authority for single-use state.
 
 The bearer token is present in the encoded request and therefore must never be transmitted over plaintext or an unverified connection. The payload may only be sent after mutual TLS and peer pinning succeed. A successful redemption consumes the token even if the subsequent pairing is interrupted; recovery requires a new QR invitation. The codec and verifier are not yet connected to TLS, a socket, UI or trusted-device registration.
+
+
+## Pairing transaction coordination (0.11.14-dev)
+
+The coordinator binds one local transaction to the invitation request ID, expiry, exact transcript hash and responder fingerprint. It enforces the local lifecycle and requires the existing PairingHandshakeSession to prove transcript-bound identity verification and both approvals before the transaction can enter PAIRED. It does not accept a peer-approved Boolean or infer consent from a valid signature alone.
+
+A restored non-terminal attempt is downgraded to RECOVERY_REQUIRED. The user must explicitly discard it and create a new invitation; the consumed QR token is never reactivated. Persistence is committed before in-memory mutation and failures stop the transition. The coordinator is currently a pure local component: no Android Keystore adapter, UI integration, socket transport or automatic trusted-device registration is included.

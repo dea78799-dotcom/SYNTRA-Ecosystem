@@ -172,7 +172,7 @@ object NexusHandshakeFrameCodec {
     }
 
     fun decode(encoded: ByteArray): NexusHandshakeFrame {
-        require(encoded.size in (HEADER_BYTES + 3)..MAX_FRAME_BYTES) {
+        require(encoded.size in (HEADER_BYTES + 1)..MAX_FRAME_BYTES) {
             "Handshake frame length is outside the permitted range."
         }
         val input = ByteBuffer.wrap(encoded).order(ByteOrder.BIG_ENDIAN)
@@ -276,7 +276,8 @@ enum class NexusReplayDecision {
     ACCEPTED,
     REPLAYED_OR_OUT_OF_ORDER,
     EXPIRED,
-    CAPACITY_REACHED
+    CAPACITY_REACHED,
+    INVALID_SIGNATURE_OR_TRANSCRIPT
 }
 
 /**
@@ -344,7 +345,7 @@ object NexusAuthenticatedHandshake {
             )
         ) {
             NexusHandshakeVerificationResult.EXPIRED -> NexusReplayDecision.EXPIRED
-            NexusHandshakeVerificationResult.INVALID -> NexusReplayDecision.REPLAYED_OR_OUT_OF_ORDER
+            NexusHandshakeVerificationResult.INVALID -> NexusReplayDecision.INVALID_SIGNATURE_OR_TRANSCRIPT
             NexusHandshakeVerificationResult.VERIFIED -> replayGuard.accept(frame, nowMillis)
         }
     }

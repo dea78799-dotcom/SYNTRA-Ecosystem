@@ -25,6 +25,8 @@ import androidx.core.app.NotificationCompat
  */
 class ScreenShareConsentService : Service() {
     private var projection: MediaProjection? = null
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val sessionTimeout = Runnable { stopSession() }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) {
@@ -60,6 +62,7 @@ class ScreenShareConsentService : Service() {
         return try {
             val manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
             projection = manager.getMediaProjection(resultCode, resultData).also { mediaProjection ->
+                mainHandler.postDelayed(sessionTimeout, MAX_SESSION_MILLIS)
                 mediaProjection.registerCallback(
                     object : MediaProjection.Callback() {
                         override fun onStop() {
@@ -111,6 +114,7 @@ class ScreenShareConsentService : Service() {
     }
 
     private fun stopSession() {
+        mainHandler.removeCallbacks(sessionTimeout)
         projection?.stop()
         projection = null
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -118,6 +122,7 @@ class ScreenShareConsentService : Service() {
     }
 
     override fun onDestroy() {
+        mainHandler.removeCallbacks(sessionTimeout)
         projection?.stop()
         projection = null
         super.onDestroy()
@@ -131,5 +136,6 @@ class ScreenShareConsentService : Service() {
         const val EXTRA_RESULT_DATA = "screen_projection_result_data"
         private const val CHANNEL_ID = "nexus_screen_share"
         private const val NOTIFICATION_ID = 4102
+        private const val MAX_SESSION_MILLIS = 30L * 60L * 1000L
     }
 }

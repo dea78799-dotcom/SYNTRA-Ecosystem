@@ -12,7 +12,7 @@ A receiver verifies the exact invitation request ID, expiry and transcript hash;
 
 ## Replay protection
 
-After signature verification, `NexusHandshakeReplayGuard` enforces sequence 0 for the first frame and exactly the next sequence for each subsequent frame from that sender in that invitation. It prunes expired sessions and has a configurable bounded capacity (default 1,024; hard maximum 4,096).
+After signature verification, `NexusHandshakeReplayGuard` enforces sequence 0 for the first frame and exactly the next sequence for each subsequent frame from that sender and transcript. It also rejects reused nonces, caps each session at 256 frames, prunes expired sessions and has a configurable bounded capacity (default 1,024; hard maximum 4,096).
 
 **Important limitation:** the replay guard is in-memory and local to one process. It does not survive process death, coordinate replay state between peers, redeem the QR token, or replace the persistent one-time token registry. No network socket invokes it yet. Do not treat this milestone as complete distributed replay prevention.
 

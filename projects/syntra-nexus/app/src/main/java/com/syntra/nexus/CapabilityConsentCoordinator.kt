@@ -58,9 +58,7 @@ class CapabilityConsentCoordinator(
     ): CapabilityGrant? {
         val request = pending.request
         val peerSignature = pending.peerApprovalSignatureCopy()
-        if (!pending.tlsChannelBinding.isAuthorized(
-                pending.tlsChannelBindingSocket(), trustedDevices, nowMillis
-            )) {
+        if (!pending.tlsChannelBinding.isAuthorized(trustedDevices, nowMillis)) {
             return null
         }
         if (!isValid(

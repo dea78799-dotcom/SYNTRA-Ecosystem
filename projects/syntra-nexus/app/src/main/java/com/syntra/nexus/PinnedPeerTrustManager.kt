@@ -7,10 +7,11 @@ import java.security.cert.X509Certificate
 import javax.net.ssl.X509TrustManager
 
 /**
- * Matches a presented EC public key to an active, locally approved NEXUS peer.
+ * Low-level EC public-key pinning helper.
  *
- * The policy is identity pinning, not CA/hostname validation. It must only be
- * used after the key was approved through the transcript-bound pairing flow.
+ * This helper alone does not establish pairing provenance. TLS callers must use
+ * isTrustedForSession(), which additionally checks the exact request ID and
+ * transcript hash against the current trusted-device registry.
  */
 object PinnedPeerKeyPolicy {
     const val MAX_PUBLIC_KEY_BYTES = 512
@@ -75,12 +76,12 @@ object PinnedPeerKeyPolicy {
 }
 
 /**
- * Fail-closed X.509 trust manager for a future mutually authenticated NEXUS
- * TLS channel. It accepts only leaf certificates whose EC public key is
- * already present in the active trusted-device registry.
+ * Fail-closed X.509 trust manager for a mutually authenticated NEXUS TLS
+ * channel. It accepts only leaf certificates whose EC public key and exact
+ * pairing request/transcript provenance remain active in the registry.
  *
- * This class does not create sockets, select local credentials, perform
- * invitation redemption, or complete a TLS handshake.
+ * This class validates peer certificates during a TLS handshake. It does not
+ * create sockets, select local credentials or perform invitation redemption.
  */
 class PinnedPeerTrustManager(
     private val trustedDeviceRegistry: TrustedDeviceRegistry,

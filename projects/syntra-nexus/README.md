@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.14-dev  
-**Status:** Pairing transaction coordinator, QR-token redemption protocol, durable local handshake replay ledger, trusted-device profile management, pinned peer-key trust policy and TLS mutual-authentication foundation; no live TLS transport or screen streaming yet  
+**Version:** 0.11.15-dev  
+**Status:** Encrypted pairing-transaction persistence and recovery, pairing transaction coordinator, QR-token redemption protocol, durable local handshake replay ledger, trusted-device profile management and TLS identity foundation; no live TLS transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -204,3 +204,16 @@ Adds a bounded `SNH1` signed handshake frame bound to the invitation request, ex
 - Add unit tests for field validation, transition ordering, persistence failure, recovery downgrade, terminal cleanup and expiry.
 
 **Current limitation:** This coordinator is not yet wired to the Android UI, encrypted Android Keystore persistence adapter, network socket or trusted-device registration flow. Tests are authored but have not been executed.
+
+
+## Encrypted pairing transaction persistence (0.11.15-dev)
+
+- Persist one active pairing transaction in an AES-256-GCM encrypted file using a non-exportable Android Keystore key.
+- Use a fresh 12-byte GCM IV, versioned authenticated additional data and Android AtomicFile with fsync/finishWrite/failWrite.
+- Store only the request ID, expiry, canonical transcript hash, peer fingerprint, lifecycle state and update timestamp. Never store the QR bearer token, private keys, signatures, raw nonces or message payloads.
+- Enforce a fixed-width binary codec and reject unknown markers/versions/states, invalid fields, truncation and trailing bytes.
+- On process restart, downgrade every non-terminal transaction to RECOVERY_REQUIRED and persist that downgrade before exposing the coordinator. A storage failure prevents coordinator startup.
+- Show transaction recovery status in the dashboard and allow the user to discard the interrupted local transaction; a redeemed QR token remains consumed and must be replaced with a new invitation.
+- Add six pure JVM codec tests.
+
+**Current limitation:** Android Keystore encryption/decryption, AtomicFile crash recovery and key invalidation still require a physical-device test. The coordinator is not yet connected to a completed socket pairing flow or automatic trusted-device registration. Unit tests are authored but not executed in this environment.

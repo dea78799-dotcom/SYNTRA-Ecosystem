@@ -10,8 +10,8 @@ import javax.net.ssl.SSLSocket
  * mutually authenticated TLS session.
  *
  * This class does not create or configure a socket. The caller must pass the
- * SSLSession obtained from the completed SSLSocket/SSLEngine handshake that
- * used NexusTlsContextFactory and PinnedPeerTrustManager.
+ * exact SSLSocket used for the completed handshake configured with
+ * NexusTlsContextFactory and PinnedPeerTrustManager.
  */
 class CapabilityRequestTlsIngress(
     private val consentCoordinator: CapabilityConsentCoordinator

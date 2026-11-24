@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.10.0-dev  
-**Status:** Local opt-in activity summary prototype; no network pairing yet  
+**Version:** 0.11.0-dev  
+**Status:** Local activity summary and explicit MediaProjection consent prototype; no network pairing or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -27,6 +27,11 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Show today's app foreground-time totals and an estimated screen-interactive total from Android screen-state events when those events are available.
 - Keep activity data on the same phone; no remote activity feed or background upload is implemented.
 - Add unit tests for screen-session aggregation, including multiple sessions, open sessions, duplicate state events and empty timelines.
+- Add an explicit screen-sharing permission card. The user must tap the button and approve Android's MediaProjection system dialog.
+- Hold the approved MediaProjection session in a non-exported foreground service with an ongoing notification and a visible Stop action.
+- Require notification permission on Android 13+ before opening the consent flow.
+- Automatically end the consent session after 30 minutes.
+- Do not create a VirtualDisplay, capture frames, record, or transmit screen content in this milestone; this is only a tested-permission-flow foundation until authenticated LAN transport exists.
 
 ## Not implemented yet
 
@@ -36,7 +41,7 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - TLS handshake, LAN transport, NSD/mDNS discovery, trusted-device registry or remote revocation.
 - Automatic game classification. A future game-time total needs an explicit user-reviewed app list.
 - Reliable real-time foreground-app/online status; UsageStats does not provide a guaranteed live presence signal.
-- Remote activity summaries, screen sharing, website filtering, remote actions, TV client or cloud sync.
+- Remote activity summaries, actual screen-frame capture/streaming, website filtering, remote actions, TV client or cloud sync.
 - Verified Android Keystore persistence and UsageStats behavior on physical devices.
 
 **Important:** Activity Monitor is local to the phone where permission was granted. It does not monitor another device. Screen-state history may be incomplete on some Android versions or after reboot. App usage values are Android-reported foreground totals, not a guarantee of exact screen-on time. NEXUS does not collect messages, keystrokes, notification contents or private app data.
@@ -61,6 +66,6 @@ See [`docs/DEVICE-CAPABILITIES.md`](docs/DEVICE-CAPABILITIES.md) for screen-shar
 - Both devices must explicitly approve pairing before trust is established.
 - Every future capability requires a separate, visible and revocable grant.
 - Usage Access must be granted by the device owner in Android Settings.
-- Screen sharing must use MediaProjection's system consent and a visible foreground notification.
+- Screen sharing must use MediaProjection's system consent and a visible foreground notification; the current 0.11 prototype does not capture or transmit frames.
 - Never store passwords, pairing secrets, or private keys in source control.
 - No hidden collection of messages, photos, screens, or private app data.

@@ -68,6 +68,11 @@ class NexusHandshakeFrame private constructor(
                 transcript.publicKeyFor(recipientRole)
             )
             val nonce = ByteArray(NexusHandshakeFrameCodec.NONCE_BYTES).also(random::nextBytes)
+            requirePrivateKeyMatchesTranscriptRole(
+                privateKey,
+                transcript.publicKeyFor(senderRole),
+                random
+            )
             val canonical = NexusHandshakeFrameCodec.canonicalBytes(
                 kind, transcript.requestId, transcript.expiresAtMillis, senderRole,
                 sequence, senderFingerprint, recipientFingerprint, transcript.sha256, nonce
@@ -105,6 +110,26 @@ class NexusHandshakeFrame private constructor(
         private fun opposite(role: PairingSignerRole): PairingSignerRole =
             if (role == PairingSignerRole.INITIATOR) PairingSignerRole.RESPONDER
             else PairingSignerRole.INITIATOR
+
+        private fun requirePrivateKeyMatchesTranscriptRole(
+            privateKey: PrivateKey,
+            expectedPublicKeyEncoded: ByteArray,
+            random: SecureRandom
+        ) {
+            val publicKey = java.security.KeyFactory.getInstance("EC")
+                .generatePublic(java.security.spec.X509EncodedKeySpec(expectedPublicKeyEncoded))
+            val challenge = ByteArray(32).also(random::nextBytes)
+            val signer = Signature.getInstance(SIGNATURE_ALGORITHM)
+            signer.initSign(privateKey, random)
+            signer.update(challenge)
+            val proof = signer.sign()
+            val verifier = Signature.getInstance(SIGNATURE_ALGORITHM)
+            verifier.initVerify(publicKey)
+            verifier.update(challenge)
+            require(verifier.verify(proof)) {
+                "Local private key does not match the sender identity in the transcript."
+            }
+        }
 
         private const val SIGNATURE_ALGORITHM = "SHA256withECDSA"
     }

@@ -109,4 +109,23 @@ The current `PinnedPeerTrustManager` is an identity-pin adapter, not a complete 
 - The current replay guard is bounded but in-memory and process-local. It does not survive restart or coordinate across peers. Do not claim distributed replay protection until durable redemption and peer-side replay state are implemented.
 - A valid device signature is not user consent. Both devices must separately approve pairing and each requested capability.
 - Do not connect the handshake to remote commands or screen transmission until the complete token redemption, TLS peer binding, mutual approval, durable replay handling and capability authorization flow is implemented and tested.
-\n\n## Durable local handshake replay ledger (0.11.12-dev)\n\n- Persist only request IDs, sender fingerprints, expiry values, transcript hashes, sequence counters and SHA-256 nonce hashes. Never persist raw nonces, invitation tokens, private keys or message payloads.\n- Encrypt the ledger with AES-256-GCM using an Android Keystore key and a fresh randomized IV for each write. Bind the ciphertext to the versioned format with authenticated additional data.\n- Use AtomicFile and fsync. Commit the candidate ledger before changing in-memory replay state; return PERSISTENCE_FAILURE and leave memory unchanged if the write fails.\n- Reject malformed, duplicated, oversized or unauthenticated records at startup. Never recover by silently replacing a damaged ledger with an empty one.\n- This ledger is local to one installation. It does not provide cross-device replay coordination, distributed token redemption or a network security boundary. App-data deletion, reinstall or Keystore loss requires explicit recovery/re-pairing; it must not silently reset trust.\n
+
+
+## Durable local handshake replay ledger (0.11.12-dev)
+
+- Persist only request IDs, sender fingerprints, expiry values, transcript hashes, sequence counters and SHA-256 nonce hashes. Never persist raw nonces, invitation tokens, private keys or message payloads.
+- Encrypt the ledger with AES-256-GCM using an Android Keystore key and a fresh randomized IV for each write. Bind the ciphertext to the versioned format with authenticated additional data.
+- Use AtomicFile and fsync. Commit the candidate ledger before changing in-memory replay state; return PERSISTENCE_FAILURE and leave memory unchanged if the write fails.
+- Reject malformed, duplicated, oversized or unauthenticated records at startup. Never recover by silently replacing a damaged ledger with an empty one.
+- This ledger is local to one installation. It does not provide cross-device replay coordination, distributed token redemption or a network security boundary. App-data deletion, reinstall or Keystore loss requires explicit recovery/re-pairing; it must not silently reset trust.
+
+
+## QR token redemption protocol (0.11.13-dev)
+
+- Bind each redemption request to the exact issuer-created request ID and expiry; do not accept a different active token as a substitute.
+- Validate the canonical 32-byte base64url bearer token, bounded packet lengths and canonical EC P-256 receiver public key before redemption.
+- Redeem through the synchronized persistent token registry. A token can be consumed only once; a second attempt must be rejected.
+- The redemption payload contains the raw bearer token. Never send it over plaintext TCP, an unverified TLS session, logs, analytics, public channels or an untrusted discovery endpoint.
+- Only transmit after mutual TLS has completed and the peer identity is pinned to the expected device. The current codec/verifier is not wired to a socket or TLS session and does not itself provide transport security.
+- If pairing is interrupted after successful redemption, keep the token consumed and require a fresh QR invitation. Do not reactivate a consumed token to make retries easier.
+- A receiver public key in a redemption request is only a claim. Require the later transcript-bound signature proof and explicit approval on both devices before adding it to the trusted-device registry.

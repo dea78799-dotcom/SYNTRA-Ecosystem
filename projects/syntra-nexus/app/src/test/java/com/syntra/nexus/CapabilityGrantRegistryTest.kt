@@ -49,7 +49,7 @@ class CapabilityGrantRegistryTest {
             PairingSignerRole.RESPONDER, now + 5
         ).session
 
-        val hash = transcript.sha256.toHexString()
+        val hash = transcript.sha256.joinToString("") { "%02x".format(it.toInt() and 0xff) }
         val fingerprint = PairingIdentityCrypto.fingerprint(peer.public.encoded)
         val coordinator = PairingTransactionCoordinator()
         check(coordinator.begin(transcript.requestId, expiry, hash, fingerprint, now) ==
@@ -96,7 +96,7 @@ class CapabilityGrantRegistryTest {
         grantId = id,
         peerFingerprint = PairingIdentityCrypto.fingerprint(peer.public.encoded),
         pairingRequestId = transcript.requestId,
-        transcriptHashHex = transcript.sha256.toHexString(),
+        transcriptHashHex = transcript.sha256.joinToString("") { "%02x".format(it.toInt() and 0xff) },
         sessionId = sessionId,
         capability = capability,
         issuedAtMillis = issued,

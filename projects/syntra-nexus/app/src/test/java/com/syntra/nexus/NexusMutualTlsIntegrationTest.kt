@@ -148,7 +148,9 @@ class NexusMutualTlsIntegrationTest {
                 publicKeyEncoded = publicKey,
                 displayName = "TLS test " + name,
                 trustedAtMillis = TRUSTED_AT_MILLIS,
-                revokedAtMillis = if (name in revokedNames) REVOKED_AT_MILLIS else null
+                revokedAtMillis = if (name in revokedNames) REVOKED_AT_MILLIS else null,
+                pairingRequestId = TEST_PAIRING_REQUEST_ID,
+                transcriptHashHex = TEST_TRANSCRIPT_HASH
             )
         }
         val registry = TrustedDeviceRegistry(object : TrustedDevicePersistence {
@@ -157,7 +159,18 @@ class NexusMutualTlsIntegrationTest {
         })
 
         return SSLContext.getInstance("TLS").apply {
-            init(keyManagers, arrayOf(PinnedPeerTrustManager(registry)), SecureRandom())
+            val expectedPeerName = trustedNames.first()
+            val expectedPeerPublicKey = readCertificate(expectedPeerName + "_cert.pem").publicKey.encoded
+            init(
+                keyManagers,
+                arrayOf(PinnedPeerTrustManager(
+                    registry,
+                    PairingIdentityCrypto.fingerprint(expectedPeerPublicKey),
+                    TEST_PAIRING_REQUEST_ID,
+                    TEST_TRANSCRIPT_HASH
+                )),
+                SecureRandom()
+            )
         }
     }
 
@@ -186,6 +199,8 @@ class NexusMutualTlsIntegrationTest {
         const val TEST_KEY_ALIAS = "nexus-loopback-test"
         const val TEST_BYTE = 0x5A
         const val SOCKET_TIMEOUT_MILLIS = 8_000
+        const val TEST_PAIRING_REQUEST_ID = "EEEEEEEEEEEEEEEEEEEEEE"
+        const val TEST_TRANSCRIPT_HASH = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         const val TRUSTED_AT_MILLIS = 1_000L
         const val REVOKED_AT_MILLIS = 2_000L
         val TEST_KEY_PASSWORD = "nexus-test-only".toCharArray()

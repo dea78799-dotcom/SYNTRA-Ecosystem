@@ -19,8 +19,11 @@ object PinnedPeerKeyPolicy {
 
     fun isTrusted(
         peerPublicKey: PublicKey,
-        trustedDevices: Collection<TrustedDeviceRecord>
+        trustedDevices: Collection<TrustedDeviceRecord>,
+        expectedPeerFingerprint: String? = null
     ): Boolean {
+        if (expectedPeerFingerprint != null &&
+            !expectedPeerFingerprint.matches(Regex("^[a-f0-9]{64}$"))) return false
         if (!peerPublicKey.algorithm.equals("EC", ignoreCase = true)) return false
 
         val encoded = peerPublicKey.encoded ?: return false
@@ -40,6 +43,7 @@ object PinnedPeerKeyPolicy {
         return trustedDevices.any { record ->
             !record.isRevoked &&
                 record.fingerprint == fingerprint &&
+                (expectedPeerFingerprint == null || record.fingerprint == expectedPeerFingerprint) &&
                 MessageDigest.isEqual(record.publicKeyEncoded, canonicalEncoded)
         }
     }
@@ -54,8 +58,16 @@ object PinnedPeerKeyPolicy {
  * invitation redemption, or complete a TLS handshake.
  */
 class PinnedPeerTrustManager(
-    private val trustedDeviceRegistry: TrustedDeviceRegistry
+    private val trustedDeviceRegistry: TrustedDeviceRegistry,
+    private val expectedPeerFingerprint: String? = null
 ) : X509TrustManager {
+
+    init {
+        require(expectedPeerFingerprint == null ||
+            expectedPeerFingerprint.matches(Regex("^[a-f0-9]{64}$"))) {
+            "Expected peer fingerprint must be 64 lowercase hexadecimal characters."
+        }
+    }
 
     override fun checkServerTrusted(chain: Array<out X509Certificate>, authType: String) {
         validatePeerCertificate(chain, authType)
@@ -94,7 +106,11 @@ class PinnedPeerTrustManager(
             throw CertificateException("Peer certificate does not permit digital signatures.")
         }
 
-        if (!PinnedPeerKeyPolicy.isTrusted(leaf.publicKey, trustedDeviceRegistry.activeDevices())) {
+        if (!PinnedPeerKeyPolicy.isTrusted(
+                leaf.publicKey,
+                trustedDeviceRegistry.activeDevices(),
+                expectedPeerFingerprint
+            )) {
             throw CertificateException("Peer certificate key is not in the active trusted-device registry.")
         }
     }

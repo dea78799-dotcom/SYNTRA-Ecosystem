@@ -273,7 +273,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.27-dev · kiểm thử Android Keystore TLS; chưa mở socket LAN",
+                    text = "Prototype 0.11.28-dev · kiểm thử mutual TLS loopback; chưa mở socket LAN",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

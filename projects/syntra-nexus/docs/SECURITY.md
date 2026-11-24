@@ -98,3 +98,14 @@ The current `PinnedPeerTrustManager` is an identity-pin adapter, not a complete 
 - Server-side socket configuration must require a client certificate.
 - A TLS context is not proof that a network session exists. Do not send capabilities or screen frames until the complete pairing, replay protection, socket lifecycle, mutual authentication and explicit capability approval are implemented and tested.
 - The pinned identity policy does not validate public CA chains or DNS hostnames. Treat the previously approved peer fingerprint as the identity boundary and never silently fall back to trust-all behavior.
+
+
+## Transcript-bound handshake safeguards (0.11.11-dev)
+
+- Sign the complete handshake frame, including protocol version, message kind, sender role, sequence, request ID, expiry, transcript hash, sender/recipient fingerprints and fresh nonce.
+- Verify the signature against the exact public key assigned to the sender role in the canonical transcript; reject role reflection, peer substitution, transcript substitution and expired invitations.
+- Reject malformed or oversized frames before processing signature contents; use the bounded binary decoder.
+- Apply replay checks only after signature verification. Require sequence 0 initially and exactly the next sequence for subsequent frames in the same invitation/sender scope.
+- The current replay guard is bounded but in-memory and process-local. It does not survive restart or coordinate across peers. Do not claim distributed replay protection until durable redemption and peer-side replay state are implemented.
+- A valid device signature is not user consent. Both devices must separately approve pairing and each requested capability.
+- Do not connect the handshake to remote commands or screen transmission until the complete token redemption, TLS peer binding, mutual approval, durable replay handling and capability authorization flow is implemented and tested.

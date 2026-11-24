@@ -36,7 +36,9 @@ fun ScreenShareConsentCard() {
     val projectionManager = remember(context) {
         context.getSystemService(MediaProjectionManager::class.java)
     }
-    var sessionActive by remember { mutableStateOf(false) }
+    // This only tracks that a start request was sent; it is not proof that the
+    // foreground service successfully acquired MediaProjection.
+    var startRequestSent by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
 
     val captureLauncher = rememberLauncherForActivityResult(
@@ -50,10 +52,10 @@ fun ScreenShareConsentCard() {
             }
             try {
                 ContextCompat.startForegroundService(context, serviceIntent)
-                sessionActive = true
-                message = "Đã mở phiên cấp quyền. Chưa chụp khung hình, ghi hình hoặc truyền dữ liệu."
+                startRequestSent = true
+                message = "Đã gửi yêu cầu khởi chạy dịch vụ. Ứng dụng chưa nhận xác nhận phiên hoạt động."
             } catch (_: Exception) {
-                message = "Không thể khởi động phiên. Hãy thử lại."
+                message = "Không thể gửi yêu cầu khởi chạy phiên. Hãy thử lại."
             }
         } else {
             message = "Bạn đã từ chối hoặc hủy quyền chia sẻ màn hình."
@@ -78,26 +80,26 @@ fun ScreenShareConsentCard() {
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text("Screen Share · 0.11", color = Color(0xFFD8B56D), fontWeight = FontWeight.Bold)
+            Text("Screen Share · 0.11.1", color = Color(0xFFD8B56D), fontWeight = FontWeight.Bold)
             Text(
                 "Thử nghiệm luồng xin quyền MediaProjection. Chỉ bắt đầu sau khi bạn nhấn nút và xác nhận hộp thoại Android.",
                 fontSize = 12.sp,
                 color = Color(0xFF9A9DA6)
             )
             Text(
-                if (sessionActive) "Phiên quyền đang hoạt động trên thiết bị này."
-                else "Chưa có phiên chia sẻ màn hình.",
+                if (startRequestSent) "Đã gửi yêu cầu mở phiên; chưa xác nhận dịch vụ hoạt động."
+                else "Chưa gửi yêu cầu mở phiên.",
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                "Giới hạn hiện tại: chưa có kết nối LAN nên NEXUS không chụp, lưu, phát trực tiếp hoặc gửi khung hình sang thiết bị khác.",
+                "Giới hạn hiện tại: chưa có ghép đôi và kết nối LAN đã xác thực. NEXUS không chụp, lưu, phát trực tiếp hoặc gửi khung hình.",
                 fontSize = 11.sp,
                 color = Color(0xFF9A9DA6)
             )
             message?.let { Text(it, fontSize = 12.sp, color = Color(0xFFD8B56D)) }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
-                    enabled = !sessionActive,
+                    enabled = !startRequestSent,
                     onClick = {
                         if (Build.VERSION.SDK_INT >= 33 &&
                             ContextCompat.checkSelfPermission(
@@ -115,19 +117,19 @@ fun ScreenShareConsentCard() {
                     Text("Xin quyền")
                 }
                 Button(
-                    enabled = sessionActive,
+                    enabled = startRequestSent,
                     onClick = {
                         context.startService(
                             Intent(context, ScreenShareConsentService::class.java).apply {
                                 action = ScreenShareConsentService.ACTION_STOP
                             }
                         )
-                        sessionActive = false
-                        message = "Đã gửi lệnh dừng phiên trên thiết bị này."
+                        startRequestSent = false
+                        message = "Đã gửi lệnh dừng. Trạng thái dịch vụ sẽ được xác minh ở bước tích hợp tiếp theo."
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Dừng phiên")
+                    Text("Gửi lệnh dừng")
                 }
             }
         }

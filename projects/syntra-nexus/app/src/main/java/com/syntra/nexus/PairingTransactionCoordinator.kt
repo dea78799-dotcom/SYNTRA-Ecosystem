@@ -180,7 +180,7 @@ class PairingTransactionCoordinator(
     @Synchronized
     fun clearTerminal(): PairingTransactionResult {
         val active = current ?: return PairingTransactionResult.ALREADY_TERMINAL
-        if (!isTerminal(active.state)) return PairingTransactionResult.INVALID_TRANSITION
+        if (!isTerminal(active.state) && active.state != PairingTransactionState.RECOVERY_REQUIRED) return PairingTransactionResult.INVALID_TRANSITION
         return try {
             persistence?.clear()
             current = null

@@ -1,13 +1,21 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.20-dev  
-**Status:** Revocation and authorization binding audit: pairing provenance, live registry revalidation and stale-session rejection; no live TLS transport or screen streaming yet  
+**Version:** 0.11.21-dev  
+**Status:** Capability authorization foundation: per-capability, dual-signature, session-bound grants; no live transport or remote actions enabled  
 **Platform:** Android-first  
 **Network model:** Local-first
 
 SYNTRA NEXUS is an opt-in device-management concept for devices that the owner or an authorized user has agreed to pair. The Android application is the first controller. TV support remains deferred until the target platform is selected.
 
-## Revocation & authorization binding (0.11.20-dev)\n\nSee [the audit report](docs/REVOCATION-AUTHORIZATION-AUDIT-0.11.20.md). Trusted-device entries now bind to the exact pairing request and transcript. New-session authorization rechecks current revocation state and exact provenance instead of trusting a stale snapshot. Older records without provenance remain visible but must be paired again before authorizing sessions. The authorization helper is not connected to a socket or remote capability path.\n\n## Current prototype scope
+## Revocation & authorization binding (0.11.20-dev)\n\nSee [the audit report](docs/REVOCATION-AUTHORIZATION-AUDIT-0.11.20.md). Trusted-device entries now bind to the exact pairing request and transcript. New-session authorization rechecks current revocation state and exact provenance instead of trusting a stale snapshot. Older records without provenance remain visible but must be paired again before authorizing sessions. The authorization helper is not connected to a socket or remote capability path.\n\n## Capability authorization (0.11.21-dev)
+
+See [the capability audit](docs/CAPABILITY-AUTHORIZATION-AUDIT-0.11.21.md). NEXUS now defines narrow capabilities for usage summaries, shared-file reading, file receiving and screen sharing. Each grant is bound to one peer fingerprint, pairing transcript, session ID, capability and short expiry. Both devices must sign the exact canonical request with role-bound P-256 identities. Every future operation must re-check the live grant and trusted-device registry. The grant ledger is memory-only and no actual remote operation or network transport is connected.
+
+## Revocation & authorization binding (0.11.20-dev)
+
+See [the revocation audit](docs/REVOCATION-AUTHORIZATION-AUDIT-0.11.20.md). Trusted-device entries bind to the exact pairing request and transcript. New-session authorization rechecks current revocation state and exact provenance. Older records without provenance remain visible but must be paired again before authorizing sessions.
+
+## Current prototype scope
 
 - Android dashboard with an explicit prototype status.
 - Generate a QR invitation containing a cryptographically random, short-lived request ID and token; invitation lifetime is limited to two minutes.

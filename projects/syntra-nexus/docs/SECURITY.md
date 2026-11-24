@@ -72,3 +72,14 @@ The gate is a policy helper only; it is not yet wired to a network boundary. No 
 - Copy payload arrays at construction and access boundaries.
 - Treat every decoded packet as untrusted. Structural validity is not identity authentication or authorization.
 - Do not connect this codec to sockets or allow capability execution until mutual identity authentication, TLS certificate binding, replay protection, approval and revocation are implemented and tested.
+
+
+## Pinned peer identity trust policy (0.11.9-dev)
+
+- Trust only an EC public key whose canonical encoded bytes and SHA-256 fingerprint match an active local trusted-device record.
+- Reject revoked, unknown, malformed, non-canonical, oversized and non-EC keys.
+- For the X.509 leaf, check validity dates, reject CA certificates as device identities, and require digital-signature key usage when the extension is present.
+- Apply the same active-peer pin policy to client and server certificate checks.
+- The trust manager is not yet wired to an SSLContext or socket. No TLS session or remote action is currently possible.
+- The pin is meaningful only when the registry record came from a completed transcript-bound handshake with explicit approval by both devices. Never populate trust records from LAN discovery or an unverified certificate.
+- Before shipping mutual TLS, add a local KeyManager backed by the Android Keystore identity, verify private-key/certificate correspondence, enforce modern TLS protocol versions, bind the session to the pairing transcript and test rejection/revocation on physical devices.

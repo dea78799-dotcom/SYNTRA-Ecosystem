@@ -15,7 +15,6 @@ import javax.net.ssl.SSLSocket
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -82,6 +81,32 @@ class TlsBoundedPacketChannelTest {
     }
 
     @Test
+    fun payloadTimeoutAfterHeaderClosesChannel() {
+        val frame = NexusTransportCodec.encode(
+            NexusTransportPacket.create(
+                NexusMessageType.PING,
+                "AbCdEf0123456789_-XYZa",
+                byteArrayOf(1, 2, 3, 4, 5)
+            )
+        )
+        val fixture = openFixture { peer, release ->
+            peer.outputStream.write(frame, 0, NexusTransportCodec.HEADER_BYTES)
+            peer.outputStream.flush()
+            release.await(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS)
+        }
+        try {
+            assertThrows(SocketTimeoutException::class.java) {
+                fixture.channel.readPacket(150)
+            }
+            assertEquals(TlsSocketLifecycleState.CLOSED, fixture.manager.state)
+            assertTrue(fixture.client.isClosed)
+        } finally {
+            fixture.release.countDown()
+            fixture.close()
+        }
+    }
+
+    @Test
     fun oversizedLengthIsRejectedBeforePayloadAllocationAndClosesChannel() {
         val fixture = openFixture { peer, release ->
             val header = ByteBuffer.allocate(NexusTransportCodec.HEADER_BYTES)
@@ -128,6 +153,8 @@ class TlsBoundedPacketChannelTest {
         try {
             fixture.channel.writePacket(expected)
             assertEquals(TlsSocketLifecycleState.ACTIVE, fixture.manager.state)
+            fixture.release.countDown()
+            fixture.serverFuture.get(TIMEOUT_MILLIS.toLong(), TimeUnit.MILLISECONDS)
         } finally {
             fixture.release.countDown()
             fixture.close()

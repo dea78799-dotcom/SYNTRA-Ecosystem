@@ -39,7 +39,9 @@ class AndroidKeystoreTlsIdentityAndroidTest {
                     publicKeyEncoded = publicKeyEncoded.copyOf(),
                     displayName = "Android TLS test peer",
                     trustedAtMillis = 10L,
-                    revokedAtMillis = revokedAt
+                    revokedAtMillis = revokedAt,
+                    pairingRequestId = TEST_PAIRING_REQUEST_ID,
+                    transcriptHashHex = TEST_TRANSCRIPT_HASH
                 )
             )
 
@@ -106,7 +108,9 @@ class AndroidKeystoreTlsIdentityAndroidTest {
         val remoteFingerprint = PairingIdentityCrypto.fingerprint(remotePublicKey)
         val context = NexusTlsContextFactory.create(
             registryFor(remotePublicKey),
-            remoteFingerprint
+            remoteFingerprint,
+            TEST_PAIRING_REQUEST_ID,
+            TEST_TRANSCRIPT_HASH
         )
 
         assertNotNull(context)
@@ -128,7 +132,10 @@ class AndroidKeystoreTlsIdentityAndroidTest {
         val unknownFingerprint = PairingIdentityCrypto.fingerprint(unknownPublicKey)
 
         assertThrows(IllegalArgumentException::class.java) {
-            NexusTlsContextFactory.create(TrustedDeviceRegistry(), unknownFingerprint)
+            NexusTlsContextFactory.create(
+                TrustedDeviceRegistry(), unknownFingerprint,
+                TEST_PAIRING_REQUEST_ID, TEST_TRANSCRIPT_HASH
+            )
         }
 
         val revokedPublicKey = createPeerPublicKey()
@@ -136,7 +143,9 @@ class AndroidKeystoreTlsIdentityAndroidTest {
         assertThrows(IllegalArgumentException::class.java) {
             NexusTlsContextFactory.create(
                 registryFor(revokedPublicKey, revokedAt = 20L),
-                revokedFingerprint
+                revokedFingerprint,
+                TEST_PAIRING_REQUEST_ID,
+                TEST_TRANSCRIPT_HASH
             )
         }
     }
@@ -151,5 +160,7 @@ class AndroidKeystoreTlsIdentityAndroidTest {
     private companion object {
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
         const val IDENTITY_ALIAS = "syntra.nexus.device.identity.v1"
+        const val TEST_PAIRING_REQUEST_ID = "EEEEEEEEEEEEEEEEEEEEEE"
+        const val TEST_TRANSCRIPT_HASH = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     }
 }

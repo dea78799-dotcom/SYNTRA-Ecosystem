@@ -4,8 +4,6 @@ import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.security.PrivateKey
 import java.security.Signature
-import java.security.MessageDigest
-import java.security.SecureRandom
 
 /**
  * Narrow, explicit capabilities. No blanket "device access" permission exists.

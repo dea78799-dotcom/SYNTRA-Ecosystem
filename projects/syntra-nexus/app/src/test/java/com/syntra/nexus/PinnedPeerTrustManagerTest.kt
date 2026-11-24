@@ -183,7 +183,9 @@ class PinnedPeerTrustManagerTest {
             fingerprint = PairingIdentityCrypto.fingerprint(encoded),
             publicKeyEncoded = encoded.copyOf(),
             displayName = "Test peer",
-            trustedAtMillis = 1_000L
+            trustedAtMillis = 1_000L,
+            pairingRequestId = TEST_REQUEST_ID,
+            transcriptHashHex = TEST_TRANSCRIPT_HASH
         )
     }
 }

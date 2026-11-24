@@ -1,6 +1,6 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.10-dev  
+**Version:** 0.11.11-dev  
 **Status:** Local trusted-device profile management, bounded LAN packet codec, pinned peer-key trust policy, TLS mutual-authentication foundation, local activity summary and opt-in LAN discovery; no live TLS transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
@@ -161,3 +161,8 @@ See [`docs/DEVICE-CAPABILITIES.md`](docs/DEVICE-CAPABILITIES.md) for screen-shar
 ## TLS identity foundation (0.11.10-dev)
 
 The Android Keystore identity is now exposed to JSSE through a dedicated X.509 key manager without exporting the private key. Initialization checks the local certificate and proves that the private key matches its public key by signing a fresh challenge. TLS context creation is scoped to one exact active peer fingerprint; revoked, unknown and self-referential peers are rejected. TLS 1.3 is preferred and TLS 1.2 is the minimum. Server socket configuration requires client authentication. This milestone creates configuration objects only: it does not open sockets, run a handshake, redeem invitations, exchange packets or stream screen content. See `docs/TLS-FOUNDATION-0.11.10.md`.
+
+
+## Transcript-bound handshake foundation (0.11.11-dev)
+
+Adds a bounded `SNH1` signed handshake frame bound to the invitation request, expiry, canonical transcript hash, sender role, sender/recipient fingerprints, a fresh 32-byte nonce and a monotonic sequence. ECDSA signatures cover the complete frame header. Verification checks the exact transcript and role-bound public keys. A bounded in-memory replay guard accepts sequence 0 once and then only the next sequence for that sender and invitation. This is a protocol foundation only: the replay guard is not durable or distributed, and no socket, token redemption, remote approval, trust registration or capability transport is enabled. See `docs/HANDSHAKE-0.11.11.md`.

@@ -186,6 +186,22 @@ class TrustedDeviceRegistryTest {
         TrustedDeviceRegistry(FakeTrustedDevicePersistence(mutableListOf(invalid)))
     }
 
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsPersistedNonP256Identity() {
+        val otherCurve = KeyPairGenerator.getInstance("EC").apply {
+            initialize(ECGenParameterSpec("secp384r1"))
+        }.generateKeyPair()
+        val encoded = otherCurve.public.encoded
+        val invalid = TrustedDeviceRecord(
+            fingerprint = PairingIdentityCrypto.fingerprint(encoded),
+            publicKeyEncoded = encoded,
+            displayName = "Unsupported curve",
+            trustedAtMillis = NOW
+        )
+        TrustedDeviceRegistry(FakeTrustedDevicePersistence(mutableListOf(invalid)))
+    }
+
     private class FakeTrustedDevicePersistence(
         val records: MutableList<TrustedDeviceRecord> = mutableListOf()
     ) : TrustedDevicePersistence {

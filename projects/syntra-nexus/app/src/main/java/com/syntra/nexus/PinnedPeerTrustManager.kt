@@ -42,6 +42,36 @@ object PinnedPeerKeyPolicy {
                 MessageDigest.isEqual(record.publicKeyEncoded, canonicalEncoded)
         }
     }
+    /**
+     * Requires the presented key to match the exact, currently active pairing
+     * provenance. Fingerprint pinning without this binding is insufficient.
+     */
+    fun isTrustedForSession(
+        peerPublicKey: PublicKey,
+        registry: TrustedDeviceRegistry,
+        expectedPeerFingerprint: String,
+        expectedPairingRequestId: String,
+        expectedTranscriptHashHex: String
+    ): Boolean {
+        if (!expectedPairingRequestId.matches(Regex("^[A-Za-z0-9_-]{22}$")) ||
+            !expectedTranscriptHashHex.matches(Regex("^[a-f0-9]{64}$"))
+        ) return false
+        if (!isTrusted(
+                peerPublicKey,
+                registry.activeDevices(),
+                expectedPeerFingerprint
+            )
+        ) return false
+
+        val encoded = peerPublicKey.encoded ?: return false
+        return registry.isActiveForSession(
+            fingerprint = expectedPeerFingerprint,
+            publicKeyEncoded = encoded,
+            requestId = expectedPairingRequestId,
+            transcriptHashHex = expectedTranscriptHashHex
+        )
+    }
+
 }
 
 /**
@@ -54,13 +84,20 @@ object PinnedPeerKeyPolicy {
  */
 class PinnedPeerTrustManager(
     private val trustedDeviceRegistry: TrustedDeviceRegistry,
-    private val expectedPeerFingerprint: String? = null
+    private val expectedPeerFingerprint: String,
+    private val expectedPairingRequestId: String,
+    private val expectedTranscriptHashHex: String
 ) : X509TrustManager {
 
     init {
-        require(expectedPeerFingerprint == null ||
-            expectedPeerFingerprint.matches(Regex("^[a-f0-9]{64}$"))) {
+        require(expectedPeerFingerprint.matches(Regex("^[a-f0-9]{64}$"))) {
             "Expected peer fingerprint must be 64 lowercase hexadecimal characters."
+        }
+        require(expectedPairingRequestId.matches(Regex("^[A-Za-z0-9_-]{22}$"))) {
+            "Expected pairing request ID is invalid."
+        }
+        require(expectedTranscriptHashHex.matches(Regex("^[a-f0-9]{64}$"))) {
+            "Expected transcript hash is invalid."
         }
     }
 
@@ -101,12 +138,16 @@ class PinnedPeerTrustManager(
             throw CertificateException("Peer certificate does not permit digital signatures.")
         }
 
-        if (!PinnedPeerKeyPolicy.isTrusted(
-                leaf.publicKey,
-                trustedDeviceRegistry.activeDevices(),
-                expectedPeerFingerprint
+        if (!PinnedPeerKeyPolicy.isTrustedForSession(
+                peerPublicKey = leaf.publicKey,
+                registry = trustedDeviceRegistry,
+                expectedPeerFingerprint = expectedPeerFingerprint,
+                expectedPairingRequestId = expectedPairingRequestId,
+                expectedTranscriptHashHex = expectedTranscriptHashHex
             )) {
-            throw CertificateException("Peer certificate key is not in the active trusted-device registry.")
+            throw CertificateException(
+                "Peer certificate is not trusted for the exact active pairing transaction."
+            )
         }
     }
 

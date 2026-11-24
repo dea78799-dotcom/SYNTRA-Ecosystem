@@ -6,6 +6,7 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertThrows
@@ -75,8 +76,8 @@ class AndroidKeystoreTlsIdentityAndroidTest {
             identity.publicKeyEncoded,
             manager.getCertificateChain(IDENTITY_ALIAS)!!.first().publicKey.encoded
         )
-        assertArrayEquals(arrayOf(IDENTITY_ALIAS), manager.getClientAliases("EC", null))
-        assertArrayEquals(arrayOf(IDENTITY_ALIAS), manager.getServerAliases("EC", null))
+        assertEquals(listOf(IDENTITY_ALIAS), manager.getClientAliases("EC", null)?.toList())
+        assertEquals(listOf(IDENTITY_ALIAS), manager.getServerAliases("EC", null)?.toList())
         assertEquals(IDENTITY_ALIAS, manager.chooseClientAlias(arrayOf("EC"), null, null))
         assertEquals(IDENTITY_ALIAS, manager.chooseServerAlias("EC", null, null))
         assertNotNull(manager.getPrivateKey(IDENTITY_ALIAS))
@@ -93,7 +94,8 @@ class AndroidKeystoreTlsIdentityAndroidTest {
         assertTrue("Keystore key must prove possession against its certificate.", verifier.verify(proof))
 
         val exposedChain = manager.getCertificateChain(IDENTITY_ALIAS)!!
-        exposedChain[0] = exposedChain[0]
+        val secondChain = manager.getCertificateChain(IDENTITY_ALIAS)!!
+        assertNotSame("Certificate chain arrays must not be shared with callers.", exposedChain, secondChain)
         assertEquals(identity.fingerprint, manager.localFingerprint)
     }
 

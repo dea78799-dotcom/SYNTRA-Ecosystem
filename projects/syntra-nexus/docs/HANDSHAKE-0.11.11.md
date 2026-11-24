@@ -2,7 +2,7 @@
 
 ## Protocol frame
 
-The handshake frame uses a bounded binary encoding with the `SNH1` marker and protocol version 1. It carries a message kind, sender role, monotonic sequence number, invitation expiry, fixed-format request ID, canonical transcript SHA-256, sender and recipient identity fingerprints, a fresh 32-byte nonce and an ECDSA signature. The signature covers every preceding field using SHA256withECDSA.
+The handshake frame uses a bounded binary encoding with the `SNH1` marker and protocol version 1. It carries a message kind, sender role, monotonic sequence number, invitation expiry, fixed-format request ID, canonical transcript SHA-256, sender and recipient identity fingerprints, a fresh 32-byte nonce and an ECDSA signature. The signature covers every preceding field using SHA256withECDSA. Before signing, the sender also proves that its private key matches the public key assigned to its role in the transcript.
 
 The decoder rejects unknown versions and message kinds, malformed identifiers/fingerprints, identical sender/recipient fingerprints, negative counters, truncated input, trailing bytes and signatures above the fixed limit. The existing `SNX1` transport envelope remains the outer packet format.
 

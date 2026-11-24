@@ -16,28 +16,26 @@ import java.security.SecureRandom
 import java.security.spec.ECGenParameterSpec
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLServerSocket
 import javax.net.ssl.SSLSocket
 
 /**
- * Real mutual-TLS loopback coverage using two separate Android Keystore aliases.
- * The secondary alias is test-only and is deleted after each test.
+ * Real mutual-TLS loopback coverage using two temporary Android Keystore aliases.
+ * The production installation identity is never read, replaced or deleted.
  */
 @RunWith(AndroidJUnit4::class)
 class AndroidKeystoreMutualTlsLoopbackAndroidTest {
-    private val identityStore = DeviceIdentityStore()
 
     @Before
     fun setUp() {
-        deleteAlias(PRODUCTION_IDENTITY_ALIAS)
-        deleteAlias(TEST_PEER_IDENTITY_ALIAS)
+        deleteAlias(TEST_SERVER_IDENTITY_ALIAS)
+        deleteAlias(TEST_CLIENT_IDENTITY_ALIAS)
     }
 
     @After
     fun tearDown() {
-        deleteAlias(PRODUCTION_IDENTITY_ALIAS)
-        deleteAlias(TEST_PEER_IDENTITY_ALIAS)
+        deleteAlias(TEST_SERVER_IDENTITY_ALIAS)
+        deleteAlias(TEST_CLIENT_IDENTITY_ALIAS)
     }
 
     @Test
@@ -51,45 +49,30 @@ class AndroidKeystoreMutualTlsLoopbackAndroidTest {
     }
 
     private fun performLoopbackExchange(trustActualClient: Boolean): Boolean {
-        val localIdentity = identityStore.getOrCreateIdentity()
-        createKeystoreIdentity(TEST_PEER_IDENTITY_ALIAS)
+        createKeystoreIdentity(TEST_SERVER_IDENTITY_ALIAS)
+        createKeystoreIdentity(TEST_CLIENT_IDENTITY_ALIAS)
 
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-        val localCertificate = keyStore.getCertificate(PRODUCTION_IDENTITY_ALIAS)
+        val serverCertificate = keyStore.getCertificate(TEST_SERVER_IDENTITY_ALIAS)
             as java.security.cert.X509Certificate
-        val clientCertificate = keyStore.getCertificate(TEST_PEER_IDENTITY_ALIAS)
+        val clientCertificate = keyStore.getCertificate(TEST_CLIENT_IDENTITY_ALIAS)
             as java.security.cert.X509Certificate
-
-        check(localIdentity.fingerprint ==
-            PairingIdentityCrypto.fingerprint(localCertificate.publicKey.encoded))
 
         val serverTrustKey = if (trustActualClient) {
             clientCertificate.publicKey.encoded
         } else {
             createUntrustedPublicKey()
         }
-        val serverTrustRegistry = registryFor(serverTrustKey)
         val serverContext = NexusTlsContextFactory.create(
-            serverTrustRegistry,
-            PairingIdentityCrypto.fingerprint(serverTrustKey)
+            registryFor(serverTrustKey),
+            PairingIdentityCrypto.fingerprint(serverTrustKey),
+            TEST_SERVER_IDENTITY_ALIAS
         )
-
-        val clientKeyManager = AndroidKeystoreX509KeyManager(
-            keyStore,
-            TEST_PEER_IDENTITY_ALIAS
+        val clientContext = NexusTlsContextFactory.create(
+            registryFor(serverCertificate.publicKey.encoded),
+            PairingIdentityCrypto.fingerprint(serverCertificate.publicKey.encoded),
+            TEST_CLIENT_IDENTITY_ALIAS
         )
-        val clientContext = SSLContext.getInstance("TLS").apply {
-            init(
-                arrayOf(clientKeyManager),
-                arrayOf(
-                    PinnedPeerTrustManager(
-                        registryFor(localCertificate.publicKey.encoded),
-                        localIdentity.fingerprint
-                    )
-                ),
-                SecureRandom()
-            )
-        }
 
         val serverSocket = serverContext.serverSocketFactory.createServerSocket(
             0,
@@ -187,8 +170,8 @@ class AndroidKeystoreMutualTlsLoopbackAndroidTest {
 
     private companion object {
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
-        const val PRODUCTION_IDENTITY_ALIAS = "syntra.nexus.device.identity.v1"
-        const val TEST_PEER_IDENTITY_ALIAS = "syntra.nexus.instrumentation.peer.v1"
+        const val TEST_SERVER_IDENTITY_ALIAS = "syntra.nexus.instrumentation.server.v1"
+        const val TEST_CLIENT_IDENTITY_ALIAS = "syntra.nexus.instrumentation.client.v1"
         const val TEST_BYTE = 0x5A
         const val SOCKET_TIMEOUT_MILLIS = 8_000
     }

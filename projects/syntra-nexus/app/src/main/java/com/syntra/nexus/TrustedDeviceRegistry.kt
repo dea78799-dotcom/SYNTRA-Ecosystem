@@ -93,6 +93,9 @@ class TrustedDeviceRegistry(
         require(nowMillis >= 0L) { "Timestamp cannot be negative." }
         val current = records[fingerprint] ?: return false
         if (current.isRevoked) return false
+        require(nowMillis >= current.trustedAtMillis) {
+            "Revocation timestamp cannot precede the trust timestamp."
+        }
         val revoked = current.copy(revokedAtMillis = nowMillis)
         commit(records + (fingerprint to revoked))
         return true
@@ -126,9 +129,7 @@ class TrustedDeviceRegistry(
         require(record.fingerprint.matches(Regex("^[a-f0-9]{64}$"))) {
             "Stored fingerprint has an invalid format."
         }
-        require(record.publicKeyEncoded.isNotEmpty() && record.publicKeyEncoded.size <= 512) {
-            "Stored public key has an invalid length."
-        }
+        PairingIdentityCrypto.requireP256PublicKey(record.publicKeyEncoded)
         require(PairingIdentityCrypto.fingerprint(record.publicKeyEncoded) == record.fingerprint) {
             "Stored public key does not match its fingerprint."
         }

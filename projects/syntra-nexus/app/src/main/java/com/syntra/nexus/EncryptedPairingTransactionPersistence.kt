@@ -10,6 +10,7 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.io.FileNotFoundException
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -25,12 +26,24 @@ class EncryptedPairingTransactionPersistence(context: Context) : PairingTransact
     private val key: SecretKey by lazy { getOrCreateKey() }
 
     override fun load(): PairingTransactionSnapshot? {
-        if (!file.baseFile.exists()) return null
         val encrypted = try {
-            require(file.baseFile.length() in MIN_ENCRYPTED_BYTES.toLong()..MAX_ENCRYPTED_BYTES.toLong()) {
-                "Pairing transaction file has an invalid size."
+            file.openRead().use { input ->
+                val output = ByteArrayOutputStream(MIN_ENCRYPTED_BYTES)
+                val buffer = ByteArray(256)
+                var total = 0
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    total += count
+                    require(total <= MAX_ENCRYPTED_BYTES) {
+                        "Pairing transaction file exceeds the storage limit."
+                    }
+                    output.write(buffer, 0, count)
+                }
+                output.toByteArray()
             }
-            file.openRead().use { it.readBytes() }
+        } catch (_: FileNotFoundException) {
+            return null
         } catch (error: Exception) {
             throw IllegalStateException("Unable to read pairing transaction storage.", error)
         }
@@ -92,6 +105,9 @@ class EncryptedPairingTransactionPersistence(context: Context) : PairingTransact
     private fun getOrCreateKey(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
         (store.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }
+        check(!file.baseFile.exists()) {
+            "Pairing transaction key is missing while encrypted data still exists."
+        }
 
         val generator = KeyGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_AES,

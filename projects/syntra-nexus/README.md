@@ -1,5 +1,12 @@
 # SYNTRA NEXUS
 
+## Mutual TLS integration test foundation (0.11.26-dev)
+
+- Add five loopback JSSE mutual-TLS tests: successful pinned peer exchange, unknown peer rejection, revoked peer rejection, required client certificate, and expired certificate rejection.
+- Test-only EC P-256 identities and private keys remain under JVM test resources; they must never enter app assets or production builds.
+- No production listener, LAN transport, pairing network flow, file transfer, screen sharing, or remote-control action is enabled. See [the 0.11.26 test note](docs/MUTUAL-TLS-TESTS-0.11.26.md).
+
+
 ## Authenticated capability request ingress (0.11.25-dev)\n\n- Add a gate that accepts only an already-established TLS 1.2/1.3 session with local and peer X.509 certificates, an active pinned peer key, and a request fingerprint matching the expected peer.\n- Delegate to the consent coordinator only after peer identity and TLS-session checks. The adapter does not create sockets or perform a TLS handshake.\n- Real SSLSocket/SSLEngine mutual-TLS integration tests are still required before this path can be treated as production authenticated transport. See [the 0.11.25 audit](docs/AUTHENTICATED-CAPABILITY-INGRESS-0.11.25.md).\n\n## Capability request envelope (0.11.24-dev)\n\n- Add a bounded, versioned SNCQ envelope for a peer-signed capability request. Strictly validate field lengths, UTF-8, capability names, timestamps, signature length, truncation and trailing bytes.\n- Decoding is not authentication: the future caller must verify the peer signature and bind the request to a pinned mutual-TLS peer, exact transcript, session and current trusted-device authorization before consent UI.\n- No listener, socket, remote request flow or remote action is enabled. See [the 0.11.24 audit](docs/CAPABILITY-REQUEST-ENVELOPE-0.11.24.md).\n\n## Explicit capability consent coordinator (0.11.23-dev)
 
 - Validate the exact transcript, peer identity, trusted-device state, expiry and peer approval signature before preparing a consent prompt.
@@ -22,8 +29,8 @@
 
 
 
-**Version:** 0.11.25-dev  
-**Status:** Consent coordinator, encrypted grants, bounded request envelope and TLS-session ingress gate; no socket or remote action is enabled  
+**Version:** 0.11.26-dev  
+**Status:** Consent coordinator, encrypted grants, bounded request envelope, TLS ingress gate and loopback mutual-TLS test foundation; no production socket or remote action is enabled  
 **Platform:** Android-first  
 **Network model:** Local-first
 

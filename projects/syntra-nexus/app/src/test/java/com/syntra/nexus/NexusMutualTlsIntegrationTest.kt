@@ -28,6 +28,32 @@ class NexusMutualTlsIntegrationTest {
     }
 
     @Test
+    fun rejectsPeerWhenPinnedKeyHasDifferentTranscriptProvenance() {
+        assertFalse(
+            performExchange(
+                "device_a",
+                "device_b",
+                listOf("device_b"),
+                listOf("device_a"),
+                serverExpectedTranscriptHashHex = "b".repeat(64)
+            )
+        )
+    }
+
+    @Test
+    fun rejectsPeerWhenPinnedKeyHasDifferentPairingRequestId() {
+        assertFalse(
+            performExchange(
+                "device_a",
+                "device_b",
+                listOf("device_b"),
+                listOf("device_a"),
+                serverExpectedPairingRequestId = "BBBBBBBBBBBBBBBBBBBBBB"
+            )
+        )
+    }
+
+    @Test
     fun rejectsClientWhoseCertificateIsNotInServerTrustRegistry() {
         assertFalse(performExchange("device_a", "unknown_device", listOf("device_b"), listOf("device_a")))
     }
@@ -63,10 +89,13 @@ class NexusMutualTlsIntegrationTest {
         serverTrusts: List<String>,
         clientTrusts: List<String>,
         revokedServerTrusts: Set<String> = emptySet(),
-        expiredServerCertificate: Boolean = false
+        expiredServerCertificate: Boolean = false,
+        serverExpectedPairingRequestId: String = TEST_PAIRING_REQUEST_ID,
+        serverExpectedTranscriptHashHex: String = TEST_TRANSCRIPT_HASH
     ): Boolean {
         val serverContext = createContext(
-            serverIdentity, serverTrusts, revokedServerTrusts, expiredServerCertificate
+            serverIdentity, serverTrusts, revokedServerTrusts, expiredServerCertificate,
+            serverExpectedPairingRequestId, serverExpectedTranscriptHashHex
         )
         val clientContext = createContext(clientIdentity, clientTrusts)
         val serverSocket = serverContext.serverSocketFactory.createServerSocket(
@@ -118,7 +147,9 @@ class NexusMutualTlsIntegrationTest {
         identityName: String?,
         trustedNames: List<String>,
         revokedNames: Set<String> = emptySet(),
-        expiredIdentityCertificate: Boolean = false
+        expiredIdentityCertificate: Boolean = false,
+        expectedPairingRequestId: String = TEST_PAIRING_REQUEST_ID,
+        expectedTranscriptHashHex: String = TEST_TRANSCRIPT_HASH
     ): SSLContext {
         val keyManagers = if (identityName == null) {
             emptyArray()
@@ -166,8 +197,8 @@ class NexusMutualTlsIntegrationTest {
                 arrayOf(PinnedPeerTrustManager(
                     registry,
                     PairingIdentityCrypto.fingerprint(expectedPeerPublicKey),
-                    TEST_PAIRING_REQUEST_ID,
-                    TEST_TRANSCRIPT_HASH
+                    expectedPairingRequestId,
+                    expectedTranscriptHashHex
                 )),
                 SecureRandom()
             )

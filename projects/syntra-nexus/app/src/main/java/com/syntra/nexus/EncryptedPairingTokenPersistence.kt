@@ -6,7 +6,9 @@ import android.security.keystore.KeyProperties
 import android.util.AtomicFile
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.security.KeyStore
 import javax.crypto.Cipher
@@ -33,96 +35,147 @@ class EncryptedPairingTokenPersistence(context: Context) : PairingTokenPersisten
     private val file = AtomicFile(File(context.filesDir, FILE_NAME))
     private val key: SecretKey by lazy { getOrCreateKey() }
 
-    override fun load(): List<PairingTokenRecord> {
-        if (!file.baseFile.exists()) return emptyList()
+    override fun load(): List<PairingTokenRecord> = synchronized(FILE_LOCK) {
         val encrypted = try {
-            file.openRead().use { it.readBytes() }
-        } catch (e: Exception) {
-            throw IllegalStateException("Unable to read encrypted token registry.", e)
+            readBoundedFile()
+        } catch (_: FileNotFoundException) {
+            return@synchronized emptyList()
         }
         require(encrypted.size > IV_LENGTH + TAG_LENGTH_BYTES) {
-            "Encrypted registry is truncated."
+            "Encrypted token registry is truncated."
         }
         val iv = encrypted.copyOfRange(0, IV_LENGTH)
         val ciphertext = encrypted.copyOfRange(IV_LENGTH, encrypted.size)
-        val plaintext = decrypt(ciphertext, iv)
-        return try {
+        val plaintext = try {
+            decrypt(ciphertext, iv)
+        } catch (error: Exception) {
+            throw IllegalStateException("Token registry authentication failed.", error)
+        }
+        try {
             val array = JSONArray(String(plaintext, Charsets.UTF_8))
-            buildList {
-                for (i in 0 until array.length()) {
-                    val item = array.getJSONObject(i)
-                    add(
-                        PairingTokenRecord(
-                            fingerprint = item.getString("fingerprint"),
-                            expiresAtMillis = item.getLong("expiresAt"),
-                            state = item.getString("state")
-                        )
-                    )
+            require(array.length() <= MAX_ENTRIES) {
+                "Token registry exceeds its entry limit."
+            }
+            val records = buildList {
+                for (index in 0 until array.length()) {
+                    val item = array.getJSONObject(index)
+                    add(PairingTokenRecord(
+                        fingerprint = item.getString("fingerprint"),
+                        expiresAtMillis = item.getLong("expiresAt"),
+                        state = item.getString("state")
+                    ))
                 }
             }
-        } catch (e: Exception) {
-            throw IllegalStateException("Encrypted registry data is invalid.", e)
+            validateRecords(records)
+            records
+        } catch (error: Exception) {
+            throw IllegalStateException("Encrypted token registry data is invalid.", error)
         }
     }
 
-    override fun save(records: List<PairingTokenRecord>) {
+    override fun save(records: List<PairingTokenRecord>) = synchronized(FILE_LOCK) {
+        validateRecords(records)
         val json = JSONArray()
         records.forEach { record ->
-            json.put(
-                JSONObject()
-                    .put("fingerprint", record.fingerprint)
-                    .put("expiresAt", record.expiresAtMillis)
-                    .put("state", record.state)
-            )
+            json.put(JSONObject()
+                .put("fingerprint", record.fingerprint)
+                .put("expiresAt", record.expiresAtMillis)
+                .put("state", record.state))
         }
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, key)
-        val actualIv = cipher.iv
-        val ciphertext = cipher.doFinal(json.toString().toByteArray(Charsets.UTF_8))
-        val output = actualIv + ciphertext
+        val encrypted = cipher.iv + cipher.doFinal(json.toString().toByteArray(Charsets.UTF_8))
+        require(encrypted.size.toLong() <= MAX_FILE_BYTES) {
+            "Token registry exceeds the storage limit."
+        }
 
         var stream: FileOutputStream? = null
         try {
             stream = file.startWrite()
-            stream.write(output)
+            stream.write(encrypted)
             stream.fd.sync()
             file.finishWrite(stream)
-        } catch (e: Exception) {
+        } catch (error: Exception) {
             if (stream != null) file.failWrite(stream)
-            throw IllegalStateException("Unable to save encrypted token registry.", e)
+            throw IllegalStateException("Unable to save encrypted token registry.", error)
+        }
+    }
+
+    /** Use openRead() before checking absence so AtomicFile can restore .bak. */
+    private fun readBoundedFile(): ByteArray {
+        val input = file.openRead()
+        input.use {
+            val output = ByteArrayOutputStream()
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            var total = 0
+            while (true) {
+                val count = it.read(buffer)
+                if (count < 0) break
+                total += count
+                require(total <= MAX_FILE_BYTES) {
+                    "Token registry exceeds the storage limit."
+                }
+                output.write(buffer, 0, count)
+            }
+            return output.toByteArray()
+        }
+    }
+
+    private fun validateRecords(records: List<PairingTokenRecord>) {
+        require(records.size <= MAX_ENTRIES)
+        val fingerprints = HashSet<String>(records.size)
+        records.forEach { record ->
+            require(record.fingerprint.matches(FINGERPRINT_PATTERN))
+            require(record.expiresAtMillis > 0L)
+            require(record.state in VALID_STATES)
+            require(fingerprints.add(record.fingerprint)) {
+                "Token registry contains duplicate fingerprints."
+            }
         }
     }
 
     private fun decrypt(ciphertext: ByteArray, iv: ByteArray): ByteArray {
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_LENGTH_BITS, iv))
         return cipher.doFinal(ciphertext)
     }
 
     private fun getOrCreateKey(): SecretKey {
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-        val existing = store.getKey(KEY_ALIAS, null) as? SecretKey
-        if (existing != null) return existing
-
-        val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
-        generator.init(
-            KeyGenParameterSpec.Builder(
-                KEY_ALIAS,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-            )
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .setKeySize(256)
-                .build()
+        (store.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }
+        check(!hasPersistedFile()) {
+            "Token-registry Keystore key is missing while encrypted data still exists."
+        }
+        val generator = KeyGenerator.getInstance(
+            KeyProperties.KEY_ALGORITHM_AES,
+            "AndroidKeyStore"
         )
+        generator.init(KeyGenParameterSpec.Builder(
+            KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+        )
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setKeySize(256)
+            .setRandomizedEncryptionRequired(true)
+            .build())
         return generator.generateKey()
     }
 
-    companion object {
-        private const val FILE_NAME = "nexus_pairing_tokens.enc"
-        private const val KEY_ALIAS = "syntra.nexus.token.registry.aes.v1"
-        private const val IV_LENGTH = 12
-        private const val TAG_LENGTH_BITS = 128
-        private const val TAG_LENGTH_BYTES = TAG_LENGTH_BITS / 8
+    private fun hasPersistedFile(): Boolean =
+        file.baseFile.exists() || File(file.baseFile.path + ".bak").exists()
+
+    private companion object {
+        val FILE_LOCK = Any()
+        const val FILE_NAME = "nexus_pairing_tokens.enc"
+        const val KEY_ALIAS = "syntra.nexus.token.registry.aes.v1"
+        const val TRANSFORMATION = "AES/GCM/NoPadding"
+        const val IV_LENGTH = 12
+        const val TAG_LENGTH_BITS = 128
+        const val TAG_LENGTH_BYTES = TAG_LENGTH_BITS / 8
+        const val MAX_ENTRIES = 4_096
+        const val MAX_FILE_BYTES = 1L * 1024L * 1024L
+        val FINGERPRINT_PATTERN = Regex("^[a-f0-9]{64}$")
+        val VALID_STATES = setOf("ACTIVE", "REDEEMED", "REVOKED")
     }
 }

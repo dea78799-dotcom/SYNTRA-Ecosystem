@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.11-dev  
-**Status:** Local trusted-device profile management, bounded LAN packet codec, pinned peer-key trust policy, TLS mutual-authentication foundation, local activity summary and opt-in LAN discovery; no live TLS transport or screen streaming yet  
+**Version:** 0.11.12-dev  
+**Status:** Local trusted-device profile management, bounded LAN packet codec, pinned peer-key trust policy, TLS mutual-authentication foundation, local activity summary, opt-in LAN discovery and durable local handshake replay ledger; no live TLS transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -43,7 +43,7 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Keep discovery separate from trust: the app does not connect to discovered addresses, redeem QR tokens, exchange identities or send app data.
 - Clarify the screen-share UI state: it reports that a service-start request was sent, not that the MediaProjection service has confirmed an active session.
 
-## Not implemented yet
+## Durable replay ledger (0.11.12-dev)\n\n- Persist inbound handshake replay counters and SHA-256 nonce hashes using AES-256-GCM, Android Keystore and AtomicFile.\n- Commit replay state before accepting a frame; a write failure returns PERSISTENCE_FAILURE without advancing in-memory state.\n- Restore and validate the exact sequence/transcript history after process recreation; reject malformed or unauthenticated storage instead of silently resetting it.\n- Bound storage to 1,024 sessions by default, 4,096 maximum, 256 frames per session and a 20 MiB encrypted file.\n\n**Current limitation:** This ledger is a local persistence component only. No socket flow or app UI currently creates and uses it; it does not coordinate replay state between devices or redeem QR invitation tokens. Tests are authored but not yet executed.\n\n## Not implemented yet
 
 - Redeeming invitations over a real peer-to-peer connection; QR registration is local to the issuer and is not exchanged with the scanner.
 - Distributed one-time redemption or replay prevention across devices.

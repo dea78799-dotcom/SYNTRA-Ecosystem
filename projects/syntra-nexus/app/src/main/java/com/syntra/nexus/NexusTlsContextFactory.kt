@@ -53,6 +53,10 @@ class AndroidKeystoreX509KeyManager(
         require(leaf.publicKey.algorithm.equals("EC", ignoreCase = true)) {
             "Local NEXUS TLS identity must use an EC public key."
         }
+        PairingIdentityCrypto.requireP256PublicKey(leaf.publicKey.encoded)
+        require(privateKey.algorithm.equals("EC", ignoreCase = true)) {
+            "Local NEXUS TLS identity private key must use EC."
+        }
         val keyUsage = leaf.keyUsage
         require(keyUsage == null || (keyUsage.isNotEmpty() && keyUsage[0])) {
             "Local identity certificate does not permit digital signatures."

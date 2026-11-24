@@ -108,6 +108,25 @@ class EncryptedPairingTransactionPersistenceAndroidTest {
         assertTrue("Recovered backup should be consumed.", !backupFile.exists())
     }
 
+
+    @Test
+    fun missingKeystoreKeyWithBackupOnlyDoesNotCreateReplacementOrEraseCiphertext() {
+        persistence().save(snapshot())
+        val original = baseFile.readBytes()
+        assertTrue(baseFile.renameTo(backupFile))
+        deleteKey()
+
+        assertThrows(IllegalStateException::class.java) {
+            persistence().load()
+        }
+
+        val store = KeyStore.getInstance("AndroidKeyStore")
+        store.load(null)
+        assertTrue(!store.containsAlias(KEY_ALIAS))
+        assertTrue(baseFile.isFile)
+        assertTrue(original.contentEquals(baseFile.readBytes()))
+    }
+
     private companion object {
         const val FILE_NAME = "nexus_pairing_transaction.enc"
         const val KEY_ALIAS = "syntra.nexus.pairing.transaction.aes.v1"

@@ -289,7 +289,8 @@ class NexusHandshakeReplayGuard(
 ) {
     private data class SessionReplayState(
         val expiresAtMillis: Long,
-        var lastSequence: Long
+        var lastSequence: Long,
+        val seenNonceHashes: MutableSet<String>
     )
 
     private val sessions = LinkedHashMap<String, SessionReplayState>()
@@ -307,28 +308,39 @@ class NexusHandshakeReplayGuard(
             if (iterator.next().value.expiresAtMillis <= nowMillis) iterator.remove()
         }
 
-        val key = frame.requestId + ":" + frame.senderFingerprint
+        val key = frame.requestId + ":" + frame.senderFingerprint + ":" +
+            frame.transcriptHash.toHexString()
+        val nonceHash = MessageDigest.getInstance("SHA-256").digest(frame.nonce).toHexString()
         val current = sessions[key]
         if (current == null) {
             if (sessions.size >= maxSessions) return NexusReplayDecision.CAPACITY_REACHED
             if (frame.sequence != 0L) return NexusReplayDecision.REPLAYED_OR_OUT_OF_ORDER
-            sessions[key] = SessionReplayState(frame.expiresAtMillis, frame.sequence)
+            sessions[key] = SessionReplayState(
+                frame.expiresAtMillis, frame.sequence, mutableSetOf(nonceHash)
+            )
             return NexusReplayDecision.ACCEPTED
         }
 
         if (frame.expiresAtMillis != current.expiresAtMillis ||
-            frame.sequence != current.lastSequence + 1L
+            frame.sequence != current.lastSequence + 1L ||
+            nonceHash in current.seenNonceHashes ||
+            current.seenNonceHashes.size >= MAX_FRAMES_PER_SESSION
         ) return NexusReplayDecision.REPLAYED_OR_OUT_OF_ORDER
 
         current.lastSequence = frame.sequence
+        current.seenNonceHashes.add(nonceHash)
         return NexusReplayDecision.ACCEPTED
     }
 
     companion object {
         const val DEFAULT_MAX_SESSIONS = 1_024
         const val HARD_MAX_SESSIONS = 4_096
+        const val MAX_FRAMES_PER_SESSION = 256
     }
 }
+
+private fun ByteArray.toHexString(): String =
+    joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
 
 object NexusAuthenticatedHandshake {
     fun verifyAndAccept(

@@ -26,6 +26,35 @@ class TlsSessionAuthorization private constructor(
     private val sessionCreationTime: Long,
     private val protocolSnapshot: String
 ) {
+    /** Returns true only when another JSSE handle identifies this exact session. */
+    internal fun isBoundTo(candidate: SSLSession): Boolean {
+        return try {
+            if (!candidate.isValid ||
+                !CapabilityRequestTlsIngress.isSupportedTlsProtocol(candidate.protocol) ||
+                candidate.protocol != protocolSnapshot ||
+                candidate.creationTime != sessionCreationTime ||
+                !java.security.MessageDigest.isEqual(
+                    candidate.id ?: ByteArray(0),
+                    sessionIdSnapshot
+                )
+            ) return false
+
+            val localLeaf = firstX509(candidate.localCertificates) ?: return false
+            val peerCertificates = try {
+                candidate.peerCertificates
+            } catch (_: SSLPeerUnverifiedException) {
+                return false
+            }
+            if (peerCertificates.size !in 1..MAX_CERTIFICATE_CHAIN_LENGTH) return false
+            val peerLeaf = peerCertificates.firstOrNull() as? X509Certificate ?: return false
+
+            PairingIdentityCrypto.fingerprint(localLeaf.publicKey.encoded) == expectedLocalFingerprint &&
+                PairingIdentityCrypto.fingerprint(peerLeaf.publicKey.encoded) == expectedPeerFingerprint
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     /**
      * Rechecks the exact TLS session and current peer trust immediately before
      * a protected operation. Revocation or provenance changes fail closed.

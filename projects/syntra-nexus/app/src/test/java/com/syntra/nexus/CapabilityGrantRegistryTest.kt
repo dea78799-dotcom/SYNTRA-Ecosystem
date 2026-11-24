@@ -2,6 +2,7 @@ package com.syntra.nexus
 
 import java.security.KeyPairGenerator
 import java.security.spec.ECGenParameterSpec
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -227,6 +228,71 @@ class CapabilityGrantRegistryTest {
             request, transcript, setup.session, setup.transaction, setup.trusted,
             signatures.first, signatures.second, now + 8
         ))
+    }
+
+    @Test
+    fun grantsAndRevocationSurviveRegistryRecreation() {
+        val setup = setup()
+        val persistence = MemoryCapabilityGrantPersistence()
+        val registry = CapabilityGrantRegistry(persistence)
+        val request = request()
+        val signatures = signedPair(request)
+
+        assertNotNull(registry.issue(
+            request, transcript, setup.session, setup.transaction, setup.trusted,
+            signatures.first, signatures.second, now + 7
+        ))
+        assertEquals(1, CapabilityGrantRegistry(persistence).snapshot().size)
+
+        val restored = CapabilityGrantRegistry(persistence)
+        assertTrue(restored.revoke(request.grantId, now + 8))
+        assertEquals(now + 8, CapabilityGrantRegistry(persistence).snapshot().single().revokedAtMillis)
+    }
+
+    @Test
+    fun failedPersistenceDoesNotMutateInMemoryGrantRegistry() {
+        val setup = setup()
+        val persistence = MemoryCapabilityGrantPersistence().apply { failWrites = true }
+        val registry = CapabilityGrantRegistry(persistence)
+        val request = request()
+        val signatures = signedPair(request)
+
+        try {
+            registry.issue(
+                request, transcript, setup.session, setup.transaction, setup.trusted,
+                signatures.first, signatures.second, now + 7
+            )
+        } catch (_: IllegalStateException) {
+            // Expected: durable commit fails closed.
+        }
+
+        assertTrue(registry.snapshot().isEmpty())
+    }
+
+    private class MemoryCapabilityGrantPersistence : CapabilityGrantPersistence {
+        private var values = emptyList<CapabilityGrant>()
+        var failWrites = false
+
+        override fun load(): List<CapabilityGrant> = values.map {
+            CapabilityGrant(
+                it.request,
+                it.localSignatureCopy(),
+                it.peerSignatureCopy(),
+                it.revokedAtMillis
+            )
+        }
+
+        override fun save(grants: List<CapabilityGrant>) {
+            check(!failWrites) { "Simulated durable storage failure." }
+            values = grants.map {
+                CapabilityGrant(
+                    it.request,
+                    it.localSignatureCopy(),
+                    it.peerSignatureCopy(),
+                    it.revokedAtMillis
+                )
+            }
+        }
     }
 
     private fun keyPair() = KeyPairGenerator.getInstance("EC").apply {

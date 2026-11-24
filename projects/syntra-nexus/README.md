@@ -1,5 +1,12 @@
 # SYNTRA NEXUS
 
+## Android Keystore TLS identity verification (0.11.27-dev)
+
+- Adds Android instrumentation coverage for the Android Keystore-backed TLS key manager and context factory.
+- Verifies private-key non-exportability, certificate/key correspondence, active peer pinning, and fail-closed handling of unknown/revoked peers.
+- No TLS handshake, listener, LAN socket, pairing transport, file transfer, screen sharing, or remote-control action is enabled. See [the 0.11.27 test note](docs/ANDROID-KEYSTORE-TLS-0.11.27.md).
+
+
 ## Mutual TLS integration test foundation (0.11.26-dev)
 
 - Add five loopback JSSE mutual-TLS tests: successful pinned peer exchange, unknown peer rejection, revoked peer rejection, required client certificate, and expired certificate rejection.

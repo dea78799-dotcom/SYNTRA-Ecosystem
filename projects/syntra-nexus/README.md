@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.6-dev  
-**Status:** Local trusted-device management UI, encrypted registry foundation, local activity summary, explicit MediaProjection consent prototype, and opt-in LAN discovery; no network pairing transport or screen streaming yet  
+**Version:** 0.11.7-dev  
+**Status:** Local trusted-device profile management, encrypted registry foundation, local activity summary, explicit MediaProjection consent prototype, and opt-in LAN discovery; no network pairing transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -58,6 +58,17 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Verified Android Keystore persistence and UsageStats behavior on physical devices.
 
 **Important:** Activity Monitor is local to the phone where permission was granted. It does not monitor another device. Screen-state history may be incomplete on some Android versions or after reboot. App usage values are Android-reported foreground totals, not a guarantee of exact screen-on time. NEXUS does not collect messages, keystrokes, notification contents or private app data.
+
+## Trusted-device profiles (0.11.7-dev)
+
+- Add a validated local rename operation for trusted-device display names (1–48 characters).
+- Persist renamed names before changing in-memory state; a storage failure leaves the previous name intact.
+- Add filters for active, revoked and all stored records.
+- Add a device detail dialog showing the SHA-256 fingerprint, trust timestamp, revocation timestamp and public-key byte length.
+- Keep revoked records visible in the revoked/all filters and preserve their revocation timestamp when renamed.
+- Add tests for rename persistence after registry recreation, renaming revoked records, unknown fingerprints and invalid names.
+
+**Current limitation:** Display names are local labels and are not synchronized to another device. The registry is still not connected to a completed pairing transport. Persistence recreation is covered with a fake persistence adapter in unit tests; Android Keystore and physical-device restart behavior still require device testing.
 
 ## Trusted-device management UI (0.11.6-dev)
 

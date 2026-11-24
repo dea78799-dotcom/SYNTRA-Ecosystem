@@ -273,7 +273,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.30-dev · kiểm tra lại TLS session + thu hồi trust; chưa mở socket LAN",
+                    text = "Prototype 0.11.31-dev · ràng buộc quyền với TLS socket; chưa mở kết nối LAN",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

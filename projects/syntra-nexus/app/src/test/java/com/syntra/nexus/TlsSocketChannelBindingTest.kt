@@ -81,6 +81,14 @@ class TlsSocketChannelBindingTest {
             )
             unrelated.close()
 
+            val peerFingerprint = readFingerprint("device_a")
+            assertTrue(registry.revoke(peerFingerprint, System.currentTimeMillis() + 1L))
+            assertFalse(
+                requireNotNull(binding).isAuthorized(
+                    client, registry, System.currentTimeMillis() + 2L
+                )
+            )
+
             client.outputStream.write(0x5A)
             client.outputStream.flush()
             client.close()

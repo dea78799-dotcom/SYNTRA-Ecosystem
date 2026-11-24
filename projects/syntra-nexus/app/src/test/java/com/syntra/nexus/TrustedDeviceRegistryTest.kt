@@ -105,6 +105,50 @@ class TrustedDeviceRegistryTest {
     }
 
     @Test
+    fun renamePersistsAcrossRegistryRecreation() {
+        val persistence = FakeTrustedDevicePersistence()
+        val first = TrustedDeviceRegistry(persistence)
+        val record = first.registerAfterVerifiedPairing(
+            pairedSession(), transcript, local.public.encoded, peer.public.encoded,
+            PairingSignerRole.RESPONDER, "Old name", NOW + 6
+        )
+
+        assertTrue(first.renameDevice(record.fingerprint, "Living room phone"))
+        val restored = TrustedDeviceRegistry(persistence)
+
+        assertEquals("Living room phone", restored.activeDevices().single().displayName)
+        assertEquals(record.fingerprint, restored.activeDevices().single().fingerprint)
+    }
+
+    @Test
+    fun renamingRevokedDeviceKeepsRevocationState() {
+        val persistence = FakeTrustedDevicePersistence()
+        val registry = TrustedDeviceRegistry(persistence)
+        val record = registry.registerAfterVerifiedPairing(
+            pairedSession(), transcript, local.public.encoded, peer.public.encoded,
+            PairingSignerRole.RESPONDER, "Old name", NOW + 6
+        )
+        assertTrue(registry.revoke(record.fingerprint, NOW + 7))
+
+        assertTrue(registry.renameDevice(record.fingerprint, "Archived phone"))
+        val restored = TrustedDeviceRegistry(persistence)
+
+        assertTrue(restored.activeDevices().isEmpty())
+        assertEquals("Archived phone", restored.allRecords().single().displayName)
+        assertTrue(restored.allRecords().single().isRevoked)
+    }
+
+    @Test
+    fun renameReturnsFalseForUnknownFingerprint() {
+        assertFalse(TrustedDeviceRegistry().renameDevice("0".repeat(64), "Unknown"))
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun renameRejectsBlankName() {
+        TrustedDeviceRegistry().renameDevice("0".repeat(64), "   ")
+    }
+
+    @Test
     fun persistenceFailureDoesNotMutateInMemoryRegistry() {
         val persistence = FakeTrustedDevicePersistence().apply { failWrites = true }
         val registry = TrustedDeviceRegistry(persistence)

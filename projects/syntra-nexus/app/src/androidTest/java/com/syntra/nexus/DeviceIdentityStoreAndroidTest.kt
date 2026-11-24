@@ -6,6 +6,7 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -58,24 +59,38 @@ class DeviceIdentityStoreAndroidTest {
     @Test
     fun keystorePrivateKeySignsOnlyForItsMatchingPublicIdentity() {
         val identity = store.getOrCreateIdentity()
-        val transcriptHash = ByteArray(32) { (it + 3).toByte() }
+        val peer = java.security.KeyPairGenerator.getInstance("EC").apply {
+            initialize(java.security.spec.ECGenParameterSpec("secp256r1"))
+        }.generateKeyPair()
+        val transcript = PairingTranscript.create(
+            requestId = "abcdefghijklmnopqrstuv",
+            expiresAtMillis = 120_000L,
+            initiatorPublicKeyEncoded = identity.publicKeyEncoded,
+            responderPublicKeyEncoded = peer.public.encoded,
+            initiatorNonce = ByteArray(32) { (it + 1).toByte() },
+            responderNonce = ByteArray(32) { (it + 65).toByte() },
+            nowMillis = 60_000L
+        )
         val signature = store.signPairingTranscriptHash(
-            transcriptHash,
+            transcript,
             PairingSignerRole.INITIATOR
         )
 
         assertTrue(PairingIdentityCrypto.verifyTranscriptHash(
             identity.publicKeyEncoded,
-            transcriptHash,
+            transcript.sha256,
             signature,
             PairingSignerRole.INITIATOR
         ))
         assertFalse(PairingIdentityCrypto.verifyTranscriptHash(
             identity.publicKeyEncoded,
-            transcriptHash,
+            transcript.sha256,
             signature,
             PairingSignerRole.RESPONDER
         ))
+        assertThrows(IllegalArgumentException::class.java) {
+            store.signPairingTranscriptHash(transcript, PairingSignerRole.RESPONDER)
+        }
     }
 
     @Test

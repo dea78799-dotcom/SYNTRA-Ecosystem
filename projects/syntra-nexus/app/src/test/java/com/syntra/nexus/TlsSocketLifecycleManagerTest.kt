@@ -96,7 +96,7 @@ class TlsSocketLifecycleManagerTest {
         NexusTlsProtocolPolicy.configureServerSocket(server)
         server.soTimeout = TIMEOUT_MILLIS
 
-        val executor = Executors.newFixedThreadPool(2)
+        val executor = Executors.newFixedThreadPool(3)
         val received = executor.submit<Boolean> {
             try {
                 (server.accept() as SSLSocket).use { peer ->

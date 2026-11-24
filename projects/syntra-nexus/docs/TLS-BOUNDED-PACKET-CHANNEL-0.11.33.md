@@ -19,4 +19,4 @@ There is no portable write-timeout API in java.net.Socket. This milestone does n
 
 ## Verification boundary
 
-The channel does not create/connect sockets, perform TLS handshakes, exchange pairing tokens, authenticate capability requests, transfer arbitrary files, capture screens or execute remote actions. It only carries already-encoded SNX1 packets on an already-authorized TLS channel. Loopback tests are authored but are not considered passed until CI reports success. No production LAN transport is enabled.
+The channel does not create/connect sockets, perform TLS handshakes, exchange pairing tokens, authenticate capability requests, transfer arbitrary files, capture screens or execute remote actions. It only carries already-encoded SNX1 packets on an already-authorized TLS channel. Six mutual-TLS loopback tests are authored for fragmented reads, idle timeout, partial-header timeout, payload timeout, oversized lengths and writes. They are not considered passed until CI reports success. No production LAN transport is enabled.

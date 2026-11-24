@@ -1,7 +1,7 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.1-dev  
-**Status:** Local activity summary, explicit MediaProjection consent prototype, and fail-closed screen-share authorization foundation; no network pairing or screen streaming yet  
+**Version:** 0.11.2-dev  
+**Status:** Local activity summary, explicit MediaProjection consent prototype, fail-closed screen-share authorization foundation, and opt-in LAN service discovery; no authenticated pairing or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
@@ -33,14 +33,22 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Add a fail-closed authorization gate for future screen sharing. It requires verified peer identity, mutual pairing approval, capability grants on both devices, sharer MediaProjection consent, receiver approval for the current session, encrypted transport, and a visible foreground notification.
 - Add bounded frame-metadata validation for future encoded frames; no pixel payload is accepted by this metadata model.
 - Add unit tests proving each missing authorization requirement blocks transmission and invalid frame metadata is rejected.
-- Clarify the UI state: it reports that a service-start request was sent, not that the MediaProjection service has confirmed an active session.
+- Add opt-in Android NSD (DNS-SD/mDNS) discovery for the dedicated `_syntranexus._tcp.` service type.
+- Show discovered service name, IP address and port in the local dashboard, clearly marked as unverified.
+- Provide explicit Start Scan and Stop Scan controls; discovery stops when the dashboard component is disposed.
+- Filter discovery results by the NEXUS service type and service-name prefix, then validate basic metadata before display.
+- Add unit tests for service metadata validation.
+- Add the INTERNET permission required for LAN discovery on the current target SDK.
+- Keep discovery separate from trust: the app does not connect to discovered addresses, redeem QR tokens, exchange identities or send app data.
+- Clarify the screen-share UI state: it reports that a service-start request was sent, not that the MediaProjection service has confirmed an active session.
 
 ## Not implemented yet
 
 - Redeeming invitations over a real peer-to-peer connection; QR registration is local to the issuer and is not exchanged with the scanner.
 - Distributed one-time redemption or replay prevention across devices.
 - Live exchange of fresh nonces and signatures between two devices.
-- TLS handshake, LAN transport, NSD/mDNS discovery, trusted-device registry or remote revocation.
+- TLS handshake, authenticated LAN transport, trusted-device registry or remote revocation.
+- NEXUS companion service advertisement; discovery currently searches for compatible advertisements but this app does not yet publish one.
 - Connecting the authorization gate to a real transport or enforcing it at a network boundary.
 - Actual screen-frame capture, encoding, transmission, receiver rendering or remote stop signaling.
 - Automatic game classification. A future game-time total needs an explicit user-reviewed app list.
@@ -50,7 +58,7 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 
 **Important:** Activity Monitor is local to the phone where permission was granted. It does not monitor another device. Screen-state history may be incomplete on some Android versions or after reboot. App usage values are Android-reported foreground totals, not a guarantee of exact screen-on time. NEXUS does not collect messages, keystrokes, notification contents or private app data.
 
-## Build and test
+## LAN discovery boundary (0.11.2-dev)\n\nLAN discovery uses Android NSD and is started only after the user taps Scan LAN. The UI displays matching service metadata as untrusted. Service discovery can be spoofed by another device on the same network; the name, IP address and port are not proof of identity. This milestone does not open a TCP socket, connect to a discovered peer, transmit QR tokens, or establish TLS. The current app does not yet advertise its own NEXUS service, so a second device will not appear unless it runs a compatible advertiser.\n\nThe current target SDK is 35. Android documentation says apps targeting SDK 36 or lower retain local-network access implicitly through INTERNET; do not add ACCESS_LOCAL_NETWORK until the app targets SDK 37 or higher and implements its runtime permission flow.\n\n## Build and test
 
 Use Gradle 8.9 and JDK 17:
 

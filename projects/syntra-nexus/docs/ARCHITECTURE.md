@@ -98,3 +98,14 @@ The current implementation defines a canonical transcript with a fixed field ord
 The transcript is SHA-256 hashed. ECDSA signatures cover the hash together with a NEXUS-specific domain separator and the signer's explicit initiator/responder role. Role separation is intended to prevent a signature produced in one protocol role from being reflected as the other role.
 
 This is not yet a complete handshake. Nonce exchange, one-time invitation redemption, peer-side signature verification, mutual approval, trusted-device persistence, and authenticated LAN transport remain unimplemented.
+
+
+## Capability roadmap
+
+Proposed optional capabilities are documented in `docs/DEVICE-CAPABILITIES.md`:
+
+- Daily screen-on and app/game usage summaries through Android UsageStats with user-granted access, freshness indicators and aggregate reporting.
+- Live screen sharing only through MediaProjection's system consent, foreground notification, visible sharing indicator, and stop controls; no default recording.
+- Local adult-domain filtering through an opt-in VPNService/DNS filter with visible settings and an off switch. Keyword filtering is limited to NEXUS-owned text fields; encrypted web content is not inspected.
+
+These capabilities remain unimplemented until the pairing and capability-grant system is real and tested. A pairing alone will not grant them.

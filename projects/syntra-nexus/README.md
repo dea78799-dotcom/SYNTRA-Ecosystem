@@ -1,13 +1,13 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.19-dev  
-**Status:** Identity and trust audit: canonical P-256 identity enforcement, Android Keystore key-pair verification, transcript-bound signatures, trusted-device validation and revocation checks; encrypted AtomicFile recovery safeguards retained; no live TLS transport or screen streaming yet  
+**Version:** 0.11.20-dev  
+**Status:** Revocation and authorization binding audit: pairing provenance, live registry revalidation and stale-session rejection; no live TLS transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
 
 SYNTRA NEXUS is an opt-in device-management concept for devices that the owner or an authorized user has agreed to pair. The Android application is the first controller. TV support remains deferred until the target platform is selected.
 
-## Current prototype scope
+## Revocation & authorization binding (0.11.20-dev)\n\nSee [the audit report](docs/REVOCATION-AUTHORIZATION-AUDIT-0.11.20.md). Trusted-device entries now bind to the exact pairing request and transcript. New-session authorization rechecks current revocation state and exact provenance instead of trusting a stale snapshot. Older records without provenance remain visible but must be paired again before authorizing sessions. The authorization helper is not connected to a socket or remote capability path.\n\n## Current prototype scope
 
 - Android dashboard with an explicit prototype status.
 - Generate a QR invitation containing a cryptographically random, short-lived request ID and token; invitation lifetime is limited to two minutes.

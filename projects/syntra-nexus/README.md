@@ -1,6 +1,6 @@
 # SYNTRA NEXUS
 
-**Version:** 0.11.4-dev  
+**Version:** 0.11.5-dev  
 **Status:** Local activity summary, explicit MediaProjection consent prototype, fail-closed screen-share authorization foundation, and opt-in LAN service discovery; no network pairing transport or screen streaming yet  
 **Platform:** Android-first  
 **Network model:** Local-first
@@ -48,7 +48,7 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Redeeming invitations over a real peer-to-peer connection; QR registration is local to the issuer and is not exchanged with the scanner.
 - Distributed one-time redemption or replay prevention across devices.
 - Live exchange of fresh nonces and signatures between two devices.
-- TLS handshake, authenticated LAN transport, encrypted durable trusted-device persistence or remote revocation.
+- TLS handshake, authenticated LAN transport, remote revocation.
 - NEXUS companion service advertisement; discovery currently searches for compatible advertisements but this app does not yet publish one.
 - Connecting the authorization gate to a real transport or enforcing it at a network boundary.
 - Actual screen-frame capture, encoding, transmission, receiver rendering or remote stop signaling.
@@ -59,6 +59,18 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 
 **Important:** Activity Monitor is local to the phone where permission was granted. It does not monitor another device. Screen-state history may be incomplete on some Android versions or after reboot. App usage values are Android-reported foreground totals, not a guarantee of exact screen-on time. NEXUS does not collect messages, keystrokes, notification contents or private app data.
 
+## Encrypted trusted-device persistence (0.11.5-dev)
+
+- Store trusted peer public keys, SHA-256 fingerprints, display names, trust timestamps and local revocation timestamps in an AES-256-GCM encrypted file.
+- Keep the AES key in Android Keystore under a dedicated alias; private identity keys and pairing secrets are not written into this registry.
+- Use a fresh GCM IV for each write and Android AtomicFile for replacement.
+- Validate the public-key fingerprint, key size, display name and timestamps when loading records; reject duplicate fingerprints and registries above 128 records.
+- Persist each mutation before updating in-memory state. If storage fails, the in-memory registry is left unchanged.
+- Load the registry in the dashboard and report a read/decryption failure instead of silently treating corrupted data as an empty trusted list.
+- Add tests for persistence restoration, revocation restoration, invalid stored fingerprints and fail-closed write failures.
+
+**Current limitation:** The storage layer and dashboard loading are implemented, but no completed remote pairing flow currently calls the registration API. No device should be added merely by scanning QR or discovering an NSD service. Physical-device Keystore behavior and the Android build still require verification.
+
 ## Local trusted-device registry foundation (0.11.4-dev)
 
 - Add a local in-memory registry for peer identities only after the pairing state machine reaches PAIRED with BOTH_APPROVED.
@@ -67,7 +79,7 @@ SYNTRA NEXUS is an opt-in device-management concept for devices that the owner o
 - Revoke a local record by fingerprint; revoked records are excluded from the active-device list.
 - Reject unverified sessions, transcript substitution, and peer keys that do not match the transcript.
 
-**Current limitation:** this registry is an in-memory prototype. It is cleared when the app process is restarted, has no UI yet, and does not send revocation to another device. Encrypted durable persistence is the next step. This feature does not make the QR scanner or LAN discovery a trust mechanism.
+**Current limitation:** this registry is an in-memory prototype. It is cleared when the app process is restarted, has no UI yet, and does not send revocation to another device. Encrypted durable persistence is implemented in 0.11.5-dev; remote revocation is still not implemented. This feature does not make the QR scanner or LAN discovery a trust mechanism.
 
 ## Device identity display (0.11.3-dev)
 

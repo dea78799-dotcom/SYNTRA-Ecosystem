@@ -251,7 +251,7 @@ private fun NexusDashboard() {
 
             item {
                 Text(
-                    text = "Prototype 0.11.8-dev · giao thức gói LAN có giới hạn; chưa có kết nối mạng",
+                    text = "Prototype 0.11.9-dev · chính sách ghim khóa thiết bị; chưa có TLS/socket",
                     color = NexusMuted,
                     fontSize = 11.sp,
                     modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)

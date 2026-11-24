@@ -138,6 +138,17 @@ class TrustedDeviceRegistryTest {
         assertTrue(restored.allRecords().single().isRevoked)
     }
 
+
+    @Test(expected = IllegalArgumentException::class)
+    fun rejectsRevocationTimestampBeforeTrustTimestamp() {
+        val registry = TrustedDeviceRegistry()
+        val record = registry.registerAfterVerifiedPairing(
+            pairedSession(), transcript, local.public.encoded, peer.public.encoded,
+            PairingSignerRole.RESPONDER, "Peer", NOW + 6
+        )
+        registry.revoke(record.fingerprint, NOW + 5)
+    }
+
     @Test
     fun renameReturnsFalseForUnknownFingerprint() {
         assertFalse(TrustedDeviceRegistry().renameDevice("0".repeat(64), "Unknown"))

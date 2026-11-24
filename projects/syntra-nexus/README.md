@@ -152,6 +152,7 @@ Use Gradle 8.9 and JDK 17:
 
 ```bash
 gradle :app:testDebugUnitTest
+gradle :app:connectedDebugAndroidTest
 gradle :app:assembleDebug
 ```
 

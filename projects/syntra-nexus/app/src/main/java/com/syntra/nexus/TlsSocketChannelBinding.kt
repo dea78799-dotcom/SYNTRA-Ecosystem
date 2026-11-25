@@ -4,6 +4,10 @@ import java.net.SocketAddress
 import java.security.MessageDigest
 import javax.net.ssl.SSLSocket
 
+internal fun interface TlsChannelBindingAuthorization {
+    fun isAuthorized(currentTrustedDevices: TrustedDeviceRegistry, nowMillis: Long): Boolean
+}
+
 /**
  * Binds an authorization handle to one exact, already-connected SSLSocket.
  *
@@ -21,12 +25,12 @@ class TlsSocketChannelBinding private constructor(
     private val sessionId: ByteArray,
     private val sessionCreationTime: Long,
     private val protocol: String
-) {
+) : TlsChannelBindingAuthorization {
     /**
      * Candidate identity must be the same socket object captured after the
      * handshake. A different socket cannot reuse this authorization handle.
      */
-    fun isAuthorized(
+    override fun isAuthorized(
         currentTrustedDevices: TrustedDeviceRegistry,
         nowMillis: Long
     ): Boolean = isAuthorized(socket, currentTrustedDevices, nowMillis)

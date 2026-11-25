@@ -1,6 +1,5 @@
 package com.syntra.nexus
 
-import java.io.IOException
 import java.net.SocketTimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -125,6 +124,13 @@ class TlsPacketSessionDriver(
                 receive = receiveResult,
                 written = written
             )
+        } catch (interrupted: InterruptedException) {
+            Thread.currentThread().interrupt()
+            failSession()
+            return result(PacketPumpOutcome.DISCONNECTED)
+        } catch (error: Exception) {
+            failSession()
+            return result(PacketPumpOutcome.DISCONNECTED)
         } finally {
             pumping.set(false)
         }

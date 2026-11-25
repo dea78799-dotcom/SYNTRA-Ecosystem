@@ -14,7 +14,7 @@ import java.nio.charset.CodingErrorAction
  * the signature and bind the request to the authenticated peer, transcript,
  * session and current trusted-device record before presenting consent UI.
  */
-data class CapabilityRequestEnvelope(
+class CapabilityRequestEnvelope(
     val request: CapabilityGrantRequest,
     peerApprovalSignature: ByteArray
 ) {

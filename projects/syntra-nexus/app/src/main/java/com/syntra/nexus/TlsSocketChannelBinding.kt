@@ -15,7 +15,7 @@ internal fun interface TlsChannelBindingAuthorization {
  * negotiated JSSE session identity. It never creates, connects or closes a
  * socket. Call isAuthorized immediately before each protected I/O operation.
  */
-class TlsSocketChannelBinding private constructor(
+internal class TlsSocketChannelBinding private constructor(
     private val socket: SSLSocket,
     private val authorization: TlsSessionAuthorization,
     private val localAddress: SocketAddress,

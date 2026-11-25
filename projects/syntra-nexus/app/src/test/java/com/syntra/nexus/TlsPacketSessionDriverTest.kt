@@ -84,6 +84,22 @@ class TlsPacketSessionDriverTest {
     }
 
     @Test
+    fun outboundWriteFailureDisconnectsSession() {
+        val channel = FakeChannel().apply {
+            writeFailure = java.io.IOException("write failed")
+        }
+        val driver = TlsPacketSessionDriver(channel, nanoTime = { 1L })
+        driver.start()
+        assertTrue(driver.enqueue(packet(NexusMessageType.HELLO)))
+
+        val result = driver.pumpOnce(100)
+
+        assertEquals(PacketPumpOutcome.DISCONNECTED, result.outcome)
+        assertEquals(PacketSessionState.DISCONNECTED, result.state)
+        assertFalse(channel.isOpen)
+    }
+
+    @Test
     fun cleanEofDisconnectsSession() {
         val channel = FakeChannel()
         val driver = TlsPacketSessionDriver(channel, nanoTime = { 1L })
@@ -141,6 +157,7 @@ class TlsPacketSessionDriverTest {
         val written = mutableListOf<NexusTransportPacket>()
         var readFailure: Exception? = null
         var closeOnReadFailure: Boolean = false
+        var writeFailure: Exception? = null
 
         override fun readPacket(readTimeoutMillis: Int): NexusTransportPacket? {
             readFailure?.let {
@@ -151,7 +168,8 @@ class TlsPacketSessionDriverTest {
         }
 
         override fun writePacket(packet: NexusTransportPacket) {
-            if (!isOpen) throw IOException("closed")
+            writeFailure?.let { throw it }
+            if (!isOpen) throw java.io.IOException("closed")
             written += packet
         }
 

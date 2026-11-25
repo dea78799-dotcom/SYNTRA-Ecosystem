@@ -101,7 +101,7 @@ class TlsPacketSessionDriverTest {
 
     @Test
     fun cleanEofDisconnectsSession() {
-        val channel = FakeChannel()
+        val channel = FakeChannel().apply { eofOnEmpty = true }
         val driver = TlsPacketSessionDriver(channel, nanoTime = { 1L })
         driver.start()
 
@@ -157,6 +157,7 @@ class TlsPacketSessionDriverTest {
         val written = mutableListOf<NexusTransportPacket>()
         var readFailure: Exception? = null
         var closeOnReadFailure: Boolean = false
+        var eofOnEmpty: Boolean = false
         var writeFailure: Exception? = null
 
         override fun readPacket(readTimeoutMillis: Int): NexusTransportPacket? {
@@ -164,7 +165,11 @@ class TlsPacketSessionDriverTest {
                 if (closeOnReadFailure) close()
                 throw it
             }
-            return incoming.pollFirst()
+            return incoming.pollFirst() ?: if (eofOnEmpty) {
+                null
+            } else {
+                throw SocketTimeoutException("idle")
+            }
         }
 
         override fun writePacket(packet: NexusTransportPacket) {

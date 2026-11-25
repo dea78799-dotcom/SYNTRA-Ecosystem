@@ -128,6 +128,13 @@ class PacketSessionSupervisor(
     }
 
     @Synchronized
+    fun fail() {
+        if (currentState == PacketSessionState.ACTIVE || currentState == PacketSessionState.NEW) {
+            disconnect()
+        }
+    }
+
+    @Synchronized
     fun close() {
         if (currentState != PacketSessionState.CLOSED) {
             currentState = PacketSessionState.CLOSED

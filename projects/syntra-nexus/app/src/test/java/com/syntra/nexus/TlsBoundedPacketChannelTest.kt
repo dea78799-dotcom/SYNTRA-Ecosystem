@@ -273,6 +273,6 @@ class TlsBoundedPacketChannelTest {
     private companion object {
         const val TIMEOUT_MILLIS = 5_000
         const val TEST_REQUEST_ID = "EEEEEEEEEEEEEEEEEEEEEE"
-        const val TEST_TRANSCRIPT_HASH = "a".repeat(64)
+        val TEST_TRANSCRIPT_HASH = "a".repeat(64)
     }
 }

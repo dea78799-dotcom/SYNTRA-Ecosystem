@@ -146,7 +146,8 @@ class CapabilityGrantRegistryTest {
         )
         assertNull(CapabilityGrantRegistry().issue(
             request, transcript, setup.session, setup.transaction, setup.trusted,
-            localSignature, wrongRoleSignature, now + 7
+            localSignature, wrongRoleSignature, now + 7,
+            tlsChannelBinding = testTlsChannelBinding()
         ))
     }
 
@@ -241,7 +242,8 @@ class CapabilityGrantRegistryTest {
         val consent = CapabilityConsentCoordinator(registry)
         val pending = consent.prepare(
             request, transcript, setup.session, setup.transaction, setup.trusted,
-            peerSignature, now + 7
+            peerSignature, now + 7,
+            tlsChannelBinding = testTlsChannelBinding()
         )
         assertNotNull(pending)
 
@@ -386,6 +388,13 @@ class CapabilityGrantRegistryTest {
                 )
             }
         }
+    }
+
+    private fun testTlsChannelBinding() = object : TlsChannelBindingAuthorization {
+        override fun isAuthorized(
+            currentTrustedDevices: TrustedDeviceRegistry,
+            nowMillis: Long
+        ): Boolean = true
     }
 
     private fun keyPair() = KeyPairGenerator.getInstance("EC").apply {

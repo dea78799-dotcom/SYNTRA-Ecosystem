@@ -1,6 +1,6 @@
 # SYNTRA NEXUS
 
-## TLS packet session driver (0.11.36-dev)
+## TLS packet session driver and visibility fix (0.11.37-dev)
 
 - Fix the Kotlin compilation error in `CapabilityRequestEnvelope` by using a regular class for the defensive-copy signature parameter.
 - Add a narrow `BoundedPacketChannel` contract and adapt the authenticated TLS packet channel.

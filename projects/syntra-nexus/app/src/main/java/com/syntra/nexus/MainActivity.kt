@@ -129,7 +129,7 @@ private fun NexusDashboard() {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Quản lý thiết bị và quyền cục bộ",
+                        text = "Prototype 0.11.35-dev · quản lý thiết bị và quyền cục bộ",
                         color = NexusMuted,
                         fontSize = 14.sp
                     )

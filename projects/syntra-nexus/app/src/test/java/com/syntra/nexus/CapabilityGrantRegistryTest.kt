@@ -146,8 +146,7 @@ class CapabilityGrantRegistryTest {
         )
         assertNull(CapabilityGrantRegistry().issue(
             request, transcript, setup.session, setup.transaction, setup.trusted,
-            localSignature, wrongRoleSignature, now + 7,
-            tlsChannelBinding = testTlsChannelBinding()
+            localSignature, wrongRoleSignature, now + 7
         ))
     }
 
@@ -270,7 +269,8 @@ class CapabilityGrantRegistryTest {
         val consent = CapabilityConsentCoordinator(CapabilityGrantRegistry())
         val pending = consent.prepare(
             request, transcript, setup.session, setup.transaction, setup.trusted,
-            wrongRoleSignature, now + 7
+            wrongRoleSignature, now + 7,
+            tlsChannelBinding = testTlsChannelBinding()
         )
         assertNull(pending)
     }
@@ -285,7 +285,8 @@ class CapabilityGrantRegistryTest {
         val consent = CapabilityConsentCoordinator(CapabilityGrantRegistry())
         val pending = consent.prepare(
             request, transcript, setup.session, setup.transaction, setup.trusted,
-            peerSignature, now + 7
+            peerSignature, now + 7,
+            tlsChannelBinding = testTlsChannelBinding()
         )
         assertNotNull(pending)
 

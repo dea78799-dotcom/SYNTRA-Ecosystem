@@ -4,7 +4,7 @@ import java.net.SocketAddress
 import java.security.MessageDigest
 import javax.net.ssl.SSLSocket
 
-internal fun interface TlsChannelBindingAuthorization {
+fun interface TlsChannelBindingAuthorization {
     fun isAuthorized(currentTrustedDevices: TrustedDeviceRegistry, nowMillis: Long): Boolean
 }
 
@@ -15,7 +15,7 @@ internal fun interface TlsChannelBindingAuthorization {
  * negotiated JSSE session identity. It never creates, connects or closes a
  * socket. Call isAuthorized immediately before each protected I/O operation.
  */
-internal class TlsSocketChannelBinding private constructor(
+class TlsSocketChannelBinding private constructor(
     private val socket: SSLSocket,
     private val authorization: TlsSessionAuthorization,
     private val localAddress: SocketAddress,

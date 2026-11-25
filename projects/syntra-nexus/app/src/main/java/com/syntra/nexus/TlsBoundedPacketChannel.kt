@@ -22,7 +22,10 @@ import javax.net.ssl.SSLSocket
  */
 class TlsBoundedPacketChannel(
     private val lifecycle: TlsSocketLifecycleManager
-) : AutoCloseable {
+) : BoundedPacketChannel {
+
+    override val isOpen: Boolean
+        get() = lifecycle.state == TlsSocketLifecycleState.ACTIVE
 
     /**
      * Reads exactly one packet. Returns null only for clean EOF between frames.
@@ -34,7 +37,7 @@ class TlsBoundedPacketChannel(
      * the channel closes.
      */
     @Throws(IOException::class)
-    fun readPacket(readTimeoutMillis: Int): NexusTransportPacket? {
+    override fun readPacket(readTimeoutMillis: Int): NexusTransportPacket? {
         require(readTimeoutMillis in 1..MAX_READ_TIMEOUT_MILLIS) {
             "Read timeout must be between 1 and $MAX_READ_TIMEOUT_MILLIS milliseconds."
         }
@@ -66,7 +69,7 @@ class TlsBoundedPacketChannel(
      * made by the Java socket API.
      */
     @Throws(IOException::class)
-    fun writePacket(packet: NexusTransportPacket) {
+    override fun writePacket(packet: NexusTransportPacket) {
         val frame = NexusTransportCodec.encode(packet)
         require(frame.size in NexusTransportCodec.HEADER_BYTES..NexusTransportCodec.MAX_PACKET_BYTES)
         try {

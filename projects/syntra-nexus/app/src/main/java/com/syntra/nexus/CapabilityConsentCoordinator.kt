@@ -8,7 +8,7 @@ package com.syntra.nexus
  * PendingCapabilityConsent. The local signing callback is invoked only when
  * the UI explicitly calls approve() from its Allow button.
  */
-class CapabilityConsentCoordinator(
+internal class CapabilityConsentCoordinator(
     private val registry: CapabilityGrantRegistry
 ) {
     class PendingCapabilityConsent internal constructor(
@@ -17,7 +17,7 @@ class CapabilityConsentCoordinator(
         val session: PairingHandshakeSession,
         val transaction: PairingTransactionSnapshot,
         peerApprovalSignature: ByteArray,
-        internal val tlsChannelBinding: TlsSocketChannelBinding
+        internal val tlsChannelBinding: TlsChannelBindingAuthorization
     ) {
         private val peerSignature = peerApprovalSignature.copyOf()
         internal fun peerApprovalSignatureCopy(): ByteArray = peerSignature.copyOf()
@@ -31,7 +31,7 @@ class CapabilityConsentCoordinator(
         trustedDevices: TrustedDeviceRegistry,
         peerApprovalSignature: ByteArray,
         nowMillis: Long,
-        tlsChannelBinding: TlsSocketChannelBinding
+        tlsChannelBinding: TlsChannelBindingAuthorization
     ): PendingCapabilityConsent? {
         if (!isValid(
                 request, transcript, session, transaction, trustedDevices,

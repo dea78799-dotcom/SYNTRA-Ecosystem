@@ -1,5 +1,16 @@
 # SYNTRA NEXUS
 
+## TLS packet session driver (0.11.35-dev)
+
+- Fix the Kotlin compilation error in `CapabilityRequestEnvelope` by using a regular class for the defensive-copy signature parameter.
+- Add a narrow `BoundedPacketChannel` contract and adapt the authenticated TLS packet channel.
+- Add a caller-driven driver that drains queued outbound packets, reads one bounded inbound packet, applies heartbeat/session policy, and drains control replies such as PONG.
+- Idle read timeout is recoverable only while the TLS channel remains open. Partial-frame timeout, EOF, malformed packet, authorization failure and read/write I/O errors close the session.
+- The driver does not own a worker thread. Its pump is single-flight; close remains able to interrupt a blocked read.
+- Add fake-channel unit tests for packet ordering, PING/PONG correlation, idle timeout, closed-channel timeout, EOF, read/write failures and terminal close.
+- No connection creation, listener, discovery, automatic reconnect, token exchange, remote command execution or file transfer is enabled.
+- See [the 0.11.35 technical note](docs/TLS-PACKET-SESSION-DRIVER-0.11.35.md).
+
 ## Packet session supervisor (0.11.34-dev)
 
 - Add a deterministic session policy layer with NEW, ACTIVE, DISCONNECTED and CLOSED states.

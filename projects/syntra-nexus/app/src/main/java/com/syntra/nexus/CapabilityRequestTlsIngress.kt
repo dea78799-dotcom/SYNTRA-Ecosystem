@@ -13,7 +13,7 @@ import javax.net.ssl.SSLSocket
  * exact SSLSocket used for the completed handshake configured with
  * NexusTlsContextFactory and PinnedPeerTrustManager.
  */
-class CapabilityRequestTlsIngress(
+internal class CapabilityRequestTlsIngress(
     private val consentCoordinator: CapabilityConsentCoordinator
 ) {
     fun prepare(

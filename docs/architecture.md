@@ -1,8 +1,8 @@
 # SYNTRA Ecosystem — System Architecture
 
 > Document status: Initial architecture proposal  
-> Version: 1.0.0  
-> Last updated: 2026-11-23
+> Version: 1.1.0  
+> Last updated: 2026-11-26
 
 ## 1. Purpose
 
@@ -23,7 +23,7 @@ This is a planning document. Components described as planned are not yet impleme
 
 The ecosystem is organized into four layers:
 
-1. **Product layer** — independently developed applications such as SYNTRA OS and Syntra Files.
+1. **Product layer** — independently developed applications and services such as SYNTRA OS, SYNTRA VPN, SYNTRA VM, SYNTRA SOCIAL, and SYNTRA NEXUS.
 2. **Shared standards layer** — brand assets, design guidance, accessibility expectations, coding conventions, and release rules.
 3. **Integration layer** — optional, explicitly defined interfaces for products that need to exchange data or coordinate features.
 4. **Web and information layer** — the company website, product information, documentation, support information, and download links.
@@ -32,10 +32,18 @@ A product should remain usable when optional ecosystem services are unavailable,
 
 ## 4. Product directory
 
-| Product | Responsibility | Status |
+| Project | Responsibility | Status |
 |---|---|---|
-| SYNTRA OS | Operating-system project | In development |
-| Syntra Files | File-management application | Testing and upgrading |
+| SYNTRA OS | Operating-system project | Early Development; primary focus |
+| SYNTRA VPN | Android VPN client and cloud control plane | Engineering foundation / prototype |
+| SYNTRA VM | Cloud virtual-machine platform | Phase 1 Billing Foundation |
+| SYNTRA SOCIAL | Mobile-first social platform | Prototype; not production-ready |
+| SYNTRA NEXUS | Opt-in Android device ecosystem | Local-first prototype |
+| SYNTRA Website | Public ecosystem information | Maintained; v2.15 |
+| Discord Bridge / AUTO-BOT | Community bot and backend bridge | Operational infrastructure; verify runtime live |
+| SYNTRA Ecosystem / GROUP | Governance and documentation | Maintained |
+
+**Discontinued:** Syntra Files was discontinued by Founder decision on 2026-11-26. Its repository and history are retained for reference only; it is not an active product or development target.
 
 Future ideas must be marked as **proposed** until implementation begins. A product must not be described as released until a usable release is published and documented.
 
@@ -140,4 +148,4 @@ Architecture changes should be made through reviewed commits or pull requests wh
 
 ---
 
-**Current state:** Initial architecture documented; implementation of shared ecosystem services has not yet been claimed.
+**Current state:** Shared architecture and project catalogue are documented. Product maturity varies; see [Product Directory](products.md). Syntra Files is discontinued and retained as historical reference.

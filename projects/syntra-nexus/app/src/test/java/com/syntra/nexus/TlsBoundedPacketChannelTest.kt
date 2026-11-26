@@ -178,7 +178,7 @@ class TlsBoundedPacketChannelTest {
         val serverFuture = executor.submit {
             server.accept().use { raw ->
                 val peer = raw as SSLSocket
-                peer.soTimeout = TIMEOUT_MILLIS
+                peer.soTimeout = SERVER_READ_TIMEOUT_MILLIS
                 peer.startHandshake()
                 serverAction(peer, release)
             }
@@ -272,6 +272,7 @@ class TlsBoundedPacketChannelTest {
 
     private companion object {
         const val TIMEOUT_MILLIS = 5_000
+        const val SERVER_READ_TIMEOUT_MILLIS = 2_000
         const val TEST_REQUEST_ID = "EEEEEEEEEEEEEEEEEEEEEE"
         val TEST_TRANSCRIPT_HASH = "a".repeat(64)
     }

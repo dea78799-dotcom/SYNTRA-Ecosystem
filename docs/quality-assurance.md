@@ -1,8 +1,8 @@
 # SYNTRA Quality Assurance (QA)
 
-**Document version:** 1.0.0  
+**Document version:** 1.1.0  
 **Status:** Initial standard  
-**Applies to:** SYNTRA OS, Syntra Files, and future SYNTRA products
+**Applies to:** Active SYNTRA products and services
 
 This document defines a shared quality-assurance process. A status of PASS means the checks listed for that change were completed and recorded; it does not imply that every device, configuration, or use case has been tested.
 
@@ -72,16 +72,19 @@ Never include passwords, access tokens, private keys, or personal data in bug re
 
 Only test capabilities that exist in the current build. Mark unimplemented areas as NOT IMPLEMENTED, not PASS.
 
-### Syntra Files
+### Other active product QA
 
-- File and folder browsing, sorting, and search.
-- Opening supported file types with the correct handler.
-- Create, rename, copy, move, and delete operations.
-- Permission-denied, missing-file, and insufficient-storage handling.
-- Large directories, long filenames, and unusual characters.
-- Image and video preview behavior where supported.
-- APK or app-package handling: clearly distinguish viewing package information from installing; installation must use the platform's normal user-confirmed system flow.
-- Recovery from interrupted operations and safe handling of user files.
+Use each product repository's current test plan. SYNTRA VPN requires authentication, gateway, tunnel, DNS, reconnect, and end-to-end checks before production claims. SYNTRA VM requires billing-ledger integrity, entitlement, metering, and provisioning tests before commercial claims. SYNTRA SOCIAL requires authentication, media privacy, moderation, and device-level end-to-end tests. SYNTRA NEXUS requires explicit consent, pairing, identity verification, and transport-security tests before remote capabilities are advertised. Website and Discord Bridge require public-link/content checks and live runtime/interaction verification respectively.
+
+### Syntra Files — historical QA records only
+
+Syntra Files was discontinued by Founder decision on 2026-11-26. The former file-management QA checklist below is retained solely to interpret historical test records. Do not schedule new QA, upgrades, or feature tests for this project unless the Founder explicitly reopens it.
+
+- Historical test areas included file and folder browsing, sorting, and search.
+- Historical test areas included supported file opening, file operations, permission handling, large directories, previews, and interrupted-operation recovery.
+- Historical APK handling required platform-standard user confirmation.
+
+These are historical checklist items, not current work or a claim that the capabilities passed testing.
 
 ## 7. Test case template
 

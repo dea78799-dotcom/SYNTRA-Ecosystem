@@ -65,19 +65,4 @@ jobs:
           profile: pixel_2
           emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
           script: |
-            cd projects/syntra-nexus
-            set +e
-            gradle --no-daemon :app:connectedDebugAndroidTest
-            test_status=$?
-            if [ "$test_status" -ne 0 ]; then
-              echo "::group::Android crash buffer"
-              adb logcat -b crash -d -v threadtime | tail -n 500 || true
-              echo "::endgroup::"
-              echo "::group::Android instrumentation and system errors"
-              adb logcat -b main -b system -d -v threadtime | grep -E -i "AndroidJUnitRunner|Instrumentation|FATAL EXCEPTION|Fatal signal|Process .* died|Force finishing|ANR|crash|exception|error" | tail -n 500 || true
-              echo "::endgroup::"
-              echo "::group::Android test process exit information"
-              adb shell dumpsys activity exit-info | tail -n 250 || true
-              echo "::endgroup::"
-            fi
-            exit "$test_status"
+            gradle --project-dir projects/syntra-nexus --no-daemon :app:connectedDebugAndroidTest || { test_status=$?; echo "::group::Android crash buffer"; adb logcat -b crash -d -v threadtime | tail -n 500 || true; echo "::endgroup::"; echo "::group::Android instrumentation and system errors"; adb logcat -b main -b system -d -v threadtime | grep -E -i "AndroidJUnitRunner|Instrumentation|FATAL EXCEPTION|Fatal signal|Process .* died|Force finishing|ANR|crash|exception|error" | tail -n 500 || true; echo "::endgroup::"; echo "::group::Android test process exit information"; adb shell dumpsys activity exit-info | tail -n 250 || true; echo "::endgroup::"; exit "$test_status"; }

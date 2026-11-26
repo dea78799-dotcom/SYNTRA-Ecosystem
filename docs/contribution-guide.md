@@ -122,11 +122,13 @@ Do not include passwords, access tokens, private files, personal identifiers, or
 
 Changes should consider system stability, supported hardware and environments, permission boundaries, update integrity, and recovery behavior. Clearly identify the target build or environment used for testing.
 
-### Syntra Files
+### SYNTRA VPN, VM, SOCIAL, and NEXUS
 
-Changes should consider file integrity, safe file operations, permission handling, supported file types, and the risk of accidental data loss. Test with sample data and avoid using private user files.
+Contributions must respect each product's documented maturity and security boundaries. Do not represent prototypes or engineering foundations as production services. Device permissions, authentication, billing, private media, pairing, and remote-device capabilities require explicit scope, consent, and appropriate security review.
 
-These are review expectations; they do not imply that every listed control is already implemented.
+### Syntra Files — discontinued
+
+Syntra Files is discontinued by Founder decision on 2026-11-26. Do not submit new feature, upgrade, or testing contributions for it unless the Founder explicitly reopens the project. Its repository and historical records remain available as reference only.
 
 ## 11. Review and acceptance
 

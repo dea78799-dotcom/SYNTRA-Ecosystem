@@ -100,12 +100,9 @@ class TlsSocketLifecycleManagerTest {
         val received = executor.submit<Boolean> {
             try {
                 (server.accept() as SSLSocket).use { peer ->
-                    peer.soTimeout = TIMEOUT_MILLIS
-                    peer.startHandshake()
-                    peer.inputStream.read() >= 0 && peer.inputStream.read() >= 0
-                }
-            } catch (_: Exception) {
-                false
+                    peer.soTimeout = SERVER_READ_TIMEOUT_MILLIS
+                peer.startHandshake()
+                peer.inputStream.read() >= 0 && peer.inputStream.read() >= 0
             }
         }
 
@@ -192,6 +189,7 @@ class TlsSocketLifecycleManagerTest {
 
     private companion object {
         const val TIMEOUT_MILLIS = 8_000
+        const val SERVER_READ_TIMEOUT_MILLIS = 2_000
         const val TEST_REQUEST_ID = "EEEEEEEEEEEEEEEEEEEEEE"
         val TEST_TRANSCRIPT_HASH = "a".repeat(64)
     }

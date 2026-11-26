@@ -1,7 +1,7 @@
 # SYNTRA Task Registry
 
-**Registry version:** 1.1.0  
-**Last updated:** 2026-11-23  
+**Registry version:** 1.2.0  
+**Last updated:** 2026-11-26  
 **Scope:** Shared ecosystem-level task tracking. Product-specific work should be tracked in its own repository when one exists.
 
 ## Status key
@@ -34,6 +34,10 @@ Priority:
 | SYN-005 | P2 | DONE | Add version tracker | [Version Tracker](version-tracker.md) |
 | SYN-006 | P2 | DONE | Add release notes template | [Template](../.github/release_template.md) |
 | SYN-007 | P2 | DONE | Add repository checks script and workflow | [Workflow](../.github/workflows/repository-checks.yml) |
+
+## Lifecycle note
+
+Syntra Files was discontinued by Founder decision on 2026-11-26. Do not create active development, upgrade, or QA tasks for it unless the Founder explicitly reopens the project. Preserve historical issues and evidence as archive references.
 
 ## Task intake rules
 

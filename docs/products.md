@@ -1,89 +1,150 @@
 # SYNTRA Ecosystem — Product Directory
 
-> Document status: Initial product catalogue  
-> Version: 1.0.0  
-> Last updated: 2026-11-23
+> Document status: Reviewed product catalogue  
+> Version: 1.1.0  
+> Last updated: 2026-11-26
 
-This document is the central directory for products in the SYNTRA Ecosystem. It records each product's purpose, scope, current status, and documentation entry points.
+This document is the central directory for SYNTRA projects. It records purpose, status, scope, and verified maturity. A listing does not mean a product is publicly released, production-ready, or available for download.
 
-Product status must reflect verified development progress. A listing here does not mean that a product is publicly released, production-ready, or available for download.
+Status is based on Founder confirmation and the latest available repository documentation/code snapshot. Where runtime or device evidence is missing, that limitation is stated explicitly.
 
-## 1. Product overview
+## 1. Active project overview
 
-| Product | Category | Primary purpose | Current status |
+| Project | Category | Primary purpose | Current status |
 |---|---|---|---|
-| [SYNTRA OS](#2-syntra-os) | Operating-system project | Develop the SYNTRA operating-system experience | In development |
-| [Syntra Files](#3-syntra-files) | File-management application | Browse and manage files | Testing and upgrading |
+| [SYNTRA OS](https://github.com/dea78799-dotcom/SyntraOS) | Operating-system project | Independent SYNTRA operating-system development | Early Development 0.1.0; primary development focus |
+| [SYNTRA VPN](https://github.com/dea78799-dotcom/SYNTRA-VPN) | Android application / cloud infrastructure | VPN client, cloud control plane, and VPS gateways | Engineering foundation / Android prototype 0.6.5-dev |
+| [SYNTRA VM](https://github.com/dea78799-dotcom/SYNTRA-VM) | Cloud platform | Cloud virtual machines, starting with Android VM | Development sandbox 0.1; Phase 1 Billing Foundation |
+| [SYNTRA SOCIAL](https://github.com/dea78799-dotcom/SYNTRA-Social) | Social application | Mobile-first posts, media, profiles, and communities | Prototype 2.56; not production-ready |
+| [SYNTRA NEXUS](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/tree/main/projects/syntra-nexus) | Android device ecosystem | Opt-in device pairing and trusted-device management | Local-first prototype 0.11.37-dev |
+| [SYNTRA Website](https://dea78799-dotcom.github.io/SYNTRA-Website) | Public website | Official information, changelog, docs, support, and downloads | Maintained; version 2.15 |
+| [SYNTRA Discord Bridge / AUTO-BOT](https://github.com/dea78799-dotcom/SYNTRA-Discord-Bridge) | Community infrastructure | Discord assistant, slash commands, and server monitoring | Operational infrastructure; verify live runtime before asserting uptime |
+| [SYNTRA Ecosystem / SYNTRA GROUP](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem) | Governance and documentation | Shared direction, standards, catalogue, and project coordination | Maintained central documentation |
 
 ## 2. SYNTRA OS
 
-**Category:** Operating-system project  
-**Status:** In development  
+**Status:** In development — Early Development 0.1.0  
 **Priority:** Primary development focus
 
-### Purpose
+SYNTRA OS is the main operating-system project within the ecosystem. Its direction is a microkernel-based architecture targeting ARM64, x86_64, and RISC-V.
 
-SYNTRA OS is the main operating-system project within the SYNTRA Ecosystem. Its goal is to develop a coherent operating-system experience under the SYNTRA identity.
+The intended engineering areas include bootloader, kernel, drivers, system services, and user interface. The project README and recorded CI evidence are the source of truth for implemented components and supported environments.
 
-### Scope
+**Limitations:** Early development is not a production OS release. CI/QEMU evidence does not establish compatibility with physical devices or general availability.
 
-The detailed feature set, supported devices, technical base, and release targets must be maintained in the SYNTRA OS project repository and its own documentation. This central catalogue does not assume features or compatibility that have not been verified.
+Repository: https://github.com/dea78799-dotcom/SyntraOS
 
-### Development expectations
+## 3. SYNTRA VPN
 
-- Maintain a clear feature and version history.
-- Document supported environments and known limitations.
-- Test core workflows on the intended target devices.
-- Review permissions, data handling, and update behavior before release.
-- Mark experimental features clearly.
+**Status:** In development — Android prototype / engineering foundation  
+**Version reference:** 0.6.5 development
 
-### Release status
+SYNTRA VPN is planned as an Android VPN application with a cloud Control Plane and VPN Gateway nodes hosted on VPS infrastructure. The selected architecture includes WireGuard and OpenVPN.
 
-SYNTRA OS is in development. No production release or general availability is asserted by this document.
+Current work includes Android client foundations, account/device authentication, Supabase Auth integration, and device registration/listing/revocation APIs.
 
-## 3. Syntra Files
+**Limitations:** WireGuard engine remains disabled pending gateway availability and end-to-end validation. Do not claim production VPN connectivity, completed OpenVPN integration, or commercial availability without fresh test evidence.
 
-**Category:** File-management application  
-**Status:** Testing and upgrading
+Repository: https://github.com/dea78799-dotcom/SYNTRA-VPN
 
-### Purpose
+## 4. SYNTRA VM
 
-Syntra Files is a file-management application in the SYNTRA Ecosystem. It is intended to help users browse and work with files through a clear, consistent interface.
+**Status:** In development — Phase 1 Billing Foundation  
+**Version reference:** 0.1 development sandbox
 
-### Scope
+SYNTRA VM is a cloud virtual-machine platform, with Android VM prioritized before PC VM. The selected business model is hybrid:
+- Recurring Premium subscriptions.
+- SYNTRA VM Credits.
+- Additional storage purchases.
 
-The application may provide file browsing and file-type-aware access. Specific operations, supported formats, installation behavior, and device compatibility must be confirmed in the product implementation and tests before being advertised as supported.
+The engineering foundation includes billing/catalogue concepts and an immutable credit-ledger direction.
 
-### Development expectations
+**Limitations:** Do not describe real payment processing, production VM provisioning, metering, or a public commercial service as complete unless the repository and deployment evidence confirm it.
 
-- Handle file and folder access using platform-approved permissions.
-- Clearly distinguish viewing, editing, sharing, installing, and deleting actions.
-- Confirm potentially destructive actions before they are performed.
-- Handle unsupported formats and access errors with clear messages.
-- Test on supported Android versions and target devices.
-- Keep installation and update behavior transparent.
+Repository: https://github.com/dea78799-dotcom/SYNTRA-VM
 
-### Release status
+## 5. SYNTRA SOCIAL
 
-Syntra Files is currently being tested and upgraded. It must not be described as a finished or stable release until the required checks have passed and a release is published.
+**Status:** Prototype in development  
+**Version reference:** Prototype 2.56
 
-## 4. Product status definitions
+SYNTRA SOCIAL is a mobile-first social platform for posts, photos, videos, profiles, and communities. The current prototype uses Supabase foundations, including authentication and private media synchronization.
+
+**Limitations:** It is not production-ready and must not be described as publicly launched. End-to-end device testing, privacy, moderation, and safety work remain release requirements.
+
+Repository: https://github.com/dea78799-dotcom/SYNTRA-Social
+
+## 6. SYNTRA NEXUS
+
+**Status:** Android local-first prototype  
+**Version reference:** 0.11.37-dev
+
+SYNTRA NEXUS focuses on opt-in device management and trusted pairing, with explicit consent and permission boundaries.
+
+**Limitations:** Production LAN transport, remote control, file transfer, and screen streaming are not confirmed as available. Do not present these capabilities as working features. TV support is deferred.
+
+Project directory: https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/tree/main/projects/syntra-nexus
+
+## 7. SYNTRA Website
+
+**Status:** Maintained public website  
+**Version reference:** 2.15
+
+The official website provides public ecosystem information, project status, changelog, documentation, support, and a download centre.
+
+The website's active project catalogue must match this directory. Syntra Files is excluded from active product listings.
+
+Website: https://dea78799-dotcom.github.io/SYNTRA-Website  
+Repository: https://github.com/dea78799-dotcom/SYNTRA-Website
+
+## 8. SYNTRA Discord Bridge / AUTO-BOT
+
+**Status:** Operational community infrastructure
+
+The Discord bot and backend bridge support the SYNTRA community assistant, slash commands, server planning, persistent project knowledge, and AUTO-BOT monitoring.
+
+**Operational boundary:** A successful Railway deployment is not by itself proof of continuous uptime or a specific replica count. Use current Railway runtime logs and Discord interaction tests before reporting Online, replica count, or command responsiveness.
+
+Repository: https://github.com/dea78799-dotcom/SYNTRA-Discord-Bridge
+
+## 9. SYNTRA Ecosystem / SYNTRA GROUP
+
+**Status:** Maintained governance and documentation layer
+
+This repository provides shared project direction, architecture, standards, product catalogue, roadmap, and governance. It is not a separate end-user software product.
+
+Repository: https://github.com/dea78799-dotcom/SYNTRA-Ecosystem
+
+## 10. Discontinued project — Syntra Files
+
+**Status:** Discontinued — Founder decision, 2026-11-26
+
+Syntra Files was a former file-management application in the SYNTRA ecosystem. Active development has ended.
+
+- Do not list Syntra Files as an active, in-development, testing, or upgrading product.
+- Do not plan new features, fixes, releases, or tests for it unless the Founder explicitly reopens the project.
+- Retain its repository, source, changelog, and historical CI records as historical reference.
+- Historical build/test results do not imply current support or ongoing development.
+- The official SYNTRA Website v2.15 has removed it from the active product catalogue.
+
+Historical repository: https://github.com/dea78799-dotcom/Syntra-Files
+
+## 11. Status definitions
 
 | Status | Meaning |
 |---|---|
-| Proposed | An idea being evaluated; implementation has not necessarily started |
+| Proposed | Idea under evaluation; implementation may not have started |
 | In development | Active implementation is underway |
-| Testing | A build or feature is undergoing defined tests |
-| Testing and upgrading | Testing is ongoing while fixes or improvements are being made |
-| Released | A version has been published with release notes |
+| Prototype / Engineering foundation | Early implementation; capabilities and maturity are limited |
+| Operational infrastructure | A service is deployed or used; current runtime health still requires live verification |
+| Maintained | Existing public website or shared documentation is being maintained |
+| Released | A version has been published with release notes and required QA |
 | On hold | Work is paused |
+| Discontinued | Active development has ended; history is retained |
 
-A status change should be supported by a repository update, test record, or release record.
+## 12. Shared product requirements
 
-## 5. Shared product requirements
-
-Every SYNTRA product should:
-
+Every active SYNTRA product should:
 1. Use approved SYNTRA brand assets.
 2. Provide clear product information and version identification.
 3. Document supported devices, platforms, and limitations.
@@ -93,20 +154,10 @@ Every SYNTRA product should:
 7. Maintain a changelog for meaningful updates.
 8. Avoid claiming unsupported features or unverified compatibility.
 
-## 6. Product independence
+## 13. Keeping this directory current
 
-Each product should own its source code, technical decisions, tests, and release lifecycle. The ecosystem repository provides shared direction and discovery; it does not replace each product's own source repository.
-
-Products may integrate when there is a documented user benefit, a defined interface, and an appropriate privacy and security review.
-
-## 7. Future product proposals
-
-New product ideas should be listed separately as **proposed** only after their purpose and scope have been reviewed. They must not be mixed with active products or presented as available services.
-
-## 8. Keeping this directory current
-
-Update this document when a product changes its purpose, status, platform support, or release state. For detailed implementation progress, consult the product's own repository and release notes.
+Update this document when a product changes purpose, status, platform support, or release state. Consult each product's own repository for implementation details. Founder decisions about project lifecycle must be reflected promptly in the catalogue, roadmap, dashboard, and version tracker.
 
 ---
 
-**Current catalogue:** 2 active product projects. SYNTRA OS is the primary development focus; Syntra Files remains in testing and upgrading.
+**Current catalogue:** 8 active projects/operational or governance components, plus 1 discontinued historical project. SYNTRA OS remains the primary product-development focus.

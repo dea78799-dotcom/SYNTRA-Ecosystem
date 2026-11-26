@@ -25,7 +25,6 @@ This repository is the central starting point for the SYNTRA Ecosystem: its arch
 |---|---|---|
 | **SYNTRA OS** | Operating-system project and primary development focus | In development |
 | **SYNTRA NEXUS** | Local-first Android device-management prototype | Prototype 0.11.37-dev; production transport and remote-control capabilities not yet available |
-
 | **SYNTRA VPN** | Android VPN client and cloud control plane | Engineering foundation / Android prototype; production VPN gateway not verified |
 | **SYNTRA VM** | Cloud virtual-machine platform | Development sandbox; Phase 1 billing foundation |
 | **SYNTRA SOCIAL** | Mobile-first social platform | Prototype 2.56; not production-ready |

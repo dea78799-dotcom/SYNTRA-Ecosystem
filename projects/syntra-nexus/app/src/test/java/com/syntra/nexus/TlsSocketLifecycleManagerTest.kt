@@ -98,9 +98,8 @@ class TlsSocketLifecycleManagerTest {
 
         val executor = Executors.newFixedThreadPool(3)
         val received = executor.submit<Boolean> {
-            try {
-                (server.accept() as SSLSocket).use { peer ->
-                    peer.soTimeout = SERVER_READ_TIMEOUT_MILLIS
+            (server.accept() as SSLSocket).use { peer ->
+                peer.soTimeout = SERVER_READ_TIMEOUT_MILLIS
                 peer.startHandshake()
                 peer.inputStream.read() >= 0 && peer.inputStream.read() >= 0
             }

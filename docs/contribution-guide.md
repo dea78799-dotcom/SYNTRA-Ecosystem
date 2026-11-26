@@ -153,7 +153,7 @@ A contribution is accepted only after the authorized maintainer approves and mer
 
 ## 13. Current project status
 
-SYNTRA OS remains **In development**. Syntra Files remains **Testing and upgrading**. Contributions and documentation do not, by themselves, indicate that either product is ready for stable release.
+SYNTRA OS remains the primary development focus. SYNTRA VPN, SYNTRA VM, SYNTRA SOCIAL, and SYNTRA NEXUS remain at prototype or engineering-foundation maturity; see the Product Directory for their current boundaries. Syntra Files was discontinued by Founder decision on 2026-11-26 and is not an active contribution target. Its repository and historical records are retained for reference only.
 
 ## 14. Maintenance
 

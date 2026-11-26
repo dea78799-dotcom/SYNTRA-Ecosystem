@@ -19,13 +19,20 @@ This repository is the central starting point for the SYNTRA Ecosystem: its arch
 
 ## Products
 
+**Current catalogue reviewed:** 2026-11-26. See [Product Directory](docs/products.md) for detailed status, scope, and limitations. Syntra Files is discontinued and excluded from the active product list.
+
 | Product | Purpose | Current status |
 |---|---|---|
 | **SYNTRA OS** | Operating-system project and primary development focus | In development |
-| **Syntra Files** | File-management application | Testing and upgrading |
-| **SYNTRA NEXUS** | Local-first Android device-management prototype | Local one-time invitation-token registry prototype 0.8.0-dev; network pairing not implemented |
+| **SYNTRA NEXUS** | Local-first Android device-management prototype | Prototype 0.11.37-dev; production transport and remote-control capabilities not yet available |
 
-Other products may be introduced when the current products are sufficiently stable. Planned ideas are not considered released products.
+| **SYNTRA VPN** | Android VPN client and cloud control plane | Engineering foundation / Android prototype; production VPN gateway not verified |
+| **SYNTRA VM** | Cloud virtual-machine platform | Development sandbox; Phase 1 billing foundation |
+| **SYNTRA SOCIAL** | Mobile-first social platform | Prototype 2.56; not production-ready |
+| **SYNTRA Website** | Public ecosystem website | Maintained; version 2.15 |
+| **SYNTRA Discord Bridge / AUTO-BOT** | Discord community bot and backend bridge | Operational infrastructure; runtime state must be verified from live logs |
+
+Syntra Files is discontinued and retained only as a historical project. Other products may be introduced when the current products are sufficiently stable. Planned ideas are not considered released products.
 
 ## Ecosystem principles
 
@@ -106,6 +113,7 @@ Files and folders will be added as their contents are ready; this outline does n
 - **Upgrading** — existing functionality or design is being improved.
 - **Released** — a usable version has been published.
 - **On hold** — work is paused.
+- **Discontinued** — active development has ended; repository and history may be retained for reference.
 
 ## Roadmap
 
@@ -120,7 +128,7 @@ Roadmap items are plans, not claims that the work is already complete.
 
 ## Project status
 
-**SYNTRA Ecosystem is in the planning and foundation-building stage.** Product development and testing progress will be documented as work advances.
+**SYNTRA Ecosystem maintains shared direction and project documentation across multiple development stages.** Individual product maturity varies; prototype, operational infrastructure, and released products must not be conflated. Syntra Files was discontinued on 2026-11-26 and is not an active product.
 
 ---
 

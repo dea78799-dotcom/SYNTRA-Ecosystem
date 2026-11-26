@@ -1,37 +1,57 @@
 # SYNTRA Version Tracker
 
-**Tracker version:** 1.2.0  
-**Last reviewed:** 2026-11-23
+**Tracker version:** 1.3.0  
+**Last reviewed:** 2026-11-26
 
-This page records product source versions, verified revisions, CI evidence, and software release status. A version present in source configuration is recorded as a development version; it is not automatically a published release.
+This page records source versions, verified revisions, CI evidence, and software release status. A version present in source configuration is a development version; it is not automatically a published release.
 
-## Current product records
+## Active product records
 
-| Product | Source version | Channel | Current status | Latest main revision | CI evidence |
-|---|---|---|---|---|---|
-| [SYNTRA OS](https://github.com/dea78799-dotcom/SyntraOS) | 0.1.0 | Development | CI passed on recorded revision; physical-device QA pending | [11db170](https://github.com/dea78799-dotcom/SyntraOS/commit/11db17032c7de96a9ad4aed7fc541542d352be60) | [2026-11-23 CI record](evidence/2026-11-23-syntraos-ci.md) |
-| [Syntra Files](https://github.com/dea78799-dotcom/Syntra-Files) | 0.71.0 (versionCode 701) | Development | Newer CI runs pending; v0.69.0 CI evidence is historical; device QA pending | [82461ec](https://github.com/dea78799-dotcom/Syntra-Files/commit/82461ec4ee015f4fc9b54c29308a37590edcc78e) | [Physical-device QA checklist](https://github.com/dea78799-dotcom/Syntra-Files/blob/main/docs/physical-device-qa-checklist.md) · [QA issue #1](https://github.com/dea78799-dotcom/Syntra-Files/issues/1) |
+| Project | Version reference | Channel / maturity | Current status |
+|---|---|---|---|
+| [SYNTRA OS](https://github.com/dea78799-dotcom/SyntraOS) | 0.1.0 | Early Development | Primary development focus; physical-device QA not established |
+| [SYNTRA VPN](https://github.com/dea78799-dotcom/SYNTRA-VPN) | 0.6.5-dev | Android prototype / engineering | Gateway and end-to-end VPN operation not confirmed |
+| [SYNTRA VM](https://github.com/dea78799-dotcom/SYNTRA-VM) | 0.1 development sandbox | Development | Phase 1 Billing Foundation |
+| [SYNTRA SOCIAL](https://github.com/dea78799-dotcom/SYNTRA-Social) | Prototype 2.56 | Prototype | Not production-ready |
+| [SYNTRA NEXUS](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem/tree/main/projects/syntra-nexus) | 0.11.37-dev | Prototype | Production transport and remote-control capabilities not confirmed |
+| [SYNTRA Website](https://dea78799-dotcom.github.io/SYNTRA-Website) | 2.15 | Maintained website | Active public website |
+| [SYNTRA Discord Bridge / AUTO-BOT](https://github.com/dea78799-dotcom/SYNTRA-Discord-Bridge) | Runtime service; source version not asserted here | Operational infrastructure | Discord login and slash-command registration observed in Railway logs on 2026-11-26 |
+| [SYNTRA Ecosystem / GROUP](https://github.com/dea78799-dotcom/SYNTRA-Ecosystem) | Documentation 1.1.0 catalogue | Governance/documentation | Maintained |
 
-## Verified CI snapshot
+Version references above are drawn from the latest available project notes and are not all independently rebuilt in this documentation update. Verify the canonical product repository before preparing a release.
 
-- **SYNTRA OS:** The workflow run on the recorded revision completed successfully. Host Debug and Release builds and CTest passed; ARM64 kernel cross-build, ELF verification, EL0 check, QEMU boot, and desktop framebuffer verification passed.
-- **Syntra Files v0.69.0:** The earlier workflow run on revision `bd4f54f` completed successfully and uploaded a Debug APK. This is historical evidence for v0.69.0 only.
-- **Syntra Files v0.71.0:** Source configuration confirms versionName `0.71.0` and versionCode `701`. Multiple newer Android CI runs were observed in progress at the time of this update; no success/failure is asserted for those runs. Check the repository Actions page for current results.
-- **Important boundary:** CI results verify only the jobs actually completed for their specific source revisions. Physical-device compatibility and complete product QA remain pending.
+## Discontinued project history
+
+### Syntra Files
+- **Lifecycle status:** Discontinued by Founder decision on 2026-11-26.
+- **Historical source version previously recorded:** 0.71.0 (versionCode 701).
+- **Historical CI:** Earlier v0.69.0 CI success and later v0.71.0 source snapshot are historical records only.
+- **Current release status:** No ongoing development, testing, upgrade, or release work is planned.
+- **Retention:** Keep repository, commits, changelog, and historical QA/CI records for reference.
+- **Historical repository:** https://github.com/dea78799-dotcom/Syntra-Files
+
+Historical versions and CI records must not be interpreted as current support or an active release channel.
+
+## CI and release evidence
+
+- Link each CI result to the exact source revision and workflow run.
+- Record device/runtime tests separately from CI.
+- A successful build does not prove complete product QA or production readiness.
+- Do not carry forward old test results as evidence for newer source revisions.
 
 ## Release history
 
-No SYNTRA OS or Syntra Files software releases are recorded in this repository yet. Source versions above are not declarations of published or stable releases.
+No new software release is declared by this documentation update. Add release records only when a real artifact has been published and verified.
 
-| Product | Version | Channel | Date | Source revision | Notes |
+| Project | Version | Channel | Date | Source revision | Notes |
 |---|---|---|---|---|---|
-| — | — | — | — | — | No product release entries yet |
+| — | — | — | — | — | No new release entries in this update |
 
 ## Version record template
 
 Copy this template for each release candidate or published release:
 
-- **Product:**
+- **Project:**
 - **Version:**
 - **Channel:** Development / Alpha / Beta / RC / Stable / Hotfix
 - **Status:** Planned / Building / Testing / Approved / Published / Withdrawn
@@ -59,16 +79,11 @@ Copy this template for each release candidate or published release:
 7. Release notes and known limitations prepared.
 8. Owner approval documented.
 
-## Product evidence
-
-Use the [Product Build and QA Evidence Template](product-evidence-template.md) to collect build identity, target environment, QA results, known issues, and release decisions. Verified CI snapshots are stored in [docs/evidence](evidence/); create a new dated record when a product revision or test environment changes. The [Syntra Files physical-device checklist](https://github.com/dea78799-dotcom/Syntra-Files/blob/main/docs/physical-device-qa-checklist.md) is the next manual test.
-
 ## Rules
 
-- Record product versions from actual source configuration; do not invent them.
+- Record versions from actual source configuration or clearly label them as version references.
 - Never invent a build number, release date, or artifact URL.
 - Documentation changes alone do not create a software release.
 - Alpha/Beta/RC/Stable labels must match test evidence and intended audience.
-- Update this tracker when a candidate is prepared or a release is published.
-- Keep history; do not overwrite prior published entries.
+- Keep historical records, including discontinued projects, without treating them as active.
 - Follow [Release Management](release-management.md) and [Quality Assurance](quality-assurance.md).

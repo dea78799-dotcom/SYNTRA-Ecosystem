@@ -30,6 +30,7 @@ This repository is the central starting point for the SYNTRA Ecosystem: its arch
 | **SYNTRA SOCIAL** | Mobile-first social platform | Prototype 2.56; not production-ready |
 | **SYNTRA Website** | Public ecosystem website | Maintained; version 2.15 |
 | **SYNTRA Discord Bridge / AUTO-BOT** | Discord community bot and backend bridge | Operational infrastructure; runtime state must be verified from live logs |
+| **SYNTRA Ecosystem / SYNTRA GROUP** | Shared governance and documentation | Maintained central ecosystem layer |
 
 Syntra Files is discontinued and retained only as a historical project. Other products may be introduced when the current products are sufficiently stable. Planned ideas are not considered released products.
 

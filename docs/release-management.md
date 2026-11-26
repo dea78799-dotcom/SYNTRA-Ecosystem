@@ -2,7 +2,7 @@
 
 **Document version:** 1.0.0  
 **Status:** Initial standard  
-**Applies to:** SYNTRA OS, Syntra Files, and future SYNTRA products
+**Applies to:** Active SYNTRA products and services that publish versioned releases
 
 This document defines how SYNTRA versions, prepares, approves, publishes, and maintains product releases. A documentation version is not a software release, and a planned release is not considered published until the release artifacts are available.
 
@@ -120,12 +120,11 @@ A hotfix should address a specific issue with the smallest practical change.
 
 Product development status and release channel are separate concepts.
 
-For example, a product may be **In development** while producing internal Development builds. A product marked **Testing and upgrading** is not automatically a Beta or Stable release.
+For example, a product may be **In development** while producing internal Development builds. A prototype is not automatically a Beta or Stable release. A discontinued project has no active release channel.
 
-Current product records:
+Current product records are maintained in the [Product Directory](products.md) and [Version Tracker](version-tracker.md).
 
-- SYNTRA OS: In development.
-- Syntra Files: Testing and upgrading.
+Syntra Files was discontinued by Founder decision on 2026-11-26. No new releases, upgrades, or testing are planned. Historical versions and CI evidence remain archival references only.
 
 No stable release is implied by this document.
 

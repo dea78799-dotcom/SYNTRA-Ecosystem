@@ -1,6 +1,6 @@
 # SYNTRA Project Governance
 
-**Document version:** 1.0.0  
+**Document version:** 1.1.0  
 **Status:** Initial governance standard  
 **Applies to:** SYNTRA ecosystem planning, repositories, products, and project contributors
 
@@ -158,11 +158,20 @@ Changes to governance standards require review and approval by the Project Lead.
 
 SYNTRA OS is the primary development focus and remains **In development**. Product priorities, target environments, system-level permissions, update behavior, and release readiness require explicit review.
 
-### Syntra Files
+### Other active SYNTRA projects
 
-Syntra Files remains **Testing and upgrading**. Changes involving file access, deletion, overwrite, installation, or user data require careful review and appropriate testing.
+- **SYNTRA VPN:** Android prototype / engineering foundation; do not claim production VPN operation without gateway and end-to-end evidence.
+- **SYNTRA VM:** Phase 1 Billing Foundation; do not claim real payment processing or production VM provisioning without evidence.
+- **SYNTRA SOCIAL:** Prototype; not production-ready or publicly launched.
+- **SYNTRA NEXUS:** Local-first Android prototype; do not claim production transport or remote-control capabilities without evidence.
+- **SYNTRA Website:** Maintained public website; keep its catalogue aligned with the central directory.
+- **SYNTRA Discord Bridge / AUTO-BOT:** Operational community infrastructure; verify live runtime and actual Discord interactions before asserting uptime or replica count.
 
-Product status must be updated only when supported by actual implementation and test evidence.
+### Syntra Files — discontinued
+
+Syntra Files was discontinued by Founder decision on **2026-11-26**. It is not an active product and must not be assigned new feature development, upgrades, or testing tasks. Its repository, source, changelog, and historical CI records are retained for reference. Reopening the project requires explicit Founder approval and an updated lifecycle decision.
+
+Product status must be updated when supported by Founder decisions and/or implementation, test, and runtime evidence. Historical records must be labeled as historical.
 
 ## 10. Release governance
 

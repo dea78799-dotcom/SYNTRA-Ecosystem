@@ -6,6 +6,11 @@ This project follows a simple Keep a Changelog-style structure. Versions are ass
 
 ## [Unreleased]
 
+### Changed
+- Refreshed the central SYNTRA project catalogue, roadmap, dashboard, architecture, governance, contribution, release, and version documentation on 2026-11-26.
+- Marked Syntra Files as discontinued by Founder decision on 2026-11-26; retained its repository, changelog, and CI records as historical references only. It is no longer an active development or testing target.
+- Added current status summaries for SYNTRA VPN, SYNTRA VM, SYNTRA SOCIAL, SYNTRA NEXUS, SYNTRA Website, and SYNTRA Discord Bridge / AUTO-BOT.
+
 ### Added
 - SYNTRA NEXUS 0.5.0-dev: canonical, versioned mutual-pairing transcript with fixed field ordering, explicit length prefixes, both peer public keys, invitation request ID/expiry, and independent 32-byte nonces.
 - NEXUS ECDSA signatures bind the transcript hash to the initiator or responder role; tests cover role-reflection rejection and canonical transcript validation.
@@ -35,13 +40,13 @@ This project follows a simple Keep a Changelog-style structure. Versions are ass
 ### Added
 - Established the SYNTRA Ecosystem repository overview and project status in `README.md`.
 - Added the initial ecosystem architecture in `docs/architecture.md`.
-- Added the product directory for SYNTRA OS and Syntra Files in `docs/products.md`.
+- Added the initial product directory in `docs/products.md`.
 - Added the phased development roadmap in `docs/roadmap.md`.
 - Added shared development and quality standards in `docs/development-standards.md`.
 
 ### Status
 - SYNTRA OS: In development.
-- Syntra Files: Testing and upgrading.
+- Syntra Files: At the time of the 2026-11-23 baseline, it was recorded as testing and upgrading. This historical status was superseded by the Founder discontinuation decision on 2026-11-26.
 - This is a documentation baseline, not a software product release.
 
 ---

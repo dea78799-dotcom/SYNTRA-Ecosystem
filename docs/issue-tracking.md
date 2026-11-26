@@ -1,8 +1,8 @@
 # SYNTRA Issue Tracking Standard
 
-**Document version:** 1.0.0  
+**Document version:** 1.1.0  
 **Status:** Initial tracking standard  
-**Applies to:** SYNTRA Ecosystem, SYNTRA OS, and Syntra Files
+**Applies to:** Active SYNTRA ecosystem projects and repositories
 
 This document defines a consistent issue-label vocabulary and a recommended GitHub Projects workflow. It is a configuration specification; labels and a Projects board are not considered active until they have been created and verified in GitHub.
 
@@ -51,7 +51,14 @@ Suggested product labels:
 
 - `product: ecosystem`
 - `product: syntra-os`
-- `product: syntra-files`
+- `product: syntra-vpn`
+- `product: syntra-vm`
+- `product: syntra-social`
+- `product: syntra-nexus`
+- `product: syntra-website`
+- `product: discord-bridge`
+
+The legacy `product: syntra-files` label may be retained only for historical issues; do not use it to create or classify active development work.
 
 Suggested area labels:
 
@@ -85,7 +92,7 @@ Where supported by the GitHub Projects configuration, use:
 
 - **Status:** one of the workflow columns above.
 - **Priority:** Critical, High, Normal, Low.
-- **Product:** Ecosystem, SYNTRA OS, Syntra Files.
+- **Product:** Ecosystem, SYNTRA OS, SYNTRA VPN, SYNTRA VM, SYNTRA SOCIAL, SYNTRA NEXUS, Website, Discord Bridge. Historical Syntra Files issues may retain their original label for archive purposes.
 - **Target version:** optional release or milestone.
 - **Owner:** the person responsible for the next action.
 
